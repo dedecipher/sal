@@ -10,7 +10,8 @@ export {
 
 // Export Solana-related modules
 export { SolanaClient, SolanaClientOptions } from './solana/solanaClient';
-export { DirectoryService, DirectoryServiceConfig } from './solana/directoryService';
+export { default as DirectoryService } from './solana/directoryService';
+export type { DirectoryServiceConfig } from './solana/directoryService';
 
 // Export type definitions
 export {

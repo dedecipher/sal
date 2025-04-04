@@ -8,7 +8,7 @@ import {
   SecureMessage,
   EncryptionParams
 } from '../solana/types';
-import { DirectoryService } from '../solana/directoryService';
+import DirectoryService from '../solana/directoryService';
 import crypto from 'crypto';
 
 export interface SecureMessagingOptions {

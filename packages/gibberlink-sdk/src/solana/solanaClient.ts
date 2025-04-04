@@ -6,7 +6,7 @@ import {
   TransactionResponse,
   GLModeData
 } from './types';
-import { DirectoryService } from './directoryService';
+import DirectoryService from './directoryService';
 import crypto from 'crypto';
 
 export interface SolanaClientOptions {

@@ -10,7 +10,7 @@ export interface DirectoryServiceConfig {
  * DirectoryService provides a registry of AI agents with their identities
  * and Solana public keys, functioning like a DNS for agents.
  */
-export class DirectoryService {
+export default class DirectoryService {
   private config: DirectoryServiceConfig;
   private cache: Map<string, { data: AgentIdentity; timestamp: number }> = new Map();
 

@@ -57,7 +57,31 @@ export class AudioEncoder extends EventEmitter<AudioEncoderEvents> {
         this.context = new AudioContext({ sampleRate: 48000 });
       }
 
-      if (!this.ggwave && typeof window !== 'undefined' && (window as any).ggwave_factory) {
+      // ggwave가 아직 로드되지 않았을 때 로드 대기
+      if (!this.ggwave && typeof window !== 'undefined') {
+        console.log('Waiting for ggwave to load...');
+        if (!(window as any).ggwave_factory) {
+          // ggwave 스크립트 로드 확인
+          const ggwaveScript = document.querySelector('script[src*="ggwave.js"]');
+          if (!ggwaveScript) {
+            console.error('GibberLink SDK: ggwave.js script not found in document');
+            throw new Error('ggwave.js script not found. Please include it in your HTML.');
+          }
+          
+          // ggwave 로드 대기 (최대 5초)
+          let retries = 0;
+          while (!(window as any).ggwave_factory && retries < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            retries++;
+          }
+          
+          if (!(window as any).ggwave_factory) {
+            console.error('GibberLink SDK: ggwave_factory not available after waiting');
+            throw new Error('Failed to load ggwave_factory');
+          }
+        }
+        
+        // ggwave 인스턴스 초기화
         this.ggwave = await (window as any).ggwave_factory();
         
         if (this.ggwave) {
@@ -72,10 +96,13 @@ export class AudioEncoder extends EventEmitter<AudioEncoderEvents> {
           
           this.instance = this.ggwave.init(parameters);
           console.log('GibberLink SDK: ggwave initialized', { instance: this.instance, ggwave: this.ggwave });
+        } else {
+          console.error('GibberLink SDK: Failed to initialize ggwave');
+          throw new Error('Failed to initialize ggwave');
         }
       }
 
-      return !!(this.context && this.ggwave);
+      return !!(this.context && this.ggwave && this.instance);
     } catch (error) {
       console.error('GibberLink SDK: Failed to initialize audio:', error);
       return false;

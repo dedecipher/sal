@@ -1784,7 +1784,7 @@ ggwave@^0.4.0:
   resolved "https://registry.npmjs.org/ggwave/-/ggwave-0.4.0.tgz"
   integrity sha512-+sKq0aIEVJ7zHj4Vw+Sj/RPa91xp76ihaG5gsOKZ8ojM5+uUu3NFzAspozwBx/zeaThxP5VeIkA2bbsfWpUd2g==
 
-"gibberlink-sdk@file:../packages/gibberlink-sdk":
+gibberlink-sdk@../packages/gibberlink-sdk:
   version "0.1.0"
   dependencies:
     eventemitter3 "^5.0.1"
