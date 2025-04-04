@@ -5,6 +5,12 @@ import { GibberLink } from 'gibberlink-sdk';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import Script from 'next/script';
 
+// Solana 관련 import 활성화
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useConnection } from '@solana/wallet-adapter-react';
+import { LAMPORTS_PER_SOL, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
+
 // Mocked Solana imports - 실제 구현 시 주석 해제
 // import { useWallet } from '@solana/wallet-adapter-react';
 // import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -87,9 +93,9 @@ export default function SecureTransactionDemo() {
   const [ggwaveLoaded, setGgwaveLoaded] = useState(false);
   
   // Solana wallet connection
-  // const { publicKey, sendTransaction } = useWallet();
-  // const { connection } = useConnection();
-  // const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const { publicKey, sendTransaction } = useWallet();
+  const { connection } = useConnection();
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   
   const gibberlinkRef = useRef<GibberLink | null>(null);
   const secureMessagingRef = useRef<SecureMessaging | null>(null);
@@ -115,28 +121,28 @@ export default function SecureTransactionDemo() {
   }, [mounted]);
   
   // Fetch wallet balance when connected
-  // useEffect(() => {
-  //   if (publicKey && connection) {
-  //     const fetchBalance = async () => {
-  //       try {
-  //         const balance = await connection.getBalance(publicKey);
-  //         setWalletBalance(balance / LAMPORTS_PER_SOL);
-  //         addLog(`Wallet connected: ${publicKey.toString().slice(0, 6)}...${publicKey.toString().slice(-4)}`);
-  //         addLog(`Balance: ${balance / LAMPORTS_PER_SOL} SOL`);
-  //       } catch (error) {
-  //         console.error('Error fetching balance:', error);
-  //       }
-  //     };
-  //     
-  //     fetchBalance();
-  //     // Set up interval to refresh balance
-  //     const intervalId = setInterval(fetchBalance, 20000);
-  //     
-  //     return () => clearInterval(intervalId);
-  //   } else {
-  //     setWalletBalance(null);
-  //   }
-  // }, [publicKey, connection]);
+  useEffect(() => {
+    if (publicKey && connection) {
+      const fetchBalance = async () => {
+        try {
+          const balance = await connection.getBalance(publicKey);
+          setWalletBalance(balance / LAMPORTS_PER_SOL);
+          addLog(`Wallet connected: ${publicKey.toString().slice(0, 6)}...${publicKey.toString().slice(-4)}`);
+          addLog(`Balance: ${balance / LAMPORTS_PER_SOL} SOL`);
+        } catch (error) {
+          console.error('Error fetching balance:', error);
+        }
+      };
+      
+      fetchBalance();
+      // Set up interval to refresh balance
+      const intervalId = setInterval(fetchBalance, 20000);
+      
+      return () => clearInterval(intervalId);
+    } else {
+      setWalletBalance(null);
+    }
+  }, [publicKey, connection]);
   
   // 로그 자동 스크롤
   useEffect(() => {
@@ -163,19 +169,64 @@ export default function SecureTransactionDemo() {
         } as DirectoryService;
         
         // Initialize Solana Client with the selected agent identity
-        const agentIdentity = DEMO_AGENTS[selectedAgent];
         solanaClientRef.current = {
           rpcEndpoint: 'https://api.devnet.solana.com',
-          setAgentIdentity: (identity) => {
+          setAgentIdentity: (identity: any) => {
             console.log('Setting agent identity:', identity);
           },
-          sendTransaction: async (request) => {
-            // In a real implementation, this would use the Solana wallet
-            console.log('Processing transaction request:', request);
-            return {
-              status: 'completed',
-              signature: 'demo-signature-' + Math.random().toString(36).substring(2, 10)
-            };
+          sendTransaction: async (request: any): Promise<TransactionResponse> => {
+            // 실제 Solana wallet을 사용하여 트랜잭션 전송
+            if (publicKey && connection && sendTransaction) {
+              try {
+                addLog('Creating transaction with Solana wallet...');
+                
+                // 요청에서 트랜잭션 정보 추출
+                const { payload } = request;
+                const receiverPublicKey = new PublicKey(DEMO_AGENTS[targetAgent].publicKey);
+                
+                // 트랜잭션 생성
+                const transaction = new Transaction().add(
+                  // SOL 전송 instruction 생성
+                  SystemProgram.transfer({
+                    fromPubkey: publicKey,
+                    toPubkey: receiverPublicKey,
+                    lamports: payload.amount,
+                  })
+                );
+                
+                // 블록해시 설정
+                transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+                transaction.feePayer = publicKey;
+                
+                // 트랜잭션 서명 및 전송
+                const signature = await sendTransaction(transaction, connection);
+                
+                // 트랜잭션 확인
+                await connection.confirmTransaction(signature, 'confirmed');
+                
+                addLog(`Transaction sent with signature: ${signature}`);
+                
+                return {
+                  status: 'completed',
+                  signature
+                };
+              } catch (error) {
+                console.error('Error sending transaction:', error);
+                return {
+                  status: 'failed',
+                  error: error instanceof Error ? error.message : String(error)
+                };
+              }
+            } else {
+              // 지갑 연결이 안 된 경우 
+              addLog('Wallet not connected. Simulating transaction instead.');
+              
+              // 데모 모드에서는 트랜잭션 시뮬레이션
+              return {
+                status: 'completed',
+                signature: 'demo-signature-' + Math.random().toString(36).substring(2, 10)
+              };
+            }
           }
         } as unknown as SolanaClient;
         
@@ -194,10 +245,12 @@ export default function SecureTransactionDemo() {
               addLog('Secure messaging stopped');
             }
           },
-          addMessageListener: (callback) => {
+          addMessageListener: (callback: (event: MessageEvent) => void) => {
             // Simplified message handling for demo
             if (gibberlinkRef.current) {
-              gibberlinkRef.current.on('message', (audioMessage) => {
+              // GibberLink의 메시지 이벤트 구독
+              // 참고: 실제 SDK에서는 on 메서드를 구현해야 합니다.
+              const messageHandler = (audioMessage: { message: string }) => {
                 try {
                   const parsedMessage = JSON.parse(audioMessage.message);
                   callback({
@@ -214,10 +267,54 @@ export default function SecureTransactionDemo() {
                     content: audioMessage.message
                   });
                 }
-              });
+              };
+              
+              // 여기서는 GibberLink의 이벤트 리스닝 기능을 사용한다고 가정합니다
+              // 실제 SDK에서 on 메서드가 없다면 데모 모드로 전환합니다
+              const hasOnMethod = typeof (gibberlinkRef.current as any).on === 'function';
+              
+              if (hasOnMethod) {
+                // @ts-expect-error - SDK에서 on 메서드를 제공하는 경우
+                gibberlinkRef.current.on('message', messageHandler);
+              } else {
+                // 대체 방법: 메시지 수신 데모
+                // 5초마다 메시지 수신 시뮬레이션
+                const intervalId = setInterval(() => {
+                  if (Math.random() > 0.7 && isListening) {
+                    const simulatedTypes = [MessageType.TEXT, MessageType.TRANSACTION_REQUEST];
+                    const randomType = simulatedTypes[Math.floor(Math.random() * simulatedTypes.length)];
+                    
+                    if (randomType === MessageType.TEXT) {
+                      callback({
+                        type: MessageType.TEXT,
+                        sender: DEMO_AGENTS[targetAgent].id,
+                        content: `Hello from ${DEMO_AGENTS[targetAgent].name}!`
+                      });
+                    } else {
+                      callback({
+                        type: MessageType.TRANSACTION_REQUEST,
+                        sender: DEMO_AGENTS[targetAgent].id,
+                        content: {
+                          payload: {
+                            amount: 0.001 * 1_000_000_000,
+                            memo: 'Demo payment request',
+                            reference: `TXN-${Date.now()}`
+                          },
+                          recipient: DEMO_AGENTS[selectedAgent].id
+                        }
+                      });
+                    }
+                  }
+                }, 5000);
+                
+                // 클린업 함수 설정
+                (gibberlinkRef.current as any)._cleanupFunctions = 
+                  (gibberlinkRef.current as any)._cleanupFunctions || [];
+                (gibberlinkRef.current as any)._cleanupFunctions.push(() => clearInterval(intervalId));
+              }
             }
           },
-          sendSecureTextMessage: async (receiverId, message) => {
+          sendSecureTextMessage: async (receiverId: string, message: string) => {
             if (gibberlinkRef.current) {
               const messageObj = {
                 type: MessageType.TEXT,
@@ -229,7 +326,7 @@ export default function SecureTransactionDemo() {
             }
             return false;
           },
-          sendTransactionRequest: async (receiverId, payload) => {
+          sendTransactionRequest: async (receiverId: string, payload: TransactionPayload) => {
             if (gibberlinkRef.current) {
               const messageObj = {
                 type: MessageType.TRANSACTION_REQUEST,
@@ -244,7 +341,7 @@ export default function SecureTransactionDemo() {
             }
             return false;
           },
-          sendTransactionResponse: async (receiverId, response) => {
+          sendTransactionResponse: async (receiverId: string, response: TransactionResponse) => {
             if (gibberlinkRef.current) {
               const messageObj = {
                 type: MessageType.TRANSACTION_RESPONSE,
@@ -256,7 +353,7 @@ export default function SecureTransactionDemo() {
             }
             return false;
           },
-          setAgentIdentity: (identity) => {
+          setAgentIdentity: (identity: any) => {
             console.log('Setting secure messaging identity:', identity);
           }
         } as unknown as SecureMessaging;
@@ -458,8 +555,6 @@ export default function SecureTransactionDemo() {
               <div className="mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-900/20">
                 <h3 className="text-lg font-medium mb-3 text-gray-800 dark:text-gray-200">Solana Wallet</h3>
                 
-                {/* 
-                실제 구현 시 아래 코드 사용:
                 <div className="flex flex-col space-y-2">
                   <WalletMultiButton className="!bg-indigo-600 hover:!bg-indigo-700 !rounded-lg" />
                   
@@ -483,20 +578,6 @@ export default function SecureTransactionDemo() {
                       Connect your Solana wallet to use real transactions
                     </p>
                   )}
-                </div>
-                */}
-                
-                {/* 데모용 임시 UI */}
-                <div className="flex flex-col space-y-2">
-                  <button className="bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white py-2 px-4 font-medium">
-                    Connect Wallet
-                  </button>
-                  
-                  <div className="mt-2 text-sm">
-                    <p className="text-gray-600 dark:text-gray-400">
-                      For demo purposes, wallet connection is simulated. In a real implementation, this would connect to your Solana wallet.
-                    </p>
-                  </div>
                 </div>
               </div>
               
