@@ -70,4 +70,38 @@ export interface SecureMessage {
   encryptedContent: string; // Encrypted message content
   encryptionParams: EncryptionParams;
   signature: string;     // Signature of the encrypted content
-} 
+}
+
+/**
+ * Types for secure Solana transactions through S3L (Secure Solana Link) communication
+ */
+
+export enum Modality {
+  VOICE = 'voice',
+  TCP = 'tcp'
+}
+
+export interface HostConfig {
+  cluster: string;       // Required: Solana cluster
+  phoneNumber: string;   // Required: Phone number
+  host: string;          // Required: Host address
+  privateKey: string;    // Required: Solana private key
+  modality?: Modality;   // Optional: Communication modality (default: TCP)
+}
+
+export interface ClientConfig {
+  cluster: string;       // Required: Solana cluster
+  privateKey: string;    // Required: Solana private key
+  modality?: Modality;   // Optional: Communication modality (default: TCP)
+}
+
+export interface S3lMessageHeaders {
+  host?: string;         // Target host
+  phone?: string;        // Phone number
+  nonce: string;         // Nonce for security
+  blockHeight?: number;  // Solana block height
+  publicKey: string;     // Sender's public key
+}
+
+export type MessageHandler = (message: string, sender: string) => Promise<void> | void;
+export type TransactionHandler = (transaction: any) => Promise<string> | string; 

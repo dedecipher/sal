@@ -1,197 +1,134 @@
 # GibberLink SDK
 
-A modular SDK for audio-based message encoding and transmission using GL MODE with secure Solana transaction support.
+The GibberLink SDK provides tools for secure message encoding and transmission. It includes audio encoding capabilities and now features the S3L (Secure Solana Link) protocol.
 
 ## Features
 
-- Audio-based message encoding and decoding
-- Secure messaging with encryption and signature verification
-- Solana transaction support for agent-to-agent payments
-- Agent directory service integration
-- Support for visualization with AnalyserNode
-- Pre-signed transaction requests (invoices)
+- Audio message encoding and transmission using GL MODE
+- Secure messaging with S3L protocol
+- Solana blockchain integration for authentication and payments
+- Support for different communication modalities (TCP, audio)
+- Transaction processing and signature verification
+
+## S3L Protocol
+
+S3L (Secure Solana Link) is a secure messaging protocol that leverages Solana blockchain for authentication and payment capabilities. The protocol provides secure messaging with cryptographic signatures, ensuring message authenticity and enabling Solana transaction processing.
+
+### Key Features of S3L
+
+- Secure messaging with cryptographic signatures
+- Authentication through Solana keypairs
+- Transaction processing over secure channels
+- Multiple communication modalities (TCP, Voice)
+- Connection bootstrapping and handshake
+- Message and transaction handling
 
 ## Installation
 
 ```bash
+npm install gibberlink-sdk
+# or
 yarn add gibberlink-sdk
 ```
 
 ## Usage
 
-### Basic Usage
+### S3L Host (Server) Setup
 
 ```typescript
-import { GibberLink } from 'gibberlink-sdk';
+import { S3lHost, HostConfig, Modality } from 'gibberlink-sdk';
 
-// Create a new GibberLink instance
-const gibberlink = new GibberLink({ autoInit: true });
-
-// Listen for messages
-gibberlink.onMessage((message) => {
-  console.log(`Received message: ${message.message} from ${message.source}`);
-});
-
-// Start listening for audio messages
-await gibberlink.startListening();
-
-// Send a message
-await gibberlink.sendMessage('Hello, world!');
-
-// Stop listening when done
-await gibberlink.stopListening();
-```
-
-### Secure Messaging
-
-```typescript
-import { 
-  GibberLink, 
-  SecureMessaging, 
-  DirectoryService,
-  SolanaClient,
-  AgentIdentity 
-} from 'gibberlink-sdk';
-
-// Set up agent identity for this client
-const myIdentity: AgentIdentity = {
-  id: 'agent-123',
-  publicKey: 'solana-public-key-here',
-  name: 'Agent Smith',
-  phoneNumber: '+1-555-123-4567'
+// Configure the host
+const hostConfig: HostConfig = {
+  cluster: "https://api.mainnet-beta.solana.com",
+  host: "example.com",
+  phoneNumber: "1234567890",
+  privateKey: "your-solana-private-key",
+  modality: Modality.TCP
 };
 
-// Create a GibberLink instance
-const gibberlink = new GibberLink({ autoInit: true });
+// Create and initialize host
+const server = new S3lHost(hostConfig);
 
-// Set up the directory service for agent discovery
-const directoryService = new DirectoryService({
-  serviceUrl: 'https://agent-directory.example.com/api'
-});
+// Register message handlers
+server.register({
+  // Message handler
+  messageHandler: async (message, sender) => {
+    console.log(`Received message from ${sender}: ${message}`);
+    // Process message
+  },
 
-// Create a Solana client
-const solanaClient = new SolanaClient({
-  rpcEndpoint: 'https://api.devnet.solana.com',
-  agentIdentity: myIdentity,
-  directoryService
-});
-
-// Create the secure messaging layer
-const secureMessaging = new SecureMessaging({
-  gibberlink,
-  solanaClient,
-  directoryService,
-  agentIdentity: myIdentity
-});
-
-// Start secure messaging
-await secureMessaging.start();
-
-// Add a listener for secure messages
-secureMessaging.addMessageListener((event) => {
-  console.log(`Received ${event.type} from ${event.sender}: ${event.content}`);
-});
-
-// Send a secure text message
-await secureMessaging.sendSecureTextMessage('recipient-agent-id', 'Hello securely!');
-```
-
-### Solana Transactions
-
-```typescript
-import { 
-  SecureMessaging, 
-  MessageType, 
-  TransactionPayload 
-} from 'gibberlink-sdk';
-
-// Assuming secureMessaging is already set up as in the previous example
-
-// Listen for transaction requests
-secureMessaging.addMessageListener((event) => {
-  if (event.type === MessageType.TRANSACTION_REQUEST) {
-    const request = event.content;
-    console.log(`Received payment request for ${request.payload.amount} lamports`);
-    
-    // Verify and respond to the transaction
-    if (verifyTransaction(request)) {
-      // Approve and execute the transaction
-      solanaClient.sendTransaction(request).then(response => {
-        // Send the response back to the requester
-        secureMessaging.sendTransactionResponse(event.sender, response);
-      });
-    } else {
-      // Reject the transaction
-      secureMessaging.sendTransactionResponse(event.sender, {
-        status: 'rejected',
-        error: 'Transaction verification failed'
-      });
-    }
+  // Transaction handler
+  txHandler: async (transaction) => {
+    console.log('Processing transaction:', transaction);
+    // Sign and process transaction
+    return "transaction-signature";
   }
 });
 
-// Create and send a transaction request (like an invoice)
-const transactionPayload: TransactionPayload = {
-  amount: 1000000, // 0.001 SOL in lamports
-  memo: 'Payment for services',
-  reference: 'INV-2023-001'
-};
-
-// Send the transaction request
-await secureMessaging.sendTransactionRequest('recipient-agent-id', transactionPayload);
+// Initialize and start
+await server.init();
+await server.run();
 ```
 
-### Audio Visualization
+### S3L Client Setup
 
 ```typescript
-import { GibberLink } from 'gibberlink-sdk';
-import AudioMotionAnalyzer from 'audiomotion-analyzer';
+import { S3lClient, ClientConfig, Modality } from 'gibberlink-sdk';
+import { Transaction } from '@solana/web3.js';
 
-const gibberlink = new GibberLink({ autoInit: true });
+// Configure the client
+const clientConfig: ClientConfig = {
+  cluster: "https://api.mainnet-beta.solana.com",
+  privateKey: "your-solana-private-key",
+  modality: Modality.TCP
+};
 
-// Create an analyser node
-const analyserNode = gibberlink.createAnalyserNode();
+// Create client
+const client = new S3lClient(clientConfig);
 
-// Initialize AudioMotion-Analyzer
-const container = document.getElementById('visualization');
-const audioMotion = new AudioMotionAnalyzer(container, {
-  source: analyserNode,
-  height: 300,
-  mode: 6, // Oscilloscope mode
-  fillAlpha: 0.7,
-  lineWidth: 2,
-});
+// Connect to host
+client
+  .connect("example.com")
+  .onSuccess(() => {
+    console.log("Connected successfully");
+    // Perform operations after successful connection
+  })
+  .onFailure((error) => {
+    console.error("Connection failed:", error);
+  });
 
-// Start listening
-await gibberlink.startListening();
+// Send a message
+const response = await client.send("Hello world!");
+console.log("Message response:", response);
+
+// Send a transaction
+const transaction = new Transaction();
+// ... configure transaction with instructions
+
+const txResult = await client.send(transaction);
+console.log("Transaction result:", txResult);
+
+// Close connection when done
+await client.close();
 ```
 
-## API Reference
+## Running Tests
 
-The SDK provides several key components:
+```bash
+# Run the S3L test
+yarn test:s3l
 
-### GibberLink
-The core audio communication layer for GL MODE encoding/decoding.
+# Run all tests
+yarn test
+```
 
-### SecureMessaging
-A higher-level messaging layer with encryption, signatures, and Solana integration.
+## Documentation
 
-### SolanaClient
-Handles Solana blockchain transactions, signatures, and verification.
+For more detailed documentation, see the following:
 
-### DirectoryService
-Provides a registry of AI agents with their identities and public keys.
-
-See the TypeScript declarations for full API details.
-
-## Security Features
-
-- Message encryption using AES-GCM
-- Digital signatures for message authentication
-- Nonce generation for transaction uniqueness
-- Block time and timestamp verification
-- Transaction expiration for time-limited validity
-- Checksums for data integrity validation
+- [S3L Protocol Documentation](src/s3l/README.md)
+- [API Reference](docs/api.md)
 
 ## License
 

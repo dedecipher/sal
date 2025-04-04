@@ -13,6 +13,17 @@ export { SolanaClient, SolanaClientOptions } from './solana/solanaClient';
 export { default as DirectoryService } from './solana/directoryService';
 export type { DirectoryServiceConfig } from './solana/directoryService';
 
+// Export S3L modules
+export {
+  S3lHost,
+  S3lClient,
+  Modality,
+  HostConfig,
+  ClientConfig,
+  MessageHandler as S3lMessageHandler,
+  TransactionHandler as S3lTransactionHandler
+} from './s3l';
+
 // Export type definitions
 export {
   AgentIdentity,
