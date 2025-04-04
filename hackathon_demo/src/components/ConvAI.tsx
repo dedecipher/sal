@@ -6,7 +6,7 @@ import {useState, useCallback, useEffect, useRef} from "react";
 import {Conversation} from "@11labs/client";
 import {cn} from "@/lib/utils";
 import Script from "next/script";
-import { sendAudioMessage, audioMessageEmitter, startRecording, getcontext, createAnalyserNode, getAnalyserNode } from "@/utils/audioUtils";
+import { GibberLink, AudioMessage } from "gibberlink-sdk";
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 
 const INBOUND_AGENT_ID = process.env.NEXT_PUBLIC_INBOUND_AGENT_ID || '';
@@ -55,7 +55,7 @@ export function ConvAI() {
     const [isSpeaking, setIsSpeaking] = useState(false)
     let init_agent_type = Math.random() < 0.5 ? 'inbound' : 'outbound'
     init_agent_type = 'inbound'
-    const [agentType, setAgentType] = useState<'inbound' | 'outbound'>(init_agent_type)
+    const [agentType, setAgentType] = useState<'inbound' | 'outbound'>(init_agent_type as 'inbound' | 'outbound')
     const [isLoading, setIsLoading] = useState(false)
     const [latestUserMessage, setLatestUserMessage] = useState<string>('')
     const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2)}`);
@@ -65,21 +65,42 @@ export function ConvAI() {
     const [glMode, setGlMode] = useState(false);
     const [isProcessingInput, setIsProcessingInput] = useState(false);
     const audioMotionRef = useRef<AudioMotionAnalyzer | null>(null);
+    const gibberlinkRef = useRef<GibberLink | null>(null);
 
-    if (false)
+    // Initialize GibberLink on component mount
     useEffect(() => {
-        console.log('DEBUG')
-        setGlMode(true);
-        setConversation(null);
-        startRecording();
+        if (mounted && !gibberlinkRef.current) {
+            gibberlinkRef.current = new GibberLink({ autoInit: true });
+        }
+        
+        return () => {
+            // Clean up GibberLink when component unmounts
+            if (gibberlinkRef.current && gibberlinkRef.current.isListening()) {
+                gibberlinkRef.current.stopListening();
+            }
+        };
+    }, [mounted]);
 
-        setTimeout(() => {
-            const msg = agentType === 'inbound' ? 'Hey there? how are you?' : 'Hello hello AI-buddy!'
-            setLatestUserMessage(msg)
-            sendAudioMessage(msg, agentType === 'inbound');
-        }, 5000);
-    }, [])
+    useEffect(() => {
+        if (false) {
+            console.log('DEBUG')
+            setGlMode(true);
+            setConversation(null);
+            
+            // Use GibberLink API instead of direct audio functions
+            if (gibberlinkRef.current) {
+                gibberlinkRef.current.startListening();
+            }
 
+            setTimeout(() => {
+                const msg = agentType === 'inbound' ? 'Hey there? how are you?' : 'Hello hello AI-buddy!'
+                setLatestUserMessage(msg);
+                if (gibberlinkRef.current) {
+                    gibberlinkRef.current.sendMessage(msg, agentType === 'inbound');
+                }
+            }, 5000);
+        }
+    }, [agentType]);
 
     const endConversation = useCallback(async () => {
         console.log('endConversation called, conversation state:', conversation);
@@ -147,12 +168,14 @@ export function ConvAI() {
     useEffect(() => {
         setMounted(true);
 
-        const handleRecordingMessage = async (message: string) => {
-            if (isProcessingInput) return; // ignore or queue up
+        // Handle messages from GibberLink
+        const handleGibberlinkMessage = async (message: AudioMessage) => {
+            if (isProcessingInput || message.source === 'self') return; // ignore self messages or when processing
             setIsProcessingInput(true);
+            
             try {
                 // Create new messages array with user message
-                const newMessages = [...llmChat, { role: 'user' as const, content: '[GL MODE]: ' + message }];
+                const newMessages = [...llmChat, { role: 'user' as const, content: '[GL MODE]: ' + message.message }];
                 // Update state with new messages
                 setLLMChat(newMessages);
                 setGlMode(true);
@@ -162,30 +185,31 @@ export function ConvAI() {
                 // Pass the updated messages to genMyNextMessage
                 const nextMessage = await genMyNextMessage(newMessages);
                 setLatestUserMessage(nextMessage);
-                sendAudioMessage(nextMessage, agentType === 'inbound');
+                
+                // Send response using GibberLink
+                if (gibberlinkRef.current) {
+                    await gibberlinkRef.current.sendMessage(nextMessage, agentType === 'inbound');
+                }
             } finally {
                 setIsProcessingInput(false);
             }
         };
 
-        audioMessageEmitter.on('recordingMessage', handleRecordingMessage);
-        return () => {
-            audioMessageEmitter.off('recordingMessage', handleRecordingMessage);
-        };
-    }, [endConversation, genMyNextMessage, setLLMChat, setLatestUserMessage, setGlMode, isProcessingInput, llmChat, agentType]);
+        // Set up GibberLink message listener
+        if (mounted && gibberlinkRef.current) {
+            const removeListener = gibberlinkRef.current.onMessage(handleGibberlinkMessage);
+            
+            return () => {
+                removeListener(); // Clean up listener on effect cleanup
+            };
+        }
+    }, [endConversation, genMyNextMessage, setLLMChat, setLatestUserMessage, setGlMode, isProcessingInput, llmChat, agentType, mounted]);
 
     // Initialize AudioMotion-Analyzer when glMode is activated
     useEffect(() => {
-        if (glMode && mounted) {
-            const context = getcontext();
-            if (!context) {
-                console.log('no context exiting') 
-                return;
-            }
-
-            // Create global analyzer node if not exists
-            createAnalyserNode();
-            const analyserNode = getAnalyserNode();
+        if (glMode && mounted && gibberlinkRef.current) {
+            // Get the analyser node from GibberLink
+            const analyserNode = gibberlinkRef.current.createAnalyserNode();
             if (!analyserNode) {
                 console.log('Failed to create analyser node');
                 return;
@@ -219,7 +243,7 @@ export function ConvAI() {
                 }
             };
         }
-    }, [glMode, mounted]);
+    }, [glMode, mounted, agentType]);
 
     async function startConversation() {
         setIsLoading(true)
@@ -241,8 +265,8 @@ export function ConvAI() {
                     console.log('Conversation connected');
                     setIsConnected(true)
                     setIsSpeaking(true)
-                    if (agentType === 'inbound') {
-                        startRecording();
+                    if (agentType === 'inbound' && gibberlinkRef.current) {
+                        gibberlinkRef.current.startListening();
                     }
                 },
                 onDisconnect: () => {
@@ -267,9 +291,13 @@ export function ConvAI() {
                         setGlMode(true);
                         console.log('Conversation ended successfully in gibbMode');
                         setConversation(null);
-                        await startRecording();
-                        setLatestUserMessage(nextMessage);
-                        await sendAudioMessage(nextMessage, agentType === 'inbound');
+                        
+                        // Start GibberLink listening
+                        if (gibberlinkRef.current) {
+                            await gibberlinkRef.current.startListening();
+                            setLatestUserMessage(nextMessage);
+                            await gibberlinkRef.current.sendMessage(nextMessage, agentType === 'inbound');
+                        }
                       } catch (error) {
                         console.error('Error in gibbMode:', error);
                       }
@@ -289,11 +317,9 @@ export function ConvAI() {
             })
             console.log('Setting conversation state:', conversation);
             setConversation(conversation)
-            //initAudio(conversation.input.context, conversation.input.inputStream)
-            //console.log(conversation.input.inputStream)
         } catch (error) {
             console.error('Error starting conversation:', error)
-            alert('An error occurred while starting the conversation')
+            alert('Failed to start conversation')
         } finally {
             setIsLoading(false)
         }
