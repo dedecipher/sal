@@ -3,10 +3,10 @@ import * as web3 from '@solana/web3.js';
 import bs58 from 'bs58';
 
 /**
- * Example test script demonstrating the S3L SDK usage
+ * Example test script demonstrating the S3L SDK usage with JSON protocol
  */
 async function main() {
-  console.log('S3L SDK Test with Real Solana Transaction Flow');
+  console.log('S3L SDK Test with JSON Protocol and Real Solana Transaction Flow');
   
   // Use devnet for testing
   const SOLANA_ENDPOINT = 'https://api.devnet.solana.com';
@@ -133,12 +133,12 @@ async function runTests(
 ) {
   try {
     // Test sending a text message
-    console.log('\n--- Sending Text Message ---');
-    const msgResponse = await client.send('Hello world from S3L client!');
+    console.log('\n--- Sending Text Message (JSON Protocol) ---');
+    const msgResponse = await client.send('Hello world from S3L client using JSON protocol!');
     console.log('Message response:', msgResponse);
     
     // Test sending a transaction
-    console.log('\n--- Creating Funds Transfer Transaction ---');
+    console.log('\n--- Creating Funds Transfer Transaction (JSON Protocol) ---');
     
     // Create a simple SOL transfer transaction
     const transaction = new web3.Transaction();
@@ -169,7 +169,7 @@ async function runTests(
     transaction.recentBlockhash = blockhash;
     
     // Send transaction via S3L (client will partially sign)
-    console.log('Sending transaction via S3L...');
+    console.log('Sending transaction via S3L JSON protocol...');
     const txResponse = await client.send(transaction);
     console.log('Transaction response:', txResponse);
     

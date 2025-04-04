@@ -3,7 +3,9 @@ import {
   MessageHandler,
   S3lMessageHeaders,
   TransactionHandler,
-  Modality
+  Modality,
+  S3lJsonMessage,
+  S3lJsonResponse
 } from '../solana/types';
 import * as web3 from '@solana/web3.js';
 import nacl from 'tweetnacl';
@@ -151,26 +153,21 @@ export class S3lHost extends EventEmitter {
    */
   private async processIncomingMessage(data: string, source: string): Promise<void> {
     try {
-      // Check if it's an S3L message
-      if (!data.startsWith('[S3L]')) {
-        console.warn('Received non-S3L message, ignoring');
+      // Parse JSON message
+      const message = JSON.parse(data) as S3lJsonMessage;
+      
+      // Verify the message structure
+      if (!message.sig || !message.headers || message.body === undefined) {
+        console.warn('Invalid S3L JSON message format, ignoring');
         return;
       }
-      
-      // Parse message structure
-      const messageParts = this.parseS3LMessage(data);
-      if (!messageParts) {
-        console.warn('Failed to parse S3L message');
-        return;
-      }
-      
-      const { headers, signature, body, type } = messageParts;
       
       // Verify signature
+      const bodyString = typeof message.body === 'string' ? message.body : JSON.stringify(message.body);
       const isValid = this.verifySignature(
-        headers.publicKey,
-        body,
-        signature
+        message.headers.publicKey,
+        bodyString,
+        message.sig
       );
       
       if (!isValid) {
@@ -179,124 +176,21 @@ export class S3lHost extends EventEmitter {
       }
       
       // Handle bootstrap message (GM)
-      if (body.trim() === 'GM') {
-        await this.handleBootstrap(headers, source);
+      if (typeof message.body === 'string' && message.body.trim() === 'GM') {
+        await this.handleBootstrap(message.headers, source);
         return;
       }
       
       // Handle transaction message
-      if (type === 'TX') {
-        await this.handleTransaction(headers, body, source);
+      if (typeof message.body === 'object' && message.body.type === 'transaction') {
+        await this.handleTransaction(message.headers, message.body.data, source);
         return;
       }
       
       // Handle regular message
-      if (type === 'MSG') {
-        await this.handleMessage(headers, body, source);
-        return;
-      }
+      await this.handleMessage(message.headers, message.body, source);
     } catch (error) {
-      console.error('Error processing incoming message:', error);
-    }
-  }
-  
-  /**
-   * Parse an S3L message into its components
-   */
-  private parseS3LMessage(message: string): { 
-    headers: S3lMessageHeaders,
-    signature: string,
-    body: string,
-    type: 'MSG' | 'TX' | null
-  } | null {
-    try {
-      // Basic format validation
-      if (!message.startsWith('[S3L]') || !message.endsWith('[S3L]')) {
-        return null;
-      }
-      
-      // Extract signature
-      const sigStart = message.indexOf('[SIG]');
-      const sigEnd = message.indexOf('[SIG]', sigStart + 5);
-      
-      if (sigStart === -1 || sigEnd === -1) {
-        return null;
-      }
-      
-      const signature = message.substring(sigStart + 5, sigEnd);
-      
-      // Extract headers
-      const headersEnd = message.indexOf('\n\n', sigEnd);
-      if (headersEnd === -1) {
-        return null;
-      }
-      
-      const headersText = message.substring(sigEnd + 5, headersEnd);
-      const headers: S3lMessageHeaders = {
-        nonce: '',
-        publicKey: '',
-      };
-      
-      // Parse headers
-      headersText.split('\n').forEach(line => {
-        const [key, value] = line.split(':').map(s => s.trim());
-        if (key && value) {
-          if (key === 'Host') headers.host = value;
-          if (key === 'Phone') headers.phone = value;
-          if (key === 'Nonce') headers.nonce = value;
-          if (key === 'BlockHeight') headers.blockHeight = parseInt(value, 10);
-          if (key === 'PublicKey') headers.publicKey = value;
-        }
-      });
-      
-      // Determine message type
-      let type: 'MSG' | 'TX' | null = null;
-      let bodyStart = -1;
-      let bodyEnd = -1;
-      
-      if (message.includes('[MSG]')) {
-        type = 'MSG';
-        bodyStart = message.indexOf('[MSG]') + 5;
-        bodyEnd = message.lastIndexOf('[MSG]');
-      } else if (message.includes('[TX]')) {
-        type = 'TX';
-        bodyStart = message.indexOf('[TX]') + 4;
-        bodyEnd = message.lastIndexOf('[TX]');
-      }
-      
-      if (bodyStart === -1 || bodyEnd === -1) {
-        // If no specific type markers found, it might be a bootstrap message (GM)
-        // In this case, body is everything after headers
-        const body = message.substring(headersEnd + 2, message.lastIndexOf('[S3L]')).trim();
-        return { headers, signature, body, type: null };
-      }
-      
-      const body = message.substring(bodyStart, bodyEnd).trim();
-      
-      return { headers, signature, body, type };
-    } catch (error) {
-      console.error('Error parsing S3L message:', error);
-      return null;
-    }
-  }
-  
-  /**
-   * Verify the signature of a message
-   */
-  private verifySignature(publicKeyStr: string, data: string, signatureStr: string): boolean {
-    try {
-      const publicKey = new Uint8Array(Buffer.from(publicKeyStr, 'base64'));
-      const message = Buffer.from(data);
-      const signature = new Uint8Array(Buffer.from(signatureStr, 'base64'));
-      
-      return nacl.sign.detached.verify(
-        message,
-        signature,
-        publicKey
-      );
-    } catch (error) {
-      console.error('Error verifying signature:', error);
-      return false;
+      console.error('Error processing incoming JSON message:', error);
     }
   }
   
@@ -309,14 +203,17 @@ export class S3lHost extends EventEmitter {
       publicKey: headers.publicKey
     });
     
-    // Create GM response
+    // Create GM response headers
     const responseHeaders: S3lMessageHeaders = {
       nonce: headers.nonce,
       publicKey: this.keypair.publicKey.toString()
     };
     
+    // GM response body
     const body = `GM ${headers.publicKey}`;
-    await this.sendMessage(responseHeaders, body, source, 'OK');
+    
+    // Send response
+    await this.sendJsonResponse(responseHeaders, body, source, 'ok');
     
     this.emit('client_connected', source, headers);
   }
@@ -324,11 +221,13 @@ export class S3lHost extends EventEmitter {
   /**
    * Handle regular message
    */
-  private async handleMessage(headers: S3lMessageHeaders, message: string, source: string): Promise<void> {
+  private async handleMessage(headers: S3lMessageHeaders, message: any, source: string): Promise<void> {
+    const messageString = typeof message === 'string' ? message : JSON.stringify(message);
+    
     // Call message handler if registered
     if (this.messageHandler) {
       try {
-        await this.messageHandler(message, source);
+        await this.messageHandler(messageString, source);
       } catch (error) {
         console.error('Error in message handler:', error);
       }
@@ -342,20 +241,20 @@ export class S3lHost extends EventEmitter {
     };
     
     // Send acknowledgment response
-    await this.sendMessage(responseHeaders, 'Message received', source, 'OK');
+    await this.sendJsonResponse(responseHeaders, 'Message received', source, 'ok');
     
-    this.emit('message_received', message, source, headers);
+    this.emit('message_received', messageString, source, headers);
   }
   
   /**
    * Handle transaction message
    */
-  private async handleTransaction(headers: S3lMessageHeaders, transaction: string, source: string): Promise<void> {
+  private async handleTransaction(headers: S3lMessageHeaders, serializedTransaction: string, source: string): Promise<void> {
     let signature: string = '';
     
     try {
       // Deserialize the transaction from base64 string
-      const serializedTxBuffer = Buffer.from(transaction, 'base64');
+      const serializedTxBuffer = Buffer.from(serializedTransaction, 'base64');
       const recoveredTx = web3.Transaction.from(serializedTxBuffer);
       
       // Verify the transaction
@@ -382,12 +281,12 @@ export class S3lHost extends EventEmitter {
             publicKey: this.keypair.publicKey.toString()
           };
           
-          await this.sendMessage(
-            errorHeaders, 
-            JSON.stringify({ error: 'Transaction processing failed' }), 
-            source,
-            'ERROR'
-          );
+          const errorBody = { 
+            error: 'Transaction processing failed',
+            details: error instanceof Error ? error.message : String(error)
+          };
+          
+          await this.sendJsonResponse(errorHeaders, errorBody, source, 'error');
           return;
         }
       } else {
@@ -419,8 +318,14 @@ export class S3lHost extends EventEmitter {
         publicKey: this.keypair.publicKey.toString()
       };
       
+      // Create response body with transaction signature
+      const responseBody = {
+        type: 'transaction_signature',
+        signature
+      };
+      
       // Send transaction response with signature
-      await this.sendMessage(responseHeaders, signature, source, 'OK', 'TX');
+      await this.sendJsonResponse(responseHeaders, responseBody, source, 'ok');
       
       this.emit('transaction_processed', recoveredTx, signature, source, headers);
     } catch (error) {
@@ -433,72 +338,53 @@ export class S3lHost extends EventEmitter {
         publicKey: this.keypair.publicKey.toString()
       };
       
-      await this.sendMessage(
-        errorHeaders, 
-        JSON.stringify({ error: 'Transaction processing failed: ' + (error instanceof Error ? error.message : String(error)) }), 
-        source,
-        'ERROR'
-      );
+      const errorBody = {
+        error: 'Transaction processing failed',
+        details: error instanceof Error ? error.message : String(error)
+      };
+      
+      await this.sendJsonResponse(errorHeaders, errorBody, source, 'error');
     }
   }
   
   /**
-   * Send a signed S3L message
+   * Send a JSON response
    */
-  private async sendMessage(
+  private async sendJsonResponse(
     headers: S3lMessageHeaders, 
-    body: string, 
+    body: any, 
     destination: string, 
-    status: 'OK' | 'ERROR' = 'OK',
-    type: 'MSG' | 'TX' | null = 'MSG'
+    status: 'ok' | 'error' = 'ok'
   ): Promise<void> {
     try {
-      // Build headers string
-      let headersStr = '';
-      Object.entries(headers).forEach(([key, value]) => {
-        if (value !== undefined) {
-          // Convert header keys to proper format (e.g., 'publicKey' to 'PublicKey')
-          const formattedKey = key.charAt(0).toUpperCase() + key.slice(1);
-          headersStr += `${formattedKey}: ${value}\n`;
-        }
-      });
-      
-      // Create message content
-      let messageContent = '';
-      
-      if (status === 'OK') {
-        messageContent = `[S3L][OK]\n`;
-      } else {
-        messageContent = `[S3L][ERROR]\n`;
-      }
+      // Create body string for signature
+      const bodyString = typeof body === 'string' ? body : JSON.stringify(body);
       
       // Sign the body
-      const signature = this.signMessage(body);
+      const signature = this.signMessage(bodyString);
       
-      messageContent += `[SIG]${signature}[SIG]\n`;
-      messageContent += headersStr + '\n';
+      // Create JSON response
+      const response: S3lJsonResponse = {
+        sig: signature,
+        status,
+        headers,
+        body
+      };
       
-      // Add body with type markers if needed
-      if (type === 'MSG') {
-        messageContent += `[MSG]\n${body}\n[MSG]\n`;
-      } else if (type === 'TX') {
-        messageContent += `[TX]\n${body}\n[TX]\n`;
-      } else {
-        messageContent += body + '\n';
-      }
-      
-      messageContent += '[S3L]';
+      // Stringify the entire response
+      const responseJson = JSON.stringify(response);
       
       // Send based on modality
       if (this.cfg.modality === Modality.TCP) {
         // TCP send implementation
-        console.log(`Sending S3L message to ${destination}`);
+        console.log(`Sending S3L JSON response to ${destination}`);
+        console.log(responseJson);
       } else if (this.cfg.modality === Modality.VOICE) {
         // Voice/audio send implementation
-        console.log(`Sending S3L voice message`);
+        console.log(`Sending S3L JSON voice response`);
       }
     } catch (error) {
-      console.error('Error sending S3L message:', error);
+      console.error('Error sending JSON response:', error);
       throw error;
     }
   }
@@ -529,5 +415,25 @@ export class S3lHost extends EventEmitter {
   private async startVoiceServer(): Promise<void> {
     // Voice server implementation would go here
     console.log('Voice server started');
+  }
+  
+  /**
+   * Verify the signature of a message
+   */
+  private verifySignature(publicKeyStr: string, data: string, signatureStr: string): boolean {
+    try {
+      const publicKey = new Uint8Array(Buffer.from(publicKeyStr, 'base64'));
+      const message = Buffer.from(data);
+      const signature = new Uint8Array(Buffer.from(signatureStr, 'base64'));
+      
+      return nacl.sign.detached.verify(
+        message,
+        signature,
+        publicKey
+      );
+    } catch (error) {
+      console.error('Error verifying signature:', error);
+      return false;
+    }
   }
 } 

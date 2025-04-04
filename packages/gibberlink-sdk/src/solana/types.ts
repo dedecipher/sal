@@ -103,5 +103,20 @@ export interface S3lMessageHeaders {
   publicKey: string;     // Sender's public key
 }
 
+// JSON 기반 S3L 메시지 인터페이스
+export interface S3lJsonMessage {
+  sig: string;           // Signature of the body
+  headers: S3lMessageHeaders;
+  body: any;             // Message body (can be string or object)
+}
+
+// JSON 기반 S3L 응답 메시지 인터페이스
+export interface S3lJsonResponse {
+  sig: string;           // Signature of the body
+  status: 'ok' | 'error'; // Response status
+  headers: S3lMessageHeaders;
+  body: any;             // Response body (can be string or object)
+}
+
 export type MessageHandler = (message: string, sender: string) => Promise<void> | void;
 export type TransactionHandler = (transaction: any) => Promise<string> | string; 

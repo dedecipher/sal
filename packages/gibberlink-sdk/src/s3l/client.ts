@@ -1,7 +1,9 @@
 import {
   ClientConfig,
   Modality,
-  S3lMessageHeaders
+  S3lMessageHeaders,
+  S3lJsonMessage,
+  S3lJsonResponse
 } from '../solana/types';
 import * as web3 from '@solana/web3.js';
 import bs58 from 'bs58';
@@ -165,8 +167,11 @@ export class S3lClient extends EventEmitter {
         headers.phone = phoneNumber;
       }
       
+      // Create bootstrap message body
+      const body = "GM";
+      
       // Send GM message to initiate connection
-      await this.sendS3LMessage(headers, 'GM', null);
+      await this.sendJsonMessage(headers, body);
       
       // In a real implementation, we would wait for response
       // For now, assume connection is successful
@@ -207,7 +212,7 @@ export class S3lClient extends EventEmitter {
     
     // Send message
     return new Promise((resolve, reject) => {
-      this.sendS3LMessage(headers, message, 'MSG')
+      this.sendJsonMessage(headers, message)
         .then(() => {
           // Resolve with a mock response for now
           // In a real implementation, we would wait for and return the actual response
@@ -255,9 +260,15 @@ export class S3lClient extends EventEmitter {
       publicKey: this.keypair.publicKey.toString()
     };
     
+    // Create transaction body as an object
+    const body = {
+      type: 'transaction',
+      data: serializedTx
+    };
+    
     // Send transaction
     return new Promise((resolve, reject) => {
-      this.sendS3LMessage(headers, serializedTx, 'TX')
+      this.sendJsonMessage(headers, body)
         .then(() => {
           // In a real implementation, we would wait for and process the response
           // For now, we'll simulate a response with a mock signature
@@ -276,50 +287,34 @@ export class S3lClient extends EventEmitter {
   }
   
   /**
-   * Send a formatted S3L message
+   * Send a JSON formatted S3L message
    */
-  private async sendS3LMessage(
+  private async sendJsonMessage(
     headers: S3lMessageHeaders,
-    body: string,
-    type: 'MSG' | 'TX' | null
+    body: any
   ): Promise<void> {
-    // Build headers string
-    let headersStr = '';
-    Object.entries(headers).forEach(([key, value]) => {
-      if (value !== undefined) {
-        // Convert header keys to proper format (e.g., 'publicKey' to 'PublicKey')
-        const formattedKey = key.charAt(0).toUpperCase() + key.slice(1);
-        headersStr += `${formattedKey}: ${value}\n`;
-      }
-    });
+    // Create the signature by signing the stringified body
+    const bodyString = typeof body === 'string' ? body : JSON.stringify(body);
+    const signature = this.signMessage(bodyString);
     
-    // Sign the body
-    const signature = this.signMessage(body);
+    // Create JSON message
+    const message: S3lJsonMessage = {
+      sig: signature,
+      headers,
+      body
+    };
     
-    // Create message content
-    let messageContent = '[S3L]\n';
-    messageContent += `[SIG]${signature}[SIG]\n`;
-    messageContent += headersStr + '\n';
-    
-    // Add body with type markers if needed
-    if (type === 'MSG') {
-      messageContent += `[MSG]\n${body}\n[MSG]\n`;
-    } else if (type === 'TX') {
-      messageContent += `[TX]\n${body}\n[TX]\n`;
-    } else {
-      messageContent += body + '\n';
-    }
-    
-    messageContent += '[S3L]';
+    // Stringify the entire message
+    const messageJson = JSON.stringify(message);
     
     // Send based on modality
     if (this.cfg.modality === Modality.TCP) {
       // TCP send implementation
-      console.log(`Sending S3L message to ${headers.host}`);
-      console.log(messageContent); // For demo/debug purposes
+      console.log(`Sending S3L JSON message to ${headers.host}`);
+      console.log(messageJson); // For demo/debug purposes
     } else if (this.cfg.modality === Modality.VOICE) {
       // Voice/audio send implementation
-      console.log(`Sending S3L voice message`);
+      console.log(`Sending S3L voice JSON message`);
     }
   }
   
