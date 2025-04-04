@@ -1,5 +1,29 @@
 import EventEmitter from 'eventemitter3';
-import type { GGWaveModule, GGWaveInstance } from 'ggwave';
+
+// Define GGWave types inline
+interface GGWaveParameters {
+  sampleRateInp?: number;
+  sampleRateOut?: number;
+  soundMarkerThreshold?: number;
+  [key: string]: any;
+}
+
+interface GGWaveInstance {
+  [key: string]: any;
+}
+
+interface GGWaveModule {
+  getDefaultParameters(): GGWaveParameters;
+  init(params: GGWaveParameters): GGWaveInstance;
+  encode(instance: GGWaveInstance, message: string, protocol: number, volume: number): Int16Array;
+  decode(instance: GGWaveInstance, samples: Int16Array): Uint8Array | null;
+  ProtocolId: {
+    GGWAVE_PROTOCOL_AUDIBLE_NORMAL: number;
+    GGWAVE_PROTOCOL_AUDIBLE_FAST: number;
+    GGWAVE_PROTOCOL_AUDIBLE_FASTEST: number;
+    [key: string]: number;
+  };
+}
 
 // Helper function to convert array types
 function convertTypedArray(src: any, type: any): any {
