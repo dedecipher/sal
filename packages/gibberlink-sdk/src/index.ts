@@ -36,9 +36,4 @@ export {
   GLModeData,
   EncryptionParams,
   SecureMessage
-} from './solana/types';
-
-export * from './s3l/client';
-export * from './s3l/host';
-export * from './s3l/types';
-export * from './s3l/voiceAdapter'; 
+} from './solana/types'; 

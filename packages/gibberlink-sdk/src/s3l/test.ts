@@ -1,29 +1,30 @@
+import { S3lHost, S3lClient, Modality } from './index';
 import * as web3 from '@solana/web3.js';
 import bs58 from 'bs58';
-import { S3lClient } from './client';
-import { S3lHost } from './host';
-import { Modality } from './types';
 
-// Solana devnet endpoint
-const SOLANA_ENDPOINT = "https://api.devnet.solana.com";
-
+/**
+ * Example test script demonstrating the S3L SDK usage with JSON protocol
+ */
 async function main() {
-  console.log('S3L SDK Test with JSON Protocol and Voice Modality');
+  console.log('S3L SDK Test with JSON Protocol and Real Solana Transaction Flow');
+  
+  // Use devnet for testing
+  const SOLANA_ENDPOINT = 'https://api.devnet.solana.com';
   
   // Generate keypairs for testing
   const hostKeypair = web3.Keypair.generate();
   const clientKeypair = web3.Keypair.generate();
   
-  console.log(`Host public key: ${hostKeypair.publicKey.toString()}`);
-  console.log(`Client public key: ${clientKeypair.publicKey.toString()}`);
+  console.log('Host public key:', hostKeypair.publicKey.toString());
+  console.log('Client public key:', clientKeypair.publicKey.toString());
   
-  // Set up Solana connection
+  // Initialize a connection to fund the keypairs for testing
   const connection = new web3.Connection(SOLANA_ENDPOINT);
   
-  // Fund test accounts with SOL
+  // Fund the accounts for testing (airdrop)
+  console.log('\n--- Funding Test Accounts ---');
   try {
-    console.log('\n--- Funding Test Accounts ---');
-    // Fund client account
+    // Fund client account first
     console.log('Requesting airdrop for client account...');
     const clientAirdropSignature = await connection.requestAirdrop(
       clientKeypair.publicKey,
@@ -46,13 +47,13 @@ async function main() {
   }
   
   // Initialize host
-  console.log('\n--- Initializing Host with Voice Modality ---');
+  console.log('\n--- Initializing Host ---');
   const host = new S3lHost({
     cluster: SOLANA_ENDPOINT,
     host: 'hackathon.seoulana.kr',
     phoneNumber: '01012345678',
     privateKey: bs58.encode(Buffer.from(hostKeypair.secretKey)),
-    modality: Modality.VOICE
+    modality: Modality.TCP
   });
   
   // Set up host message handlers
@@ -97,69 +98,111 @@ async function main() {
   await host.init();
   
   // Start host
-  console.log('\n--- Starting Host Voice Server ---');
+  console.log('\n--- Starting Host ---');
   await host.run();
-  
-  console.log('\n--- Open the browser and navigate to http://localhost:3000/audio-test to test the Voice Modality ---');
-  console.log('The test requires a modern browser with microphone and speaker access.');
-  console.log('The browser test page will connect to the host and allow sending messages via audio.');
   
   // Initialize client
   console.log('\n--- Initializing Client ---');
   const client = new S3lClient({
     cluster: SOLANA_ENDPOINT,
     privateKey: bs58.encode(Buffer.from(clientKeypair.secretKey)),
-    modality: Modality.VOICE
+    modality: Modality.TCP
   });
   
-  // Connect to host
-  console.log('Connecting to host...');
-  await new Promise<void>((resolve, reject) => {
-    client
-      .connect('hackathon.seoulana.kr')
-      .onSuccess(() => {
-        console.log('Client connected to host successfully');
-        resolve();
-      })
-      .onFailure((error) => {
-        console.error('Client failed to connect to host:', error);
-        reject(error);
-      });
-  });
-  
-  // 메시지 테스트 실행
-  await testMessages(client);
-  
-  // Transaction Test
-  // ... existing code ...
+  // Connect client to host
+  console.log('\n--- Connecting Client to Host ---');
+  client
+    .connect('hackathon.seoulana.kr')
+    .onSuccess(() => {
+      console.log('Client connected successfully');
+      runTests(client, connection, clientKeypair, hostKeypair);
+    })
+    .onFailure((error) => {
+      console.error('Client connection failed:', error);
+    });
+}
 
-  // ... rest of the code ...
+/**
+ * Run test operations with the connected client
+ */
+async function runTests(
+  client: S3lClient, 
+  connection: web3.Connection,
+  clientKeypair: web3.Keypair,
+  hostKeypair: web3.Keypair
+) {
+  try {
+    // Test sending a text message
+    console.log('\n--- Sending Text Message (JSON Protocol) ---');
+    const msgResponse = await client.send('Hello world from S3L client using JSON protocol!');
+    console.log('Message response:', msgResponse);
+    
+    // Test sending a transaction
+    console.log('\n--- Creating Funds Transfer Transaction (JSON Protocol) ---');
+    
+    // Create a simple SOL transfer transaction
+    const transaction = new web3.Transaction();
+    
+    // Check balances before transfer
+    console.log('Checking account balances before transfer...');
+    const clientBalance = await connection.getBalance(clientKeypair.publicKey);
+    const hostBalance = await connection.getBalance(hostKeypair.publicKey);
+    
+    console.log(`Client balance: ${clientBalance / web3.LAMPORTS_PER_SOL} SOL`);
+    console.log(`Host balance: ${hostBalance / web3.LAMPORTS_PER_SOL} SOL`);
+    
+    // Create a transfer instruction from client to host
+    const transferAmount = 0.01 * web3.LAMPORTS_PER_SOL; // 0.01 SOL
+    
+    console.log(`Creating transfer instruction for ${transferAmount / web3.LAMPORTS_PER_SOL} SOL from client to host`);
+    
+    transaction.add(
+      web3.SystemProgram.transfer({
+        fromPubkey: clientKeypair.publicKey,
+        toPubkey: hostKeypair.publicKey,
+        lamports: transferAmount
+      })
+    );
+    
+    // Get a recent blockhash
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    
+    // Send transaction via S3L (client will partially sign)
+    console.log('Sending transaction via S3L JSON protocol...');
+    const txResponse = await client.send(transaction);
+    console.log('Transaction response:', txResponse);
+    
+    if (txResponse.status === 'completed') {
+      console.log('Transaction completed successfully!');
+      console.log('Transaction signature:', txResponse.signature);
+      
+      // Check balances after transfer
+      console.log('Checking account balances after transfer...');
+      const clientBalanceAfter = await connection.getBalance(clientKeypair.publicKey);
+      const hostBalanceAfter = await connection.getBalance(hostKeypair.publicKey);
+      
+      console.log(`Client balance: ${clientBalanceAfter / web3.LAMPORTS_PER_SOL} SOL`);
+      console.log(`Host balance: ${hostBalanceAfter / web3.LAMPORTS_PER_SOL} SOL`);
+      
+      // Verify the balance changes
+      console.log(`Client balance change: ${(clientBalanceAfter - clientBalance) / web3.LAMPORTS_PER_SOL} SOL`);
+      console.log(`Host balance change: ${(hostBalanceAfter - hostBalance) / web3.LAMPORTS_PER_SOL} SOL`);
+    } else {
+      console.error('Transaction failed:', txResponse.error);
+    }
+    
+    // Close client connection
+    console.log('\n--- Closing Connection ---');
+    await client.close();
+    
+    console.log('\nAll tests completed!');
+  } catch (error) {
+    console.error('Test error:', error);
+  }
 }
 
 // Run the test if this file is executed directly
 if (require.main === module) {
   main().catch(console.error);
-}
-
-// 테스트 함수에 메시지 테스트 부분 수정
-async function testMessages(client: S3lClient) {
-  console.log('\n--- Testing Message Sending ---');
-  
-  // 텍스트 메시지 송신
-  console.log('Sending text message to host...');
-  await client.send('Hello from S3L client!');
-  
-  // JSON 메시지 송신
-  console.log('Sending JSON message to host...');
-  await client.send(JSON.stringify({
-    type: 'test',
-    content: 'This is a JSON message',
-    timestamp: Date.now()
-  }));
-  
-  // Voice 모달리티 테스트를 위한 추가 메시지 (오디오 파일 생성용)
-  console.log('Sending special voice test message (for audio file generation)...');
-  await client.send('This is a special voice test message that will be encoded to audio!');
-  
-  console.log('All messages sent successfully');
 } 

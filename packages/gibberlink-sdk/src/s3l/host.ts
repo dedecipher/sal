@@ -12,7 +12,6 @@ import nacl from 'tweetnacl';
 import bs58 from 'bs58';
 import crypto from 'crypto';
 import { EventEmitter } from 'events';
-import { VoiceAdapter } from './voiceAdapter';
 
 /**
  * S3lHost handles server-side functionality for the S3L protocol
@@ -26,7 +25,6 @@ export class S3lHost extends EventEmitter {
   private server: any = null; // Will be a TCP server or audio stream based on modality
   private clients: Map<string, { publicKey: string }> = new Map();
   private isRunning: boolean = false;
-  private voiceModality: VoiceAdapter | null = null;
 
   constructor(config: HostConfig) {
     super();
@@ -71,18 +69,6 @@ export class S3lHost extends EventEmitter {
       } else if (this.cfg.modality === Modality.VOICE) {
         // Voice/audio initialization would happen here
         console.log('Voice modality initialization');
-        this.voiceModality = new VoiceAdapter();
-        
-        // 음성 메시지 수신 이벤트 처리
-        this.voiceModality.on('message', (message: string, source: string) => {
-          this.processIncomingMessage(message, source);
-        });
-        
-        // 에러 처리
-        this.voiceModality.on('error', (error: Error) => {
-          console.error('S3L Voice modality error:', error);
-          this.emit('error', error);
-        });
       }
       
       this.emit('initialized');
@@ -154,9 +140,6 @@ export class S3lHost extends EventEmitter {
         }
       } else if (this.cfg.modality === Modality.VOICE) {
         // Voice/audio shutdown
-        if (this.voiceModality) {
-          await this.voiceModality.stopListening();
-        }
       }
     }
     
@@ -399,11 +382,6 @@ export class S3lHost extends EventEmitter {
       } else if (this.cfg.modality === Modality.VOICE) {
         // Voice/audio send implementation
         console.log(`Sending S3L JSON voice response`);
-        if (this.voiceModality) {
-          await this.voiceModality.sendMessage(response);
-        } else {
-          console.error('Voice modality not initialized');
-        }
       }
     } catch (error) {
       console.error('Error sending JSON response:', error);
@@ -435,27 +413,8 @@ export class S3lHost extends EventEmitter {
    * Start a voice server for VOICE modality
    */
   private async startVoiceServer(): Promise<void> {
-    if (!this.voiceModality) {
-      this.voiceModality = new VoiceAdapter();
-      
-      // 음성 메시지 수신 이벤트 처리
-      this.voiceModality.on('message', (message: string, source: string) => {
-        this.processIncomingMessage(message, source);
-      });
-      
-      this.voiceModality.on('error', (error: Error) => {
-        console.error('S3L Voice modality error:', error);
-        this.emit('error', error);
-      });
-    }
-    
-    // 음성 수신 시작
-    const success = await this.voiceModality.startListening();
-    if (success) {
-      console.log('Voice server started and listening');
-    } else {
-      throw new Error('Failed to start voice server');
-    }
+    // Voice server implementation would go here
+    console.log('Voice server started');
   }
   
   /**

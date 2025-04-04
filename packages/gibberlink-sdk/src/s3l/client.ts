@@ -10,7 +10,6 @@ import bs58 from 'bs58';
 import nacl from 'tweetnacl';
 import { EventEmitter } from 'events';
 import crypto from 'crypto';
-import { VoiceAdapter } from './voiceAdapter';
 
 /**
  * S3lClient handles client-side functionality for the S3L protocol
@@ -22,8 +21,6 @@ export class S3lClient extends EventEmitter {
   private isConnected: boolean = false;
   private currentHost: string | null = null;
   private client: any = null; // Will be a TCP client or audio handler based on modality
-  private voiceModality: VoiceAdapter | null = null;
-  private pendingRequests: Map<string, { resolve: Function, reject: Function }> = new Map();
 
   // Success and failure callbacks for connection
   private onSuccessCallback: (() => void) | null = null;
@@ -46,17 +43,8 @@ export class S3lClient extends EventEmitter {
     this.connection = new web3.Connection(this.cfg.cluster);
     
     // Create keypair from private key
-    if (this.cfg.privateKey.startsWith('[')) {
-      // Array format
-      this.keypair = web3.Keypair.fromSecretKey(
-        Uint8Array.from(JSON.parse(this.cfg.privateKey))
-      );
-    } else {
-      // Base58 format
-      this.keypair = web3.Keypair.fromSecretKey(
-        bs58.decode(this.cfg.privateKey)
-      );
-    }
+    const privateKeyBytes = bs58.decode(this.cfg.privateKey);
+    this.keypair = web3.Keypair.fromSecretKey(privateKeyBytes);
   }
   
   /**
@@ -134,9 +122,6 @@ export class S3lClient extends EventEmitter {
         }
       } else if (this.cfg.modality === Modality.VOICE) {
         // Voice/audio client close
-        if (this.voiceModality) {
-          await this.voiceModality.stopListening();
-        }
       }
     }
     
@@ -159,8 +144,9 @@ export class S3lClient extends EventEmitter {
    * Initialize a voice client
    */
   private initVoiceClient(): void {
+    // Voice client implementation would go here
     console.log('Initializing voice client');
-    this.voiceModality = new VoiceAdapter();
+    // Example: this.client = new VoiceClient();
   }
   
   /**
@@ -326,21 +312,9 @@ export class S3lClient extends EventEmitter {
       // TCP send implementation
       console.log(`Sending S3L JSON message to ${headers.host}`);
       console.log(messageJson); // For demo/debug purposes
-    } else if (this.cfg.modality === Modality.VOICE && this.voiceModality) {
+    } else if (this.cfg.modality === Modality.VOICE) {
       // Voice/audio send implementation
       console.log(`Sending S3L voice JSON message`);
-      this.voiceModality.sendMessage(message).then(() => {
-        console.log('Voice message sent successfully');
-      }).catch((error) => {
-        console.error('Error sending voice message:', error);
-        
-        // 에러 발생 시 대기 중인 요청에서 제거하고 실패 처리
-        const pendingRequest = this.pendingRequests.get(headers.nonce);
-        if (pendingRequest) {
-          this.pendingRequests.delete(headers.nonce);
-          pendingRequest.reject(new Error('Voice message sending failed'));
-        }
-      });
     }
   }
   
