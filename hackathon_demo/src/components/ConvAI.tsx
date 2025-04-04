@@ -8,6 +8,7 @@ import {cn} from "@/lib/utils";
 import Script from "next/script";
 import { GibberLink, AudioMessage } from "gibberlink-sdk";
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
+import { demoScripts } from '../utils/demoScripts';
 
 const INBOUND_AGENT_ID = process.env.NEXT_PUBLIC_INBOUND_AGENT_ID || '';
 const OUTBOUND_AGENT_ID = process.env.NEXT_PUBLIC_OUTBOUND_AGENT_ID || '';
@@ -66,6 +67,12 @@ export function ConvAI() {
     const [isProcessingInput, setIsProcessingInput] = useState(false);
     const audioMotionRef = useRef<AudioMotionAnalyzer | null>(null);
     const gibberlinkRef = useRef<GibberLink | null>(null);
+    
+    // Demo script state
+    const [currentDemoScript, setCurrentDemoScript] = useState('hotelBooking');
+    const [demoMessageIndex, setDemoMessageIndex] = useState(-1);
+    const [isDemoActive, setIsDemoActive] = useState(false);
+    const [demoTimerId, setDemoTimerId] = useState<NodeJS.Timeout | null>(null);
 
     // Initialize GibberLink on component mount
     useEffect(() => {
@@ -103,6 +110,21 @@ export function ConvAI() {
     }, [agentType]);
 
     const endConversation = useCallback(async () => {
+        // If demo is active, stop it
+        if (isDemoActive) {
+            setIsDemoActive(false);
+            if (demoTimerId) {
+                clearTimeout(demoTimerId);
+                setDemoTimerId(null);
+            }
+            setDemoMessageIndex(-1);
+            setIsConnected(false);
+            setGlMode(false);
+            setLatestUserMessage('');
+            return;
+        }
+        
+        // Original endConversation code
         console.log('endConversation called, conversation state:', conversation);
         if (!conversation) {
             console.log('No active conversation to end');
@@ -116,7 +138,7 @@ export function ConvAI() {
             console.error('Error ending conversation:', error);
             throw error; // Re-throw to be caught by caller
         }
-    }, [conversation]);
+    }, [conversation, isDemoActive, demoTimerId, setIsDemoActive, setDemoMessageIndex, setIsConnected, setGlMode, setLatestUserMessage]);
 
     const handleMessage = useCallback(({message, source}: {message: string, source: string}) => {
         console.log('onMessage', message, source);
@@ -130,47 +152,161 @@ export function ConvAI() {
         }
     }, [glMode, setLLMChat]);
 
+    // Modified genMyNextMessage to use demo script instead of API
     const genMyNextMessage = useCallback(async (messages: Message[] = llmChat): Promise<string> => {
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    messages,
-                    agentType,
-                    sessionId
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get AI response');
+        if (isDemoActive) {
+            // Get the next message from the demo script
+            const script = demoScripts[currentDemoScript];
+            if (!script) return "Demo script not found.";
+            
+            const nextIndex = demoMessageIndex + 1;
+            if (nextIndex >= script.messages.length) {
+                return "Demo script completed.";
             }
+            
+            const nextMessage = script.messages[nextIndex];
+            
+            // Only process assistant messages (assuming sender 'B' is the assistant)
+            if (nextMessage.sender === 'B') {
+                setDemoMessageIndex(nextIndex);
+                
+                // Format the message as needed
+                const formattedMessage = '[GL MODE]: ' + nextMessage.text;
+                
+                // Update the chat history with the script's message
+                setLLMChat(prevChat => [...prevChat, {
+                    role: 'assistant',
+                    content: formattedMessage
+                }]);
+                
+                return nextMessage.text;
+            } else {
+                // It's a user message, just increment the index and return empty string
+                // This shouldn't happen in normal flow but adding as a safeguard
+                setDemoMessageIndex(nextIndex);
+                return "";
+            }
+        } else {
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages,
+                        agentType,
+                        sessionId
+                    }),
+                });
 
-            const data = await response.json();
-            const newMessage = data.content || '';
-            const formattedMessage = !newMessage.startsWith('[GL MODE]:') ? '[GL MODE]: ' + newMessage : newMessage;
+                if (!response.ok) {
+                    throw new Error('Failed to get AI response');
+                }
 
-            // Update the chat history with the AI's response
-            setLLMChat(prevChat => [...prevChat, {
-                role: 'assistant',
-                content: formattedMessage
-            }]);
+                const data = await response.json();
+                const newMessage = data.content || '';
+                const formattedMessage = !newMessage.startsWith('[GL MODE]:') ? '[GL MODE]: ' + newMessage : newMessage;
 
-            return formattedMessage.replace('[GL MODE]: ', ''); // remove prefix for audio
-        } catch (error) {
-            console.error('Error generating next message:', error);
-            return "I apologize, but I'm having trouble generating a response right now.";
+                // Update the chat history with the AI's response
+                setLLMChat(prevChat => [...prevChat, {
+                    role: 'assistant',
+                    content: formattedMessage
+                }]);
+
+                return formattedMessage.replace('[GL MODE]: ', ''); // remove prefix for audio
+            } catch (error) {
+                console.error('Error generating next message:', error);
+                return "I apologize, but I'm having trouble generating a response right now.";
+            }
         }
-    }, [llmChat, agentType, sessionId]);
+    }, [llmChat, agentType, sessionId, isDemoActive, currentDemoScript, demoMessageIndex]);
 
+    // Process demo script messages
+    useEffect(() => {
+        if (isDemoActive && glMode) {
+            const script = demoScripts[currentDemoScript];
+            if (!script) return;
+            
+            // Function to process the next message in the demo script
+            const processNextDemoMessage = () => {
+                const nextIndex = demoMessageIndex + 1;
+                if (nextIndex >= script.messages.length) {
+                    // Demo script completed
+                    setIsDemoActive(false);
+                    return;
+                }
+                
+                const nextMessage = script.messages[nextIndex];
+                const delay = nextMessage.delay || 1000;
+                
+                // Set a timer for the next message
+                const timerId = setTimeout(() => {
+                    setDemoMessageIndex(nextIndex);
+                    
+                    if (nextMessage.sender === 'A') {
+                        // User message
+                        setLLMChat(prevChat => [...prevChat, {
+                            role: 'user',
+                            content: '[GL MODE]: ' + nextMessage.text
+                        }]);
+                        setLatestUserMessage(nextMessage.text);
+                        
+                        // After a user message, we need to generate the assistant response
+                        // This will automatically pick the next message from the script
+                        const nextAssistantIndex = nextIndex + 1;
+                        if (nextAssistantIndex < script.messages.length && script.messages[nextAssistantIndex].sender === 'B') {
+                            // If there's an assistant response next, schedule it after a short delay
+                            const assistantMessage = script.messages[nextAssistantIndex];
+                            const assistantDelay = assistantMessage.delay || 1000;
+                            
+                            setTimeout(async () => {
+                                const responseText = await genMyNextMessage();
+                                if (gibberlinkRef.current && responseText) {
+                                    setLatestUserMessage(responseText);
+                                    await gibberlinkRef.current.sendMessage(responseText, agentType === 'inbound');
+                                }
+                                processNextDemoMessage(); // Continue with the next message
+                            }, assistantDelay);
+                        } else {
+                            // Otherwise, continue with the regular flow
+                            processNextDemoMessage();
+                        }
+                    } else {
+                        // Assistant message - this is handled by genMyNextMessage, 
+                        // so we just continue the process
+                        processNextDemoMessage();
+                    }
+                }, delay);
+                
+                setDemoTimerId(timerId);
+            };
+            
+            // Start the demo if we haven't started yet
+            if (demoMessageIndex === -1) {
+                processNextDemoMessage();
+            }
+            
+            // Cleanup function
+            return () => {
+                if (demoTimerId) {
+                    clearTimeout(demoTimerId);
+                }
+            };
+        }
+    }, [isDemoActive, glMode, demoMessageIndex, currentDemoScript, genMyNextMessage, agentType, setDemoTimerId, setDemoMessageIndex, setLatestUserMessage, setLLMChat, gibberlinkRef]);
+
+    // Modified useEffect for GibberLink message handling
     useEffect(() => {
         setMounted(true);
 
         // Handle messages from GibberLink
         const handleGibberlinkMessage = async (message: AudioMessage) => {
             if (isProcessingInput || message.source === 'self') return; // ignore self messages or when processing
+            
+            // If demo is active, don't process actual input
+            if (isDemoActive) return;
+            
             setIsProcessingInput(true);
             
             try {
@@ -203,7 +339,7 @@ export function ConvAI() {
                 removeListener(); // Clean up listener on effect cleanup
             };
         }
-    }, [endConversation, genMyNextMessage, setLLMChat, setLatestUserMessage, setGlMode, isProcessingInput, llmChat, agentType, mounted]);
+    }, [endConversation, genMyNextMessage, setLLMChat, setLatestUserMessage, setGlMode, isProcessingInput, llmChat, agentType, mounted, isDemoActive]);
 
     // Initialize AudioMotion-Analyzer when glMode is activated
     useEffect(() => {
@@ -248,6 +384,7 @@ export function ConvAI() {
     async function startConversation() {
         setIsLoading(true)
         try {
+            // Original conversation starting code
             const hasPermission = await requestMicrophonePermission()
             if (!hasPermission) {
                 alert("No permission")
@@ -273,7 +410,7 @@ export function ConvAI() {
                     console.log('Conversation disconnected');
                     setIsConnected(false)
                     setIsSpeaking(false)
-                    setIsLoading(false)
+                  
                 },
                 clientTools: {
                     gibbMode: async (params: any) => {
@@ -369,7 +506,41 @@ export function ConvAI() {
                 </div>
 
                 {mounted && (
-                    <div className="fixed bottom-[40px] md:bottom-[60px] left-1/2 transform -translate-x-1/2">
+                    <div className="fixed bottom-[40px] md:bottom-[60px] left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-4">
+                        {/* Demo script selector */}
+                        {!isConnected && !conversation && !glMode && !isLoading && (
+                            <div className="flex items-center gap-2">
+                                <select 
+                                    className="bg-black text-white border border-white rounded-md px-3 py-2"
+                                    value={currentDemoScript}
+                                    onChange={(e) => setCurrentDemoScript(e.target.value)}
+                                >
+                                    {Object.entries(demoScripts).map(([key, script]) => (
+                                        <option key={key} value={key}>{script.name}</option>
+                                    ))}
+                                </select>
+                                <Button
+                                    variant={'secondary'}
+                                    className={'rounded-full select-none'}
+                                    size={"sm"}
+                                    onClick={() => {
+                                        setGlMode(true);
+                                        setIsDemoActive(true);
+                                        setDemoMessageIndex(-1);
+                                        setLatestUserMessage('');
+                                        setLLMChat([{ role: 'system', content: SYSTEM_MESSAGES[agentType] }]);
+                                        setIsConnected(true);
+                                        
+                                        if (gibberlinkRef.current) {
+                                            gibberlinkRef.current.startListening();
+                                        }
+                                    }}
+                                >
+                                    Start Demo
+                                </Button>
+                            </div>
+                        )}
+                        
                         <Button
                             variant={'outline'}
                             className={'rounded-full select-none'}
