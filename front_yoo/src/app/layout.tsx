@@ -6,8 +6,8 @@ import Script from 'next/script';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Audio Messenger',
-  description: 'Audio communication using ggwave',
+  title: 'SSAL',
+  description: 'SSAL',
 };
 
 export default function RootLayout({
