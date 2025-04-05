@@ -3399,7 +3399,7 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
                 var timeoutId = setTimeout(function () {
                   _this2.pendingRequests["delete"](headers.nonce);
                   reject(new Error('응답 타임아웃'));
-                }, 10000);
+                }, 100000);
 
                 // 요청 등록
                 _this2.pendingRequests.set(headers.nonce, {
@@ -3990,6 +3990,1001 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
 
 /***/ }),
 
+/***/ "../sdk/src/sal/transport/AudioMessageTransport.ts":
+/*!*********************************************************!*\
+  !*** ../sdk/src/sal/transport/AudioMessageTransport.ts ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   AudioMessageTransport: () => (/* binding */ AudioMessageTransport)
+/* harmony export */ });
+/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! events */ "../sdk/node_modules/events/events.js");
+/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_0__);
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+/**
+ * AudioMessageTransport 설정 인터페이스
+ */
+
+/**
+ * 오디오 기반 메시지 전송을 위한 클래스
+ * 웹 오디오 API와 ggwave 라이브러리를 사용하여 오디오로 메시지를 인코딩/디코딩합니다.
+ */
+var AudioMessageTransport = /*#__PURE__*/function () {
+  /**
+   * AudioMessageTransport 생성자
+   * @param config 설정 객체
+   */
+  function AudioMessageTransport() {
+    var _this = this;
+    var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, AudioMessageTransport);
+    _defineProperty(this, "context", null);
+    _defineProperty(this, "ggwave", null);
+    _defineProperty(this, "instance", null);
+    _defineProperty(this, "isRecording", false);
+    _defineProperty(this, "mediaStream", null);
+    _defineProperty(this, "recorder", null);
+    _defineProperty(this, "messageHandler", null);
+    _defineProperty(this, "initialized", false);
+    _defineProperty(this, "logDiv", null);
+    this.name = config.name || 'AudioTransport';
+    this.emitter = new events__WEBPACK_IMPORTED_MODULE_0__.EventEmitter();
+
+    // 로그 기록용 div 요소
+    var logElementId = config.logElement || "".concat(this.name.toLowerCase(), "-log");
+    this.logDiv = document.getElementById(logElementId);
+
+    // 이벤트 핸들러 등록
+    this.emitter.on('message_received', function (message) {
+      _this.log("\uBA54\uC2DC\uC9C0 \uC218\uC2E0: ".concat(message.substring(0, 30)).concat(message.length > 30 ? '...' : ''), 'response');
+      if (_this.messageHandler) {
+        _this.messageHandler(message);
+      }
+    });
+  }
+
+  /**
+   * 로그 출력 함수
+   * @param message 로그 메시지
+   * @param type 로그 타입 (info, error, request, response)
+   */
+  return _createClass(AudioMessageTransport, [{
+    key: "log",
+    value: function log(message) {
+      var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
+      console.log("[".concat(this.name, "] ").concat(message));
+      if (!this.logDiv) {
+        console.error("[".concat(this.name, "] \uB85C\uADF8 \uD328\uB110\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."));
+        return;
+      }
+      var entry = document.createElement('div');
+      entry.className = "log-entry ".concat(type);
+      entry.textContent = "[".concat(new Date().toLocaleTimeString(), "] ").concat(message);
+      this.logDiv.appendChild(entry);
+      this.logDiv.scrollTop = this.logDiv.scrollHeight;
+    }
+
+    // 타입 변환 도우미 함수
+  }, {
+    key: "convertTypedArray",
+    value: function convertTypedArray(src, type) {
+      try {
+        var buffer = new ArrayBuffer(src.byteLength);
+        new src.constructor(buffer).set(src);
+        return new type(buffer);
+      } catch (error) {
+        console.error("[".concat(this.name, "] \uD0C0\uC785 \uBCC0\uD658 \uC624\uB958:"), error);
+
+        // 대체 변환 방법 시도
+        try {
+          var temp = Array.from(new Float32Array(src.buffer));
+          var result = new type(new ArrayBuffer(temp.length * 2));
+
+          // Int16Array일 경우 스케일링 적용
+          if (type.name === 'Int8Array') {
+            for (var i = 0; i < temp.length; i++) {
+              // 타입 캐스팅을 안전하게 처리
+              var typedResult = result;
+              typedResult[i] = Math.floor(temp[i] * 127);
+            }
+          } else {
+            for (var _i = 0; _i < temp.length; _i++) {
+              result[_i] = temp[_i];
+            }
+          }
+          return result;
+        } catch (fallbackError) {
+          console.error("[".concat(this.name, "] \uB300\uCCB4 \uD0C0\uC785 \uBCC0\uD658 \uC2E4\uD328:"), fallbackError);
+          return null;
+        }
+      }
+    }
+
+    /**
+     * ggwave 및 오디오 컨텍스트 초기화
+     * @returns 초기화 성공 여부
+     */
+  }, {
+    key: "initialize",
+    value: (function () {
+      var _initialize = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+        var _this2 = this;
+        var sampleRate, parameters, defaultParams, errorMessage;
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              if (!this.initialized) {
+                _context.next = 2;
+                break;
+              }
+              return _context.abrupt("return", true);
+            case 2:
+              _context.prev = 2;
+              if (!(typeof window === 'undefined')) {
+                _context.next = 7;
+                break;
+              }
+              console.error('Window 객체가 없습니다. 브라우저 환경인지 확인하세요.');
+              this.log('window 객체가 없습니다. 브라우저 환경인지 확인하세요.', 'error');
+              return _context.abrupt("return", false);
+            case 7:
+              console.log('Window 객체 확인됨, ggwave_factory 확인 중...', window.ggwave_factory);
+              if (window.ggwave_factory) {
+                _context.next = 13;
+                break;
+              }
+              console.error('ggwave_factory가 없습니다. 스크립트가 로드되었는지 확인하세요.');
+              this.log('ggwave 라이브러리가 로드되지 않았습니다.', 'error');
+
+              // 전역 객체에 있는 모든 속성 출력 (디버깅용)
+              console.log('Window 객체의 사용 가능한 속성:', Object.keys(window));
+              return _context.abrupt("return", false);
+            case 13:
+              this.log('오디오 컨텍스트 초기화 중...', 'info');
+
+              // 오디오 컨텍스트 생성 - 특정 샘플 레이트 지정
+              sampleRate = 48000; // 48kHz 샘플 레이트 (ggwave에 적합)
+              this.context = new AudioContext({
+                sampleRate: sampleRate
+              });
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC0DD\uC131\uB428, \uC0D8\uD50C \uB808\uC774\uD2B8: ").concat(this.context.sampleRate, "Hz"));
+
+              // 웹 오디오 API 사용자 상호 작용 요구 사항
+              if (this.context.state === 'suspended') {
+                this.log('오디오 컨텍스트가 일시 중지되었습니다. 페이지와 상호 작용하세요.', 'info');
+                console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC0C1\uD0DC: ").concat(this.context.state, ", \uC0C1\uD638 \uC791\uC6A9 \uD544\uC694"));
+
+                // 사용자 상호 작용이 필요할 수 있음을 안내
+                document.addEventListener('click', function () {
+                  if (_this2.context && _this2.context.state === 'suspended') {
+                    _this2.context.resume().then(function () {
+                      console.log("[".concat(_this2.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uC7AC\uAC1C\uB418\uC5C8\uC2B5\uB2C8\uB2E4."));
+                    });
+                  }
+                }, {
+                  once: true
+                });
+              }
+
+              // ggwave 모듈 초기화
+              console.log("[".concat(this.name, "] ggwave_factory \uD638\uCD9C \uC804..."));
+              _context.next = 21;
+              return window.ggwave_factory();
+            case 21:
+              this.ggwave = _context.sent;
+              console.log("[".concat(this.name, "] ggwave_factory \uD638\uCD9C \uD6C4, \uACB0\uACFC:"), this.ggwave);
+
+              // ggwave 기본 파라미터 가져오기 및 수정
+              parameters = this.ggwave.getDefaultParameters();
+              console.log("[".concat(this.name, "] \uAE30\uBCF8 \uD30C\uB77C\uBBF8\uD130:"), parameters);
+
+              // 파라미터 조정 (성능 향상)
+              parameters.sampleRateInp = this.context.sampleRate;
+              parameters.sampleRateOut = this.context.sampleRate;
+              parameters.soundMarkerThreshold = 8; // 마커 감지 임계값 증가 (노이즈 영향 감소)
+
+              console.log("[".concat(this.name, "] \uC870\uC815\uB41C \uD30C\uB77C\uBBF8\uD130:"), {
+                sampleRateInp: parameters.sampleRateInp,
+                sampleRateOut: parameters.sampleRateOut,
+                soundMarkerThreshold: parameters.soundMarkerThreshold
+              });
+              console.log("[".concat(this.name, "] ggwave.init \uD638\uCD9C \uC804..."));
+              this.instance = this.ggwave.init(parameters);
+              console.log("[".concat(this.name, "] ggwave.init \uD638\uCD9C \uD6C4, \uC778\uC2A4\uD134\uC2A4:"), this.instance);
+
+              // 인스턴스 검증
+              if (!(!this.instance || this.instance === 0)) {
+                _context.next = 41;
+                break;
+              }
+              console.error("[".concat(this.name, "] ggwave.init \uC2E4\uD328: \uC778\uC2A4\uD134\uC2A4\uAC00 0\uC774\uAC70\uB098 \uC720\uD6A8\uD558\uC9C0 \uC54A\uC74C"));
+
+              // 재시도 (다른 설정으로)
+              console.log("[".concat(this.name, "] ggwave \uCD08\uAE30\uD654 \uC7AC\uC2DC\uB3C4 \uC911..."));
+              defaultParams = this.ggwave.getDefaultParameters(); // 기본 파라미터로 다시 시도
+              this.instance = this.ggwave.init(defaultParams);
+              console.log("[".concat(this.name, "] \uC7AC\uC2DC\uB3C4 \uACB0\uACFC:"), this.instance);
+              if (!(!this.instance || this.instance === 0)) {
+                _context.next = 41;
+                break;
+              }
+              this.log('ggwave 초기화 실패: 인스턴스를 생성할 수 없습니다', 'error');
+              return _context.abrupt("return", false);
+            case 41:
+              // 사용 가능한 프로토콜 출력 (디버깅용)
+              if (this.ggwave.ProtocolId) {
+                console.log("[".concat(this.name, "] \uC0AC\uC6A9 \uAC00\uB2A5\uD55C \uD504\uB85C\uD1A0\uCF5C:"), this.ggwave.ProtocolId);
+              }
+              this.log('AudioMessageTransport 초기화됨', 'info');
+              this.initialized = true;
+              return _context.abrupt("return", true);
+            case 47:
+              _context.prev = 47;
+              _context.t0 = _context["catch"](2);
+              errorMessage = _context.t0 instanceof Error ? _context.t0.message : String(_context.t0);
+              this.log("\uCD08\uAE30\uD654 \uC624\uB958: ".concat(errorMessage), 'error');
+              console.error("[".concat(this.name, "] \uCD08\uAE30\uD654 \uC624\uB958:"), _context.t0);
+              return _context.abrupt("return", false);
+            case 53:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee, this, [[2, 47]]);
+      }));
+      function initialize() {
+        return _initialize.apply(this, arguments);
+      }
+      return initialize;
+    }()
+    /**
+     * 메시지 송신 메서드
+     * @param message 전송할 메시지
+     * @returns 전송 완료 Promise
+     */
+    )
+  }, {
+    key: "sendMessage",
+    value: (function () {
+      var _sendMessage = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(message) {
+        var _this3 = this;
+        var success, messageStr, validRegex, protocol, volume, waveform, buf, buffer, duration, gainNode, source, errorMessage, _errorMessage;
+        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              if (this.initialized) {
+                _context2.next = 6;
+                break;
+              }
+              _context2.next = 3;
+              return this.initialize();
+            case 3:
+              success = _context2.sent;
+              if (success) {
+                _context2.next = 6;
+                break;
+              }
+              throw new Error('AudioMessageTransport 초기화에 실패했습니다.');
+            case 6:
+              _context2.prev = 6;
+              if (!(message === undefined || message === null)) {
+                _context2.next = 9;
+                break;
+              }
+              throw new Error('메시지가 null 또는 undefined입니다');
+            case 9:
+              // 문자열로 변환 확보 및 엄격한 검증
+              messageStr = String(message); // 문자열 길이 검증
+              if (!(messageStr.length === 0)) {
+                _context2.next = 12;
+                break;
+              }
+              throw new Error('빈 메시지는 전송할 수 없습니다');
+            case 12:
+              // 유효한 문자열인지 확인 (일부 특수문자나 이진 데이터가 들어오면 문제 발생 가능)
+              validRegex = /^[\x20-\x7E\uAC00-\uD7A3\u3130-\u318F]+$/; // ASCII 가능 문자 및 한글
+              if (!validRegex.test(messageStr)) {
+                console.warn("[".concat(this.name, "] \uBA54\uC2DC\uC9C0\uC5D0 \uC9C0\uC6D0\uB418\uC9C0 \uC54A\uB294 \uBB38\uC790\uAC00 \uD3EC\uD568\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4. \uD544\uD130\uB9C1\uD569\uB2C8\uB2E4."));
+                // 지원되지 않는 문자는 '?' 로 대체
+                messageStr = messageStr.replace(/[^\x20-\x7E\uAC00-\uD7A3\u3130-\u318F]/g, '?');
+              }
+              console.log("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uD0C0\uC785: ").concat(_typeof(messageStr), ", \uAC12: \"").concat(messageStr, "\""));
+              this.log("\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC911: \"".concat(messageStr, "\" (").concat(messageStr.length, " \uBC14\uC774\uD2B8)"), 'request');
+              console.log("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uC778\uCF54\uB529 \uC2DC\uC791: \"").concat(messageStr, "\""));
+
+              // ggwave 인스턴스 검증
+              if (this.ggwave) {
+                _context2.next = 19;
+                break;
+              }
+              throw new Error('ggwave가 초기화되지 않았습니다.');
+            case 19:
+              if (!(!this.instance || this.instance === 0)) {
+                _context2.next = 21;
+                break;
+              }
+              throw new Error('ggwave 인스턴스가 유효하지 않습니다. 재초기화가 필요합니다.');
+            case 21:
+              if (this.ggwave.ProtocolId && this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_NORMAL !== undefined) {
+                protocol = this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_NORMAL;
+              } else if (this.ggwave.ProtocolId && this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST !== undefined) {
+                protocol = this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST;
+              } else {
+                // 프로토콜을 찾을 수 없으면 기본값 사용
+                protocol = 1; // GGWAVE_PROTOCOL_AUDIBLE_NORMAL 일반적으로 1
+                console.log("[".concat(this.name, "] \uD504\uB85C\uD1A0\uCF5C ID\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC5B4 \uAE30\uBCF8\uAC12 \uC0AC\uC6A9:"), protocol);
+              }
+              volume = 50; // 볼륨 증가 (0-100)
+              console.log("[".concat(this.name, "] \uC120\uD0DD\uB41C \uD504\uB85C\uD1A0\uCF5C: ").concat(protocol, ", \uBCFC\uB968: ").concat(volume));
+
+              // 안전하게 인코딩 시도 (try/catch 내부에서)
+              _context2.prev = 24;
+              if (!(typeof messageStr !== 'string')) {
+                _context2.next = 27;
+                break;
+              }
+              throw new Error("messageStr\uC740 \uBB38\uC790\uC5F4\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4. \uD604\uC7AC \uD0C0\uC785: ".concat(_typeof(messageStr)));
+            case 27:
+              console.log("[".concat(this.name, "] \uC778\uCF54\uB529 \uC9C1\uC804 \uD655\uC778 - messageStr=[").concat(messageStr, "], \uD0C0\uC785=").concat(_typeof(messageStr), ", \uAE38\uC774=").concat(messageStr.length));
+
+              // ggwave로 메시지 인코딩
+              waveform = this.ggwave.encode(this.instance, messageStr, protocol, volume);
+              if (!(!waveform || waveform.length === 0)) {
+                _context2.next = 31;
+                break;
+              }
+              throw new Error('오디오 인코딩 실패: 빈 파형이 반환되었습니다.');
+            case 31:
+              console.log("[".concat(this.name, "] \uC778\uCF54\uB529 \uC644\uB8CC, \uD30C\uD615 \uAE38\uC774: ").concat(waveform.length, " \uC0D8\uD50C"));
+
+              // Float32Array로 변환하여 오디오 버퍼 생성
+              if (this.context) {
+                _context2.next = 34;
+                break;
+              }
+              throw new Error('오디오 컨텍스트가 초기화되지 않았습니다.');
+            case 34:
+              buf = this.convertTypedArray(waveform, Float32Array);
+              if (buf) {
+                _context2.next = 37;
+                break;
+              }
+              throw new Error('파형 변환 실패');
+            case 37:
+              buffer = this.context.createBuffer(1, buf.length, this.context.sampleRate);
+              buffer.getChannelData(0).set(buf);
+
+              // 예상 재생 시간 (초)
+              duration = buffer.duration;
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uBC84\uD37C \uC0DD\uC131\uB428, \uAE38\uC774: ").concat(duration.toFixed(2), "\uCD08"));
+
+              // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
+              gainNode = this.context.createGain();
+              gainNode.gain.value = 2.0; // 기본 볼륨 증가 (1.0 -> 2.0)
+
+              // 오디오 소스 생성 및 출력
+              source = this.context.createBufferSource();
+              source.buffer = buffer;
+
+              // 노드 연결: source -> gain -> destination
+              source.connect(gainNode);
+              gainNode.connect(this.context.destination);
+
+              // 재생 시작
+              source.start(0);
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC2DC\uC791"));
+              this.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC911... (".concat(waveform.length, " \uC0D8\uD50C)"), 'request');
+
+              // 전송이 완료될 때까지 기다림 (인코딩된 오디오 길이 + 여유 시간)
+              return _context2.abrupt("return", new Promise(function (resolve) {
+                var waitTime = Math.min(waveform.length + 1000, 10000); // 밀리초 단위 (여유 시간 증가, 최대 10초)
+                console.log("[".concat(_this3.name, "] ").concat(waitTime, "ms \uD6C4 \uC7AC\uC0DD \uC644\uB8CC \uC608\uC815"));
+                setTimeout(function () {
+                  _this3.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC", 'request');
+                  console.log("[".concat(_this3.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
+                  resolve();
+                }, waitTime);
+              }));
+            case 53:
+              _context2.prev = 53;
+              _context2.t0 = _context2["catch"](24);
+              errorMessage = _context2.t0 instanceof Error ? _context2.t0.message : String(_context2.t0);
+              console.error("[".concat(this.name, "] \uC778\uCF54\uB529 \uC624\uB958 \uBC1C\uC0DD:"), _context2.t0);
+              this.log("\uC778\uCF54\uB529 \uC624\uB958: ".concat(errorMessage), 'error');
+              throw new Error("\uC624\uB514\uC624 \uC778\uCF54\uB529 \uC2E4\uD328: ".concat(errorMessage));
+            case 59:
+              _context2.next = 67;
+              break;
+            case 61:
+              _context2.prev = 61;
+              _context2.t1 = _context2["catch"](6);
+              _errorMessage = _context2.t1 instanceof Error ? _context2.t1.message : String(_context2.t1);
+              this.log("\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328: ".concat(_errorMessage), 'error');
+              console.error("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328:"), _context2.t1);
+              throw _context2.t1;
+            case 67:
+            case "end":
+              return _context2.stop();
+          }
+        }, _callee2, this, [[6, 61], [24, 53]]);
+      }));
+      function sendMessage(_x) {
+        return _sendMessage.apply(this, arguments);
+      }
+      return sendMessage;
+    }()
+    /**
+     * 메시지 수신 핸들러 등록
+     * @param handler 메시지 수신 핸들러
+     */
+    )
+  }, {
+    key: "onMessage",
+    value: function onMessage(handler) {
+      this.messageHandler = handler;
+    }
+
+    /**
+     * 녹음 시작 및 메시지 수신 대기
+     * @returns 녹음 시작 성공 여부
+     */
+  }, {
+    key: "startListening",
+    value: (function () {
+      var _startListening = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+        var _this4 = this;
+        var success, constraints, stream, mediaStreamSource, processCount, lastLog, errorMessage;
+        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              if (this.initialized) {
+                _context3.next = 6;
+                break;
+              }
+              _context3.next = 3;
+              return this.initialize();
+            case 3:
+              success = _context3.sent;
+              if (success) {
+                _context3.next = 6;
+                break;
+              }
+              return _context3.abrupt("return", false);
+            case 6:
+              if (!this.isRecording) {
+                _context3.next = 9;
+                break;
+              }
+              this.log('이미 녹음 중입니다.', 'info');
+              return _context3.abrupt("return", true);
+            case 9:
+              _context3.prev = 9;
+              this.log('메시지 수신 대기 중...', 'info');
+              console.log("[".concat(this.name, "] \uB9C8\uC774\uD06C \uC811\uADFC \uC694\uCCAD \uC911..."));
+
+              // 마이크 접근 권한 요청
+              constraints = {
+                audio: {
+                  echoCancellation: false,
+                  autoGainControl: false,
+                  noiseSuppression: false
+                }
+              };
+              _context3.next = 15;
+              return navigator.mediaDevices.getUserMedia(constraints);
+            case 15:
+              stream = _context3.sent;
+              this.log('마이크 접근 권한 획득 성공', 'info');
+              console.log("[".concat(this.name, "] \uB9C8\uC774\uD06C \uC2A4\uD2B8\uB9BC \uD68D\uB4DD \uC131\uACF5:"), stream);
+              this.mediaStream = stream;
+              if (this.context) {
+                _context3.next = 21;
+                break;
+              }
+              throw new Error('오디오 컨텍스트가 초기화되지 않았습니다.');
+            case 21:
+              if (!(this.context.state === 'suspended')) {
+                _context3.next = 25;
+                break;
+              }
+              _context3.next = 24;
+              return this.context.resume();
+            case 24:
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC7AC\uAC1C\uB428"));
+            case 25:
+              // 미디어 스트림 소스 노드 생성
+              mediaStreamSource = this.context.createMediaStreamSource(stream);
+              console.log("[".concat(this.name, "] \uBBF8\uB514\uC5B4 \uC2A4\uD2B8\uB9BC \uC18C\uC2A4 \uB178\uB4DC \uC0DD\uC131\uB428"));
+
+              // 스크립트 프로세서 노드 생성 (AudioWorkletNode가 더 좋지만 간단히 구현)
+              this.recorder = this.context.createScriptProcessor(4096, 1, 1);
+              console.log("[".concat(this.name, "] \uC2A4\uD06C\uB9BD\uD2B8 \uD504\uB85C\uC138\uC11C \uB178\uB4DC \uC0DD\uC131\uB428"));
+              processCount = 0;
+              lastLog = 0; // 오디오 처리 이벤트 핸들러
+              this.recorder.onaudioprocess = function (e) {
+                // 입력 버퍼에서 채널 데이터 가져오기
+                var sourceBuf = e.inputBuffer.getChannelData(0);
+
+                // 타입 변환 도우미 함수 (로컬 정의)
+                var localConvertTypedArray = function localConvertTypedArray(src, type) {
+                  try {
+                    var buffer = new ArrayBuffer(src.byteLength);
+                    new Float32Array(buffer).set(src);
+                    return new type(buffer);
+                  } catch (error) {
+                    console.error("[".concat(_this4.name, "] \uD0C0\uC785 \uBCC0\uD658 \uC624\uB958:"), error);
+
+                    // 대체 변환 방법 시도
+                    try {
+                      var temp = Array.from(src);
+                      var result = new Int8Array(temp.length);
+                      for (var i = 0; i < temp.length; i++) {
+                        result[i] = Math.floor(temp[i] * 32767);
+                      }
+                      return result;
+                    } catch (fallbackError) {
+                      console.error("[".concat(_this4.name, "] \uB300\uCCB4 \uD0C0\uC785 \uBCC0\uD658 \uC2E4\uD328:"), fallbackError);
+                      return null;
+                    }
+                  }
+                };
+
+                // 오디오 신호 강도 계산
+                var signalStrength = Math.sqrt(sourceBuf.reduce(function (sum, val) {
+                  return sum + val * val;
+                }, 0) / sourceBuf.length);
+
+                // 입력이 감지되었을 때 즉시 로그 (신호 강도가 임계값 이상)
+                // if (signalStrength > 0.001) {
+                //   console.log(`⚡ 마이크 입력 감지: 강도=${signalStrength.toFixed(6)}, 버퍼크기=${sourceBuf.length}`);
+                // }
+
+                // ggwave가 제대로 초기화되었는지 확인
+                if (!_this4.initialized) {
+                  console.log("[".concat(_this4.name, "] \uCD08\uAE30\uD654\uB418\uC9C0 \uC54A\uC74C. \uC624\uB514\uC624 \uCC98\uB9AC \uBD88\uAC00"));
+                  return;
+                }
+                if (!_this4.ggwave) {
+                  console.log("[".concat(_this4.name, "] ggwave \uAC1D\uCCB4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC624\uB514\uC624 \uCC98\uB9AC \uBD88\uAC00"));
+                  return;
+                }
+                if (!_this4.instance || _this4.instance === 0) {
+                  console.log("[".concat(_this4.name, "] ggwave \uC778\uC2A4\uD134\uC2A4\uAC00 \uC720\uD6A8\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."));
+                  return;
+                }
+                processCount++;
+                var now = Date.now();
+
+                // 5초마다 로그 출력 (디버깅용)
+                if (now - lastLog > 5000) {
+                  console.log("[".concat(_this4.name, "] \uC624\uB514\uC624 \uCC98\uB9AC \uC911... (").concat(processCount, "\uD68C \uCC98\uB9AC\uB428)"));
+                  console.log("[".concat(_this4.name, "] \uC2E0\uD638 \uAC15\uB3C4:"), signalStrength.toFixed(6));
+                  lastLog = now;
+                }
+
+                // 신호 강도가 너무 낮으면 처리하지 않음 (CPU 자원 절약)
+                if (signalStrength < 0.001) {
+                  if (now - lastLog > 5000) {
+                    console.log("[".concat(_this4.name, "] \uC2E0\uD638 \uAC15\uB3C4\uAC00 \uB108\uBB34 \uB0AE\uC2B5\uB2C8\uB2E4. \uCC98\uB9AC \uAC74\uB108\uB700"));
+                  }
+                  return;
+                }
+
+                // ggwave 인코딩 신호 패턴 감지 (기본적인 휴리스틱)
+                var isEncodedSignal = false;
+
+                // 1. 신호 패턴 분석 (간단한 방법)
+                var audioSamples = Array.from(sourceBuf);
+                var crossings = 0;
+                var lastSign = Math.sign(audioSamples[0]);
+
+                // 제로 크로싱 카운트 (주파수 관련 측정)
+                for (var i = 1; i < audioSamples.length; i++) {
+                  var sign = Math.sign(audioSamples[i]);
+                  if (sign !== lastSign && sign !== 0) {
+                    crossings++;
+                    lastSign = sign;
+                  }
+                }
+
+                // ggwave는 일반적으로 특정 범위의 주파수를 사용
+                // 크로싱 수가 특정 범위 내에 있으면 인코딩된 신호일 가능성이 높음
+                var crossingRate = crossings / audioSamples.length;
+
+                // 스펙트럼 패턴 분석 (추가 정보 제공)
+                var peakFreq = 0;
+                var energyConcentration = 0;
+
+                // 신호 강도가 유의미하면 스펙트럼 분석
+                if (signalStrength > 0.003) {
+                  // 신호의 주파수 특성 검사 (간단한 방법)
+                  var maxVal = 0;
+                  var maxIdx = 0;
+                  var energySum = 0;
+                  var highFreqEnergy = 0;
+
+                  // 신호의 최대값과 에너지 분포 확인
+                  for (var _i2 = 0; _i2 < audioSamples.length; _i2++) {
+                    var val = Math.abs(audioSamples[_i2]);
+                    energySum += val * val;
+                    if (val > maxVal) {
+                      maxVal = val;
+                      maxIdx = _i2;
+                    }
+
+                    // 고주파 에너지 계산 (간략화된 방법)
+                    if (_i2 > audioSamples.length / 2) {
+                      highFreqEnergy += val * val;
+                    }
+                  }
+
+                  // 고주파 에너지 비율 (ggwave는 일반적으로 높은 주파수 사용)
+                  energyConcentration = highFreqEnergy / energySum;
+
+                  // 피크 주파수 추정 (매우 간략화된 방법)
+                  if (maxIdx > 0 && maxIdx < audioSamples.length - 1) {
+                    var periodSample = maxIdx;
+                    if (periodSample > 0 && _this4.context) {
+                      peakFreq = _this4.context.sampleRate / periodSample;
+                    }
+                  }
+                }
+
+                // 신호 감지 조건 검사 (크로싱 비율, 신호 강도, 에너지 분포)
+                if (crossingRate > 0.05 && crossingRate < 0.5 && signalStrength > 0.005) {
+                  isEncodedSignal = true;
+                  console.log("[".concat(_this4.name, "] \uD83D\uDCE1 ggwave \uC778\uCF54\uB529\uB41C \uC2E0\uD638 \uAC10\uC9C0! \uD06C\uB85C\uC2F1=").concat(crossingRate.toFixed(4), ", \uAC15\uB3C4=").concat(signalStrength.toFixed(6), ", \uC5D0\uB108\uC9C0\uC9D1\uC911\uB3C4=").concat(energyConcentration.toFixed(4)));
+
+                  // 특성 정보 출력 (디버깅용)
+                  var buffer = new Uint8Array(10);
+                  for (var _i3 = 0; _i3 < Math.min(10, audioSamples.length); _i3++) {
+                    buffer[_i3] = Math.abs(Math.floor(audioSamples[_i3] * 255));
+                  }
+                  // console.log(`[${this.name}] 신호 샘플:`, Array.from(buffer).join(','), `피크주파수: ~${Math.round(peakFreq)}Hz`);
+                } else if (now - lastLog > 5000) {
+                  console.log("[".concat(_this4.name, "] \uC77C\uBC18 \uC624\uB514\uC624 \uC2E0\uD638: \uD06C\uB85C\uC2F1=").concat(crossingRate.toFixed(4), ", \uAC15\uB3C4=").concat(signalStrength.toFixed(6)));
+                }
+
+                // 인코딩된 신호가 아니라고 판단되면 처리하지 않음
+                if (!isEncodedSignal) {
+                  return;
+                }
+                try {
+                  // Int16Array로 변환 (원래 버퍼로부터 직접 변환)
+                  var samples = localConvertTypedArray(new Float32Array(sourceBuf), Int8Array);
+
+                  // 샘플이 유효한지 확인
+                  if (!samples || samples.length === 0) {
+                    console.error("[".concat(_this4.name, "] \uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 \uC0D8\uD50C \uB370\uC774\uD130"));
+                    return;
+                  }
+
+                  // 타입 확인 및 로깅 (5초마다)
+                  if (now - lastLog > 5000) {
+                    console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uC804 \uC0D8\uD50C \uD0C0\uC785:"), samples.constructor.name, "\uAE38\uC774:", samples.length, "\uCC98\uC74C \uBA87 \uAC1C \uAC12:", Array.from(samples.slice(0, 5)));
+                  }
+                  try {
+                    // ggwave로 디코딩 시도
+                    var result;
+
+                    // 데이터 유효성 검증 및 로깅
+                    if (!_this4.instance || typeof _this4.instance !== 'number') {
+                      console.error("[".concat(_this4.name, "] \uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 ggwave \uC778\uC2A4\uD134\uC2A4:"), _this4.instance);
+                      return;
+                    }
+                    if (!samples || !(samples instanceof Int8Array)) {
+                      // 타입 검사를 안전하게 처리
+                      console.error("[".concat(_this4.name, "] \uC0D8\uD50C \uD0C0\uC785 \uC624\uB958:"), samples ? samples.constructor.name : 'null');
+                      return;
+                    }
+
+                    // 이제 디코딩 시도
+                    result = _this4.ggwave.decode(_this4.instance, samples);
+
+                    // 디버깅을 위해 result 검사
+                    if (result) {
+                      console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uACB0\uACFC: byteLength=").concat(result.byteLength, ", \uD0C0\uC785=").concat(result.constructor.name));
+
+                      // 디코딩된 바이너리 데이터를 JSON.stringify하여 출력
+                      try {
+                        var dataArray = Array.from(new Uint8Array(result));
+                        console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uB370\uC774\uD130(Array): ").concat(JSON.stringify(dataArray)));
+
+                        // 텍스트로 변환하여 출력
+                        var textResult = new TextDecoder("utf-8").decode(result);
+                        console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uB370\uC774\uD130(String): \"").concat(textResult, "\""));
+
+                        // 메시지 처리
+                        if (result.byteLength > 0) {
+                          console.log("[".concat(_this4.name, "] \uD83C\uDFB5 \uB514\uCF54\uB529 \uC131\uACF5! \uBA54\uC2DC\uC9C0: \"").concat(textResult, "\""));
+                          console.log("[".concat(_this4.name, "] \uD83D\uDCCA \uB514\uCF54\uB529 \uC815\uBCF4: \uACB0\uACFC\uD06C\uAE30=").concat(result.byteLength, "\uBC14\uC774\uD2B8, \uBA54\uC2DC\uC9C0\uAE38\uC774=").concat(textResult.length, "\uC790, \uC0D8\uD50C\uC218=").concat(samples.length));
+
+                          // 시간 측정
+                          var decodingTime = Date.now() - now;
+                          console.log("[".concat(_this4.name, "] \u23F1\uFE0F \uB514\uCF54\uB529 \uC18C\uC694\uC2DC\uAC04: ").concat(decodingTime, "ms"));
+
+                          // 로그 출력 및 이벤트 발생
+                          _this4.log("\uB514\uCF54\uB529\uB41C \uBA54\uC2DC\uC9C0: ".concat(textResult), 'response');
+                          _this4.emitter.emit('message_received', textResult);
+
+                          // 타임스탬프 업데이트 (다음 로그 출력까지 대기)
+                          lastLog = Date.now() + 1000; // 1초간 추가 로그 억제
+                        }
+                      } catch (stringifyError) {
+                        console.error("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uB370\uC774\uD130 \uCD9C\uB825 \uC2E4\uD328:"), stringifyError);
+                      }
+                    } else {
+                      console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uACB0\uACFC \uC5C6\uC74C"));
+                      return;
+                    }
+                  } catch (decodeErr) {
+                    console.error("[".concat(_this4.name, "] ggwave.decode \uC624\uB958:"), decodeErr);
+                  }
+                } catch (err) {
+                  console.error("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uC911 \uC624\uB958:"), err);
+                }
+              };
+
+              // 노드 연결
+              mediaStreamSource.connect(this.recorder);
+              this.recorder.connect(this.context.destination);
+              this.log('마이크 녹음 및 메시지 수신 대기 시작', 'info');
+              this.isRecording = true;
+              return _context3.abrupt("return", true);
+            case 39:
+              _context3.prev = 39;
+              _context3.t0 = _context3["catch"](9);
+              errorMessage = _context3.t0 instanceof Error ? _context3.t0.message : String(_context3.t0);
+              this.log("\uB179\uC74C \uC2DC\uC791 \uC2E4\uD328: ".concat(errorMessage), 'error');
+              console.error("[".concat(this.name, "] \uB179\uC74C \uC2DC\uC791 \uC2E4\uD328:"), _context3.t0);
+              return _context3.abrupt("return", false);
+            case 45:
+            case "end":
+              return _context3.stop();
+          }
+        }, _callee3, this, [[9, 39]]);
+      }));
+      function startListening() {
+        return _startListening.apply(this, arguments);
+      }
+      return startListening;
+    }()
+    /**
+     * 녹음 중지 (메시지 수신 대기 중지)
+     */
+    )
+  }, {
+    key: "stopListening",
+    value: function stopListening() {
+      if (!this.isRecording) {
+        this.log('녹음 중이 아닙니다.', 'info');
+        return;
+      }
+      try {
+        this.log('메시지 수신 대기 중지...', 'info');
+
+        // 리소스 정리
+        if (this.recorder) {
+          this.recorder.disconnect();
+          this.recorder = null;
+        }
+        if (this.mediaStream) {
+          this.mediaStream.getTracks().forEach(function (track) {
+            return track.stop();
+          });
+          this.mediaStream = null;
+        }
+        this.isRecording = false;
+      } catch (error) {
+        var errorMessage = error instanceof Error ? error.message : String(error);
+        this.log("\uB179\uC74C \uC911\uC9C0 \uC2E4\uD328: ".concat(errorMessage), 'error');
+        console.error('녹음 중지 실패:', error);
+      }
+    }
+
+    /**
+     * 연결 시작 (MessageTransport 인터페이스 구현)
+     * @returns 연결 성공 여부
+     */
+  }, {
+    key: "connect",
+    value: (function () {
+      var _connect = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+        var success;
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.next = 2;
+              return this.startListening();
+            case 2:
+              success = _context4.sent;
+              return _context4.abrupt("return", success);
+            case 4:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee4, this);
+      }));
+      function connect() {
+        return _connect.apply(this, arguments);
+      }
+      return connect;
+    }()
+    /**
+     * 연결 해제 (MessageTransport 인터페이스 구현)
+     * @returns Promise<void>
+     */
+    )
+  }, {
+    key: "disconnect",
+    value: (function () {
+      var _disconnect = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) switch (_context5.prev = _context5.next) {
+            case 0:
+              this.stopListening();
+              return _context5.abrupt("return", Promise.resolve());
+            case 2:
+            case "end":
+              return _context5.stop();
+          }
+        }, _callee5, this);
+      }));
+      function disconnect() {
+        return _disconnect.apply(this, arguments);
+      }
+      return disconnect;
+    }()
+    /**
+     * 오디오 버퍼 재생 (직접 오디오 데이터 재생)
+     * @param waveform 재생할 오디오 파형 데이터
+     * @returns 재생 완료 Promise
+     */
+    )
+  }, {
+    key: "play",
+    value: (function () {
+      var _play = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(waveform) {
+        var _this5 = this;
+        var success, errorMessage, gainNode, compressor, source, _errorMessage2;
+        return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+          while (1) switch (_context6.prev = _context6.next) {
+            case 0:
+              if (this.context) {
+                _context6.next = 7;
+                break;
+              }
+              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uCD08\uAE30\uD654\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4."));
+              _context6.next = 4;
+              return this.initialize();
+            case 4:
+              success = _context6.sent;
+              if (success) {
+                _context6.next = 7;
+                break;
+              }
+              throw new Error('오디오 컨텍스트 초기화 실패');
+            case 7:
+              if (!(this.context.state !== 'running')) {
+                _context6.next = 21;
+                break;
+              }
+              _context6.prev = 8;
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC0C1\uD0DC\uAC00 ").concat(this.context.state, "\uC785\uB2C8\uB2E4. \uC7AC\uAC1C \uC2DC\uB3C4."));
+              _context6.next = 12;
+              return this.context.resume();
+            case 12:
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uC7AC\uAC1C\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC0C1\uD0DC:"), this.context.state);
+              _context6.next = 21;
+              break;
+            case 15:
+              _context6.prev = 15;
+              _context6.t0 = _context6["catch"](8);
+              errorMessage = _context6.t0 instanceof Error ? _context6.t0.message : String(_context6.t0);
+              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC7AC\uAC1C \uC2E4\uD328:"), _context6.t0);
+              this.log('오디오 컨텍스트를 재개할 수 없습니다', 'error');
+              throw _context6.t0;
+            case 21:
+              if (!(!waveform || waveform.length === 0)) {
+                _context6.next = 25;
+                break;
+              }
+              console.error("[".concat(this.name, "] \uC7AC\uC0DD\uD560 \uD30C\uD615\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."));
+              this.log('재생할 오디오 데이터가 없습니다', 'error');
+              return _context6.abrupt("return");
+            case 25:
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC900\uBE44, \uD30C\uD615 \uAE38\uC774:"), waveform.length);
+              _context6.prev = 26;
+              // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
+              gainNode = this.context.createGain();
+              gainNode.gain.value = 2.0; // 기본 볼륨 증가 (1.0 -> 2.0)
+
+              // 압축기 노드 추가 (다이나믹 레인지 압축으로 더 선명한 사운드)
+              compressor = this.context.createDynamicsCompressor();
+              compressor.threshold.value = -50;
+              compressor.knee.value = 40;
+              compressor.ratio.value = 12;
+              compressor.attack.value = 0.002;
+              compressor.release.value = 0.25;
+
+              // 오디오 소스 생성 및 출력
+              source = this.context.createBufferSource();
+              source.buffer = waveform;
+
+              // 노드 연결: source -> gain -> compressor -> destination
+              source.connect(gainNode);
+              gainNode.connect(compressor);
+              compressor.connect(this.context.destination);
+
+              // 재생 시작
+              source.start(0);
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC2DC\uC791"));
+              this.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC911... (".concat(waveform.length, " \uC0D8\uD50C)"), 'request');
+
+              // 전송이 완료될 때까지 기다림 (인코딩된 오디오 길이 + 여유 시간)
+              return _context6.abrupt("return", new Promise(function (resolve) {
+                var waitTime = Math.min(waveform.length + 1000, 10000); // 밀리초 단위 (여유 시간 증가, 최대 10초)
+                console.log("[".concat(_this5.name, "] ").concat(waitTime, "ms \uD6C4 \uC7AC\uC0DD \uC644\uB8CC \uC608\uC815"));
+                setTimeout(function () {
+                  _this5.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC", 'request');
+                  console.log("[".concat(_this5.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
+                  resolve();
+                }, waitTime);
+              }));
+            case 46:
+              _context6.prev = 46;
+              _context6.t1 = _context6["catch"](26);
+              _errorMessage2 = _context6.t1 instanceof Error ? _context6.t1.message : String(_context6.t1);
+              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328:"), _context6.t1);
+              this.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328: ".concat(_errorMessage2), 'error');
+              throw _context6.t1;
+            case 52:
+            case "end":
+              return _context6.stop();
+          }
+        }, _callee6, this, [[8, 15], [26, 46]]);
+      }));
+      function play(_x2) {
+        return _play.apply(this, arguments);
+      }
+      return play;
+    }())
+  }]);
+}();
+
+/***/ }),
+
+/***/ "../sdk/src/sal/transport/index.ts":
+/*!*****************************************!*\
+  !*** ../sdk/src/sal/transport/index.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   AudioMessageTransport: () => (/* reexport safe */ _AudioMessageTransport__WEBPACK_IMPORTED_MODULE_0__.AudioMessageTransport)
+/* harmony export */ });
+/* harmony import */ var _AudioMessageTransport__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./AudioMessageTransport */ "../sdk/src/sal/transport/AudioMessageTransport.ts");
+// 메시지 전송 모듈 index
+
+
+
+/***/ }),
+
 /***/ "../sdk/src/types/index.ts":
 /*!*********************************!*\
   !*** ../sdk/src/types/index.ts ***!
@@ -4019,6 +5014,11 @@ var SalMethod = /*#__PURE__*/function (SalMethod) {
 // JSON 기반 S3L 메시지 인터페이스
 
 // JSON 기반 S3L 응답 메시지 인터페이스
+
+/**
+ * 메시지 전송을 위한 인터페이스
+ * 모든 메시지 전송 구현체는 이 인터페이스를 구현해야 함
+ */
 
 /***/ }),
 
@@ -12013,7 +13013,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! bs58 */ "./node_modules/@solana/web3.js/node_modules/bs58/index.js");
 /* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(bs58__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _noble_hashes_sha256__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @noble/hashes/sha256 */ "./node_modules/@noble/hashes/esm/sha256.js");
-/* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! borsh */ "./node_modules/borsh/lib/index.js");
+/* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! borsh */ "./node_modules/@solana/web3.js/node_modules/borsh/lib/index.js");
 /* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(borsh__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _solana_buffer_layout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @solana/buffer-layout */ "./node_modules/@solana/buffer-layout/lib/Layout.js");
 /* harmony import */ var bigint_buffer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! bigint-buffer */ "./node_modules/bigint-buffer/dist/browser.js");
@@ -22632,6 +23632,458 @@ module.exports = base
 
 /***/ }),
 
+/***/ "./node_modules/@solana/web3.js/node_modules/borsh/lib/index.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@solana/web3.js/node_modules/borsh/lib/index.js ***!
+  \**********************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "./node_modules/buffer/index.js")["Buffer"];
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.deserializeUnchecked = exports.deserialize = exports.serialize = exports.BinaryReader = exports.BinaryWriter = exports.BorshError = exports.baseDecode = exports.baseEncode = void 0;
+const bn_js_1 = __importDefault(__webpack_require__(/*! bn.js */ "./node_modules/bn.js/lib/bn.js"));
+const bs58_1 = __importDefault(__webpack_require__(/*! bs58 */ "./node_modules/@solana/web3.js/node_modules/bs58/index.js"));
+// TODO: Make sure this polyfill not included when not required
+const encoding = __importStar(__webpack_require__(/*! text-encoding-utf-8 */ "./node_modules/text-encoding-utf-8/lib/encoding.lib.js"));
+const ResolvedTextDecoder = typeof TextDecoder !== "function" ? encoding.TextDecoder : TextDecoder;
+const textDecoder = new ResolvedTextDecoder("utf-8", { fatal: true });
+function baseEncode(value) {
+    if (typeof value === "string") {
+        value = Buffer.from(value, "utf8");
+    }
+    return bs58_1.default.encode(Buffer.from(value));
+}
+exports.baseEncode = baseEncode;
+function baseDecode(value) {
+    return Buffer.from(bs58_1.default.decode(value));
+}
+exports.baseDecode = baseDecode;
+const INITIAL_LENGTH = 1024;
+class BorshError extends Error {
+    constructor(message) {
+        super(message);
+        this.fieldPath = [];
+        this.originalMessage = message;
+    }
+    addToFieldPath(fieldName) {
+        this.fieldPath.splice(0, 0, fieldName);
+        // NOTE: Modifying message directly as jest doesn't use .toString()
+        this.message = this.originalMessage + ": " + this.fieldPath.join(".");
+    }
+}
+exports.BorshError = BorshError;
+/// Binary encoder.
+class BinaryWriter {
+    constructor() {
+        this.buf = Buffer.alloc(INITIAL_LENGTH);
+        this.length = 0;
+    }
+    maybeResize() {
+        if (this.buf.length < 16 + this.length) {
+            this.buf = Buffer.concat([this.buf, Buffer.alloc(INITIAL_LENGTH)]);
+        }
+    }
+    writeU8(value) {
+        this.maybeResize();
+        this.buf.writeUInt8(value, this.length);
+        this.length += 1;
+    }
+    writeU16(value) {
+        this.maybeResize();
+        this.buf.writeUInt16LE(value, this.length);
+        this.length += 2;
+    }
+    writeU32(value) {
+        this.maybeResize();
+        this.buf.writeUInt32LE(value, this.length);
+        this.length += 4;
+    }
+    writeU64(value) {
+        this.maybeResize();
+        this.writeBuffer(Buffer.from(new bn_js_1.default(value).toArray("le", 8)));
+    }
+    writeU128(value) {
+        this.maybeResize();
+        this.writeBuffer(Buffer.from(new bn_js_1.default(value).toArray("le", 16)));
+    }
+    writeU256(value) {
+        this.maybeResize();
+        this.writeBuffer(Buffer.from(new bn_js_1.default(value).toArray("le", 32)));
+    }
+    writeU512(value) {
+        this.maybeResize();
+        this.writeBuffer(Buffer.from(new bn_js_1.default(value).toArray("le", 64)));
+    }
+    writeBuffer(buffer) {
+        // Buffer.from is needed as this.buf.subarray can return plain Uint8Array in browser
+        this.buf = Buffer.concat([
+            Buffer.from(this.buf.subarray(0, this.length)),
+            buffer,
+            Buffer.alloc(INITIAL_LENGTH),
+        ]);
+        this.length += buffer.length;
+    }
+    writeString(str) {
+        this.maybeResize();
+        const b = Buffer.from(str, "utf8");
+        this.writeU32(b.length);
+        this.writeBuffer(b);
+    }
+    writeFixedArray(array) {
+        this.writeBuffer(Buffer.from(array));
+    }
+    writeArray(array, fn) {
+        this.maybeResize();
+        this.writeU32(array.length);
+        for (const elem of array) {
+            this.maybeResize();
+            fn(elem);
+        }
+    }
+    toArray() {
+        return this.buf.subarray(0, this.length);
+    }
+}
+exports.BinaryWriter = BinaryWriter;
+function handlingRangeError(target, propertyKey, propertyDescriptor) {
+    const originalMethod = propertyDescriptor.value;
+    propertyDescriptor.value = function (...args) {
+        try {
+            return originalMethod.apply(this, args);
+        }
+        catch (e) {
+            if (e instanceof RangeError) {
+                const code = e.code;
+                if (["ERR_BUFFER_OUT_OF_BOUNDS", "ERR_OUT_OF_RANGE"].indexOf(code) >= 0) {
+                    throw new BorshError("Reached the end of buffer when deserializing");
+                }
+            }
+            throw e;
+        }
+    };
+}
+class BinaryReader {
+    constructor(buf) {
+        this.buf = buf;
+        this.offset = 0;
+    }
+    readU8() {
+        const value = this.buf.readUInt8(this.offset);
+        this.offset += 1;
+        return value;
+    }
+    readU16() {
+        const value = this.buf.readUInt16LE(this.offset);
+        this.offset += 2;
+        return value;
+    }
+    readU32() {
+        const value = this.buf.readUInt32LE(this.offset);
+        this.offset += 4;
+        return value;
+    }
+    readU64() {
+        const buf = this.readBuffer(8);
+        return new bn_js_1.default(buf, "le");
+    }
+    readU128() {
+        const buf = this.readBuffer(16);
+        return new bn_js_1.default(buf, "le");
+    }
+    readU256() {
+        const buf = this.readBuffer(32);
+        return new bn_js_1.default(buf, "le");
+    }
+    readU512() {
+        const buf = this.readBuffer(64);
+        return new bn_js_1.default(buf, "le");
+    }
+    readBuffer(len) {
+        if (this.offset + len > this.buf.length) {
+            throw new BorshError(`Expected buffer length ${len} isn't within bounds`);
+        }
+        const result = this.buf.slice(this.offset, this.offset + len);
+        this.offset += len;
+        return result;
+    }
+    readString() {
+        const len = this.readU32();
+        const buf = this.readBuffer(len);
+        try {
+            // NOTE: Using TextDecoder to fail on invalid UTF-8
+            return textDecoder.decode(buf);
+        }
+        catch (e) {
+            throw new BorshError(`Error decoding UTF-8 string: ${e}`);
+        }
+    }
+    readFixedArray(len) {
+        return new Uint8Array(this.readBuffer(len));
+    }
+    readArray(fn) {
+        const len = this.readU32();
+        const result = Array();
+        for (let i = 0; i < len; ++i) {
+            result.push(fn());
+        }
+        return result;
+    }
+}
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readU8", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readU16", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readU32", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readU64", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readU128", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readU256", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readU512", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readString", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readFixedArray", null);
+__decorate([
+    handlingRangeError
+], BinaryReader.prototype, "readArray", null);
+exports.BinaryReader = BinaryReader;
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+function serializeField(schema, fieldName, value, fieldType, writer) {
+    try {
+        // TODO: Handle missing values properly (make sure they never result in just skipped write)
+        if (typeof fieldType === "string") {
+            writer[`write${capitalizeFirstLetter(fieldType)}`](value);
+        }
+        else if (fieldType instanceof Array) {
+            if (typeof fieldType[0] === "number") {
+                if (value.length !== fieldType[0]) {
+                    throw new BorshError(`Expecting byte array of length ${fieldType[0]}, but got ${value.length} bytes`);
+                }
+                writer.writeFixedArray(value);
+            }
+            else if (fieldType.length === 2 && typeof fieldType[1] === "number") {
+                if (value.length !== fieldType[1]) {
+                    throw new BorshError(`Expecting byte array of length ${fieldType[1]}, but got ${value.length} bytes`);
+                }
+                for (let i = 0; i < fieldType[1]; i++) {
+                    serializeField(schema, null, value[i], fieldType[0], writer);
+                }
+            }
+            else {
+                writer.writeArray(value, (item) => {
+                    serializeField(schema, fieldName, item, fieldType[0], writer);
+                });
+            }
+        }
+        else if (fieldType.kind !== undefined) {
+            switch (fieldType.kind) {
+                case "option": {
+                    if (value === null || value === undefined) {
+                        writer.writeU8(0);
+                    }
+                    else {
+                        writer.writeU8(1);
+                        serializeField(schema, fieldName, value, fieldType.type, writer);
+                    }
+                    break;
+                }
+                case "map": {
+                    writer.writeU32(value.size);
+                    value.forEach((val, key) => {
+                        serializeField(schema, fieldName, key, fieldType.key, writer);
+                        serializeField(schema, fieldName, val, fieldType.value, writer);
+                    });
+                    break;
+                }
+                default:
+                    throw new BorshError(`FieldType ${fieldType} unrecognized`);
+            }
+        }
+        else {
+            serializeStruct(schema, value, writer);
+        }
+    }
+    catch (error) {
+        if (error instanceof BorshError) {
+            error.addToFieldPath(fieldName);
+        }
+        throw error;
+    }
+}
+function serializeStruct(schema, obj, writer) {
+    if (typeof obj.borshSerialize === "function") {
+        obj.borshSerialize(writer);
+        return;
+    }
+    const structSchema = schema.get(obj.constructor);
+    if (!structSchema) {
+        throw new BorshError(`Class ${obj.constructor.name} is missing in schema`);
+    }
+    if (structSchema.kind === "struct") {
+        structSchema.fields.map(([fieldName, fieldType]) => {
+            serializeField(schema, fieldName, obj[fieldName], fieldType, writer);
+        });
+    }
+    else if (structSchema.kind === "enum") {
+        const name = obj[structSchema.field];
+        for (let idx = 0; idx < structSchema.values.length; ++idx) {
+            const [fieldName, fieldType] = structSchema.values[idx];
+            if (fieldName === name) {
+                writer.writeU8(idx);
+                serializeField(schema, fieldName, obj[fieldName], fieldType, writer);
+                break;
+            }
+        }
+    }
+    else {
+        throw new BorshError(`Unexpected schema kind: ${structSchema.kind} for ${obj.constructor.name}`);
+    }
+}
+/// Serialize given object using schema of the form:
+/// { class_name -> [ [field_name, field_type], .. ], .. }
+function serialize(schema, obj, Writer = BinaryWriter) {
+    const writer = new Writer();
+    serializeStruct(schema, obj, writer);
+    return writer.toArray();
+}
+exports.serialize = serialize;
+function deserializeField(schema, fieldName, fieldType, reader) {
+    try {
+        if (typeof fieldType === "string") {
+            return reader[`read${capitalizeFirstLetter(fieldType)}`]();
+        }
+        if (fieldType instanceof Array) {
+            if (typeof fieldType[0] === "number") {
+                return reader.readFixedArray(fieldType[0]);
+            }
+            else if (typeof fieldType[1] === "number") {
+                const arr = [];
+                for (let i = 0; i < fieldType[1]; i++) {
+                    arr.push(deserializeField(schema, null, fieldType[0], reader));
+                }
+                return arr;
+            }
+            else {
+                return reader.readArray(() => deserializeField(schema, fieldName, fieldType[0], reader));
+            }
+        }
+        if (fieldType.kind === "option") {
+            const option = reader.readU8();
+            if (option) {
+                return deserializeField(schema, fieldName, fieldType.type, reader);
+            }
+            return undefined;
+        }
+        if (fieldType.kind === "map") {
+            let map = new Map();
+            const length = reader.readU32();
+            for (let i = 0; i < length; i++) {
+                const key = deserializeField(schema, fieldName, fieldType.key, reader);
+                const val = deserializeField(schema, fieldName, fieldType.value, reader);
+                map.set(key, val);
+            }
+            return map;
+        }
+        return deserializeStruct(schema, fieldType, reader);
+    }
+    catch (error) {
+        if (error instanceof BorshError) {
+            error.addToFieldPath(fieldName);
+        }
+        throw error;
+    }
+}
+function deserializeStruct(schema, classType, reader) {
+    if (typeof classType.borshDeserialize === "function") {
+        return classType.borshDeserialize(reader);
+    }
+    const structSchema = schema.get(classType);
+    if (!structSchema) {
+        throw new BorshError(`Class ${classType.name} is missing in schema`);
+    }
+    if (structSchema.kind === "struct") {
+        const result = {};
+        for (const [fieldName, fieldType] of schema.get(classType).fields) {
+            result[fieldName] = deserializeField(schema, fieldName, fieldType, reader);
+        }
+        return new classType(result);
+    }
+    if (structSchema.kind === "enum") {
+        const idx = reader.readU8();
+        if (idx >= structSchema.values.length) {
+            throw new BorshError(`Enum index: ${idx} is out of range`);
+        }
+        const [fieldName, fieldType] = structSchema.values[idx];
+        const fieldValue = deserializeField(schema, fieldName, fieldType, reader);
+        return new classType({ [fieldName]: fieldValue });
+    }
+    throw new BorshError(`Unexpected schema kind: ${structSchema.kind} for ${classType.constructor.name}`);
+}
+/// Deserializes object from bytes using schema.
+function deserialize(schema, classType, buffer, Reader = BinaryReader) {
+    const reader = new Reader(buffer);
+    const result = deserializeStruct(schema, classType, reader);
+    if (reader.offset < buffer.length) {
+        throw new BorshError(`Unexpected ${buffer.length - reader.offset} bytes after deserialized data`);
+    }
+    return result;
+}
+exports.deserialize = deserialize;
+/// Deserializes object from bytes using schema, without checking the length read
+function deserializeUnchecked(schema, classType, buffer, Reader = BinaryReader) {
+    const reader = new Reader(buffer);
+    return deserializeStruct(schema, classType, reader);
+}
+exports.deserializeUnchecked = deserializeUnchecked;
+
+
+/***/ }),
+
 /***/ "./node_modules/@solana/web3.js/node_modules/bs58/index.js":
 /*!*****************************************************************!*\
   !*** ./node_modules/@solana/web3.js/node_modules/bs58/index.js ***!
@@ -26446,602 +27898,593 @@ exports.toBufferBE = toBufferBE;
 
 /***/ }),
 
-/***/ "./node_modules/borsh/lib/index.js":
-/*!*****************************************!*\
-  !*** ./node_modules/borsh/lib/index.js ***!
-  \*****************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ "./node_modules/borsh/lib/esm/buffer.js":
+/*!**********************************************!*\
+  !*** ./node_modules/borsh/lib/esm/buffer.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "./node_modules/buffer/index.js")["Buffer"];
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.deserializeUnchecked = exports.deserialize = exports.serialize = exports.BinaryReader = exports.BinaryWriter = exports.BorshError = exports.baseDecode = exports.baseEncode = void 0;
-const bn_js_1 = __importDefault(__webpack_require__(/*! bn.js */ "./node_modules/bn.js/lib/bn.js"));
-const bs58_1 = __importDefault(__webpack_require__(/*! bs58 */ "./node_modules/borsh/node_modules/bs58/index.js"));
-// TODO: Make sure this polyfill not included when not required
-const encoding = __importStar(__webpack_require__(/*! text-encoding-utf-8 */ "./node_modules/text-encoding-utf-8/lib/encoding.lib.js"));
-const ResolvedTextDecoder = typeof TextDecoder !== "function" ? encoding.TextDecoder : TextDecoder;
-const textDecoder = new ResolvedTextDecoder("utf-8", { fatal: true });
-function baseEncode(value) {
-    if (typeof value === "string") {
-        value = Buffer.from(value, "utf8");
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DecodeBuffer: () => (/* binding */ DecodeBuffer),
+/* harmony export */   EncodeBuffer: () => (/* binding */ EncodeBuffer)
+/* harmony export */ });
+var EncodeBuffer = /** @class */ (function () {
+    function EncodeBuffer() {
+        this.offset = 0;
+        this.buffer_size = 256;
+        this.buffer = new ArrayBuffer(this.buffer_size);
+        this.view = new DataView(this.buffer);
     }
-    return bs58_1.default.encode(Buffer.from(value));
-}
-exports.baseEncode = baseEncode;
-function baseDecode(value) {
-    return Buffer.from(bs58_1.default.decode(value));
-}
-exports.baseDecode = baseDecode;
-const INITIAL_LENGTH = 1024;
-class BorshError extends Error {
-    constructor(message) {
-        super(message);
-        this.fieldPath = [];
-        this.originalMessage = message;
-    }
-    addToFieldPath(fieldName) {
-        this.fieldPath.splice(0, 0, fieldName);
-        // NOTE: Modifying message directly as jest doesn't use .toString()
-        this.message = this.originalMessage + ": " + this.fieldPath.join(".");
-    }
-}
-exports.BorshError = BorshError;
-/// Binary encoder.
-class BinaryWriter {
-    constructor() {
-        this.buf = Buffer.alloc(INITIAL_LENGTH);
-        this.length = 0;
-    }
-    maybeResize() {
-        if (this.buf.length < 16 + this.length) {
-            this.buf = Buffer.concat([this.buf, Buffer.alloc(INITIAL_LENGTH)]);
-        }
-    }
-    writeU8(value) {
-        this.maybeResize();
-        this.buf.writeUInt8(value, this.length);
-        this.length += 1;
-    }
-    writeU16(value) {
-        this.maybeResize();
-        this.buf.writeUInt16LE(value, this.length);
-        this.length += 2;
-    }
-    writeU32(value) {
-        this.maybeResize();
-        this.buf.writeUInt32LE(value, this.length);
-        this.length += 4;
-    }
-    writeU64(value) {
-        this.maybeResize();
-        this.writeBuffer(Buffer.from(new bn_js_1.default(value).toArray("le", 8)));
-    }
-    writeU128(value) {
-        this.maybeResize();
-        this.writeBuffer(Buffer.from(new bn_js_1.default(value).toArray("le", 16)));
-    }
-    writeU256(value) {
-        this.maybeResize();
-        this.writeBuffer(Buffer.from(new bn_js_1.default(value).toArray("le", 32)));
-    }
-    writeU512(value) {
-        this.maybeResize();
-        this.writeBuffer(Buffer.from(new bn_js_1.default(value).toArray("le", 64)));
-    }
-    writeBuffer(buffer) {
-        // Buffer.from is needed as this.buf.subarray can return plain Uint8Array in browser
-        this.buf = Buffer.concat([
-            Buffer.from(this.buf.subarray(0, this.length)),
-            buffer,
-            Buffer.alloc(INITIAL_LENGTH),
-        ]);
-        this.length += buffer.length;
-    }
-    writeString(str) {
-        this.maybeResize();
-        const b = Buffer.from(str, "utf8");
-        this.writeU32(b.length);
-        this.writeBuffer(b);
-    }
-    writeFixedArray(array) {
-        this.writeBuffer(Buffer.from(array));
-    }
-    writeArray(array, fn) {
-        this.maybeResize();
-        this.writeU32(array.length);
-        for (const elem of array) {
-            this.maybeResize();
-            fn(elem);
-        }
-    }
-    toArray() {
-        return this.buf.subarray(0, this.length);
-    }
-}
-exports.BinaryWriter = BinaryWriter;
-function handlingRangeError(target, propertyKey, propertyDescriptor) {
-    const originalMethod = propertyDescriptor.value;
-    propertyDescriptor.value = function (...args) {
-        try {
-            return originalMethod.apply(this, args);
-        }
-        catch (e) {
-            if (e instanceof RangeError) {
-                const code = e.code;
-                if (["ERR_BUFFER_OUT_OF_BOUNDS", "ERR_OUT_OF_RANGE"].indexOf(code) >= 0) {
-                    throw new BorshError("Reached the end of buffer when deserializing");
-                }
-            }
-            throw e;
+    EncodeBuffer.prototype.resize_if_necessary = function (needed_space) {
+        if (this.buffer_size - this.offset < needed_space) {
+            this.buffer_size = Math.max(this.buffer_size * 2, this.buffer_size + needed_space);
+            var new_buffer = new ArrayBuffer(this.buffer_size);
+            new Uint8Array(new_buffer).set(new Uint8Array(this.buffer));
+            this.buffer = new_buffer;
+            this.view = new DataView(new_buffer);
         }
     };
-}
-class BinaryReader {
-    constructor(buf) {
-        this.buf = buf;
+    EncodeBuffer.prototype.get_used_buffer = function () {
+        return new Uint8Array(this.buffer).slice(0, this.offset);
+    };
+    EncodeBuffer.prototype.store_value = function (value, type) {
+        var bSize = type.substring(1);
+        var size = parseInt(bSize) / 8;
+        this.resize_if_necessary(size);
+        var toCall = type[0] === 'f' ? "setFloat".concat(bSize) : type[0] === 'i' ? "setInt".concat(bSize) : "setUint".concat(bSize);
+        this.view[toCall](this.offset, value, true);
+        this.offset += size;
+    };
+    EncodeBuffer.prototype.store_bytes = function (from) {
+        this.resize_if_necessary(from.length);
+        new Uint8Array(this.buffer).set(new Uint8Array(from), this.offset);
+        this.offset += from.length;
+    };
+    return EncodeBuffer;
+}());
+
+var DecodeBuffer = /** @class */ (function () {
+    function DecodeBuffer(buf) {
         this.offset = 0;
+        this.buffer_size = buf.length;
+        this.buffer = new ArrayBuffer(buf.length);
+        new Uint8Array(this.buffer).set(buf);
+        this.view = new DataView(this.buffer);
     }
-    readU8() {
-        const value = this.buf.readUInt8(this.offset);
-        this.offset += 1;
-        return value;
-    }
-    readU16() {
-        const value = this.buf.readUInt16LE(this.offset);
-        this.offset += 2;
-        return value;
-    }
-    readU32() {
-        const value = this.buf.readUInt32LE(this.offset);
-        this.offset += 4;
-        return value;
-    }
-    readU64() {
-        const buf = this.readBuffer(8);
-        return new bn_js_1.default(buf, "le");
-    }
-    readU128() {
-        const buf = this.readBuffer(16);
-        return new bn_js_1.default(buf, "le");
-    }
-    readU256() {
-        const buf = this.readBuffer(32);
-        return new bn_js_1.default(buf, "le");
-    }
-    readU512() {
-        const buf = this.readBuffer(64);
-        return new bn_js_1.default(buf, "le");
-    }
-    readBuffer(len) {
-        if (this.offset + len > this.buf.length) {
-            throw new BorshError(`Expected buffer length ${len} isn't within bounds`);
+    DecodeBuffer.prototype.assert_enough_buffer = function (size) {
+        if (this.offset + size > this.buffer.byteLength) {
+            throw new Error('Error in schema, the buffer is smaller than expected');
         }
-        const result = this.buf.slice(this.offset, this.offset + len);
-        this.offset += len;
-        return result;
-    }
-    readString() {
-        const len = this.readU32();
-        const buf = this.readBuffer(len);
-        try {
-            // NOTE: Using TextDecoder to fail on invalid UTF-8
-            return textDecoder.decode(buf);
-        }
-        catch (e) {
-            throw new BorshError(`Error decoding UTF-8 string: ${e}`);
-        }
-    }
-    readFixedArray(len) {
-        return new Uint8Array(this.readBuffer(len));
-    }
-    readArray(fn) {
-        const len = this.readU32();
-        const result = Array();
-        for (let i = 0; i < len; ++i) {
-            result.push(fn());
-        }
-        return result;
-    }
-}
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readU8", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readU16", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readU32", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readU64", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readU128", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readU256", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readU512", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readString", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readFixedArray", null);
-__decorate([
-    handlingRangeError
-], BinaryReader.prototype, "readArray", null);
-exports.BinaryReader = BinaryReader;
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-function serializeField(schema, fieldName, value, fieldType, writer) {
-    try {
-        // TODO: Handle missing values properly (make sure they never result in just skipped write)
-        if (typeof fieldType === "string") {
-            writer[`write${capitalizeFirstLetter(fieldType)}`](value);
-        }
-        else if (fieldType instanceof Array) {
-            if (typeof fieldType[0] === "number") {
-                if (value.length !== fieldType[0]) {
-                    throw new BorshError(`Expecting byte array of length ${fieldType[0]}, but got ${value.length} bytes`);
-                }
-                writer.writeFixedArray(value);
-            }
-            else if (fieldType.length === 2 && typeof fieldType[1] === "number") {
-                if (value.length !== fieldType[1]) {
-                    throw new BorshError(`Expecting byte array of length ${fieldType[1]}, but got ${value.length} bytes`);
-                }
-                for (let i = 0; i < fieldType[1]; i++) {
-                    serializeField(schema, null, value[i], fieldType[0], writer);
-                }
-            }
-            else {
-                writer.writeArray(value, (item) => {
-                    serializeField(schema, fieldName, item, fieldType[0], writer);
-                });
-            }
-        }
-        else if (fieldType.kind !== undefined) {
-            switch (fieldType.kind) {
-                case "option": {
-                    if (value === null || value === undefined) {
-                        writer.writeU8(0);
-                    }
-                    else {
-                        writer.writeU8(1);
-                        serializeField(schema, fieldName, value, fieldType.type, writer);
-                    }
-                    break;
-                }
-                case "map": {
-                    writer.writeU32(value.size);
-                    value.forEach((val, key) => {
-                        serializeField(schema, fieldName, key, fieldType.key, writer);
-                        serializeField(schema, fieldName, val, fieldType.value, writer);
-                    });
-                    break;
-                }
-                default:
-                    throw new BorshError(`FieldType ${fieldType} unrecognized`);
-            }
-        }
-        else {
-            serializeStruct(schema, value, writer);
-        }
-    }
-    catch (error) {
-        if (error instanceof BorshError) {
-            error.addToFieldPath(fieldName);
-        }
-        throw error;
-    }
-}
-function serializeStruct(schema, obj, writer) {
-    if (typeof obj.borshSerialize === "function") {
-        obj.borshSerialize(writer);
-        return;
-    }
-    const structSchema = schema.get(obj.constructor);
-    if (!structSchema) {
-        throw new BorshError(`Class ${obj.constructor.name} is missing in schema`);
-    }
-    if (structSchema.kind === "struct") {
-        structSchema.fields.map(([fieldName, fieldType]) => {
-            serializeField(schema, fieldName, obj[fieldName], fieldType, writer);
-        });
-    }
-    else if (structSchema.kind === "enum") {
-        const name = obj[structSchema.field];
-        for (let idx = 0; idx < structSchema.values.length; ++idx) {
-            const [fieldName, fieldType] = structSchema.values[idx];
-            if (fieldName === name) {
-                writer.writeU8(idx);
-                serializeField(schema, fieldName, obj[fieldName], fieldType, writer);
-                break;
-            }
-        }
-    }
-    else {
-        throw new BorshError(`Unexpected schema kind: ${structSchema.kind} for ${obj.constructor.name}`);
-    }
-}
-/// Serialize given object using schema of the form:
-/// { class_name -> [ [field_name, field_type], .. ], .. }
-function serialize(schema, obj, Writer = BinaryWriter) {
-    const writer = new Writer();
-    serializeStruct(schema, obj, writer);
-    return writer.toArray();
-}
-exports.serialize = serialize;
-function deserializeField(schema, fieldName, fieldType, reader) {
-    try {
-        if (typeof fieldType === "string") {
-            return reader[`read${capitalizeFirstLetter(fieldType)}`]();
-        }
-        if (fieldType instanceof Array) {
-            if (typeof fieldType[0] === "number") {
-                return reader.readFixedArray(fieldType[0]);
-            }
-            else if (typeof fieldType[1] === "number") {
-                const arr = [];
-                for (let i = 0; i < fieldType[1]; i++) {
-                    arr.push(deserializeField(schema, null, fieldType[0], reader));
-                }
-                return arr;
-            }
-            else {
-                return reader.readArray(() => deserializeField(schema, fieldName, fieldType[0], reader));
-            }
-        }
-        if (fieldType.kind === "option") {
-            const option = reader.readU8();
-            if (option) {
-                return deserializeField(schema, fieldName, fieldType.type, reader);
-            }
-            return undefined;
-        }
-        if (fieldType.kind === "map") {
-            let map = new Map();
-            const length = reader.readU32();
-            for (let i = 0; i < length; i++) {
-                const key = deserializeField(schema, fieldName, fieldType.key, reader);
-                const val = deserializeField(schema, fieldName, fieldType.value, reader);
-                map.set(key, val);
-            }
-            return map;
-        }
-        return deserializeStruct(schema, fieldType, reader);
-    }
-    catch (error) {
-        if (error instanceof BorshError) {
-            error.addToFieldPath(fieldName);
-        }
-        throw error;
-    }
-}
-function deserializeStruct(schema, classType, reader) {
-    if (typeof classType.borshDeserialize === "function") {
-        return classType.borshDeserialize(reader);
-    }
-    const structSchema = schema.get(classType);
-    if (!structSchema) {
-        throw new BorshError(`Class ${classType.name} is missing in schema`);
-    }
-    if (structSchema.kind === "struct") {
-        const result = {};
-        for (const [fieldName, fieldType] of schema.get(classType).fields) {
-            result[fieldName] = deserializeField(schema, fieldName, fieldType, reader);
-        }
-        return new classType(result);
-    }
-    if (structSchema.kind === "enum") {
-        const idx = reader.readU8();
-        if (idx >= structSchema.values.length) {
-            throw new BorshError(`Enum index: ${idx} is out of range`);
-        }
-        const [fieldName, fieldType] = structSchema.values[idx];
-        const fieldValue = deserializeField(schema, fieldName, fieldType, reader);
-        return new classType({ [fieldName]: fieldValue });
-    }
-    throw new BorshError(`Unexpected schema kind: ${structSchema.kind} for ${classType.constructor.name}`);
-}
-/// Deserializes object from bytes using schema.
-function deserialize(schema, classType, buffer, Reader = BinaryReader) {
-    const reader = new Reader(buffer);
-    const result = deserializeStruct(schema, classType, reader);
-    if (reader.offset < buffer.length) {
-        throw new BorshError(`Unexpected ${buffer.length - reader.offset} bytes after deserialized data`);
-    }
-    return result;
-}
-exports.deserialize = deserialize;
-/// Deserializes object from bytes using schema, without checking the length read
-function deserializeUnchecked(schema, classType, buffer, Reader = BinaryReader) {
-    const reader = new Reader(buffer);
-    return deserializeStruct(schema, classType, reader);
-}
-exports.deserializeUnchecked = deserializeUnchecked;
+    };
+    DecodeBuffer.prototype.consume_value = function (type) {
+        var bSize = type.substring(1);
+        var size = parseInt(bSize) / 8;
+        this.assert_enough_buffer(size);
+        var toCall = type[0] === 'f' ? "getFloat".concat(bSize) : type[0] === 'i' ? "getInt".concat(bSize) : "getUint".concat(bSize);
+        var ret = this.view[toCall](this.offset, true);
+        this.offset += size;
+        return ret;
+    };
+    DecodeBuffer.prototype.consume_bytes = function (size) {
+        this.assert_enough_buffer(size);
+        var ret = this.buffer.slice(this.offset, this.offset + size);
+        this.offset += size;
+        return ret;
+    };
+    return DecodeBuffer;
+}());
+
 
 
 /***/ }),
 
-/***/ "./node_modules/borsh/node_modules/base-x/src/index.js":
-/*!*************************************************************!*\
-  !*** ./node_modules/borsh/node_modules/base-x/src/index.js ***!
-  \*************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ "./node_modules/borsh/lib/esm/deserialize.js":
+/*!***************************************************!*\
+  !*** ./node_modules/borsh/lib/esm/deserialize.js ***!
+  \***************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BorshDeserializer: () => (/* binding */ BorshDeserializer)
+/* harmony export */ });
+/* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/borsh/lib/esm/types.js");
+/* harmony import */ var _buffer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./buffer.js */ "./node_modules/borsh/lib/esm/buffer.js");
 
-// base-x encoding / decoding
-// Copyright (c) 2018 base-x contributors
-// Copyright (c) 2014-2018 The Bitcoin Core developers (base58.cpp)
-// Distributed under the MIT software license, see the accompanying
-// file LICENSE or http://www.opensource.org/licenses/mit-license.php.
-// @ts-ignore
-var _Buffer = (__webpack_require__(/*! safe-buffer */ "./node_modules/safe-buffer/index.js").Buffer)
-function base (ALPHABET) {
-  if (ALPHABET.length >= 255) { throw new TypeError('Alphabet too long') }
-  var BASE_MAP = new Uint8Array(256)
-  for (var j = 0; j < BASE_MAP.length; j++) {
-    BASE_MAP[j] = 255
-  }
-  for (var i = 0; i < ALPHABET.length; i++) {
-    var x = ALPHABET.charAt(i)
-    var xc = x.charCodeAt(0)
-    if (BASE_MAP[xc] !== 255) { throw new TypeError(x + ' is ambiguous') }
-    BASE_MAP[xc] = i
-  }
-  var BASE = ALPHABET.length
-  var LEADER = ALPHABET.charAt(0)
-  var FACTOR = Math.log(BASE) / Math.log(256) // log(BASE) / log(256), rounded up
-  var iFACTOR = Math.log(256) / Math.log(BASE) // log(256) / log(BASE), rounded up
-  function encode (source) {
-    if (Array.isArray(source) || source instanceof Uint8Array) { source = _Buffer.from(source) }
-    if (!_Buffer.isBuffer(source)) { throw new TypeError('Expected Buffer') }
-    if (source.length === 0) { return '' }
-        // Skip & count leading zeroes.
-    var zeroes = 0
-    var length = 0
-    var pbegin = 0
-    var pend = source.length
-    while (pbegin !== pend && source[pbegin] === 0) {
-      pbegin++
-      zeroes++
+
+var BorshDeserializer = /** @class */ (function () {
+    function BorshDeserializer(bufferArray) {
+        this.buffer = new _buffer_js__WEBPACK_IMPORTED_MODULE_1__.DecodeBuffer(bufferArray);
     }
-        // Allocate enough space in big-endian base58 representation.
-    var size = ((pend - pbegin) * iFACTOR + 1) >>> 0
-    var b58 = new Uint8Array(size)
-        // Process the bytes.
-    while (pbegin !== pend) {
-      var carry = source[pbegin]
-            // Apply "b58 = b58 * 256 + ch".
-      var i = 0
-      for (var it1 = size - 1; (carry !== 0 || i < length) && (it1 !== -1); it1--, i++) {
-        carry += (256 * b58[it1]) >>> 0
-        b58[it1] = (carry % BASE) >>> 0
-        carry = (carry / BASE) >>> 0
-      }
-      if (carry !== 0) { throw new Error('Non-zero carry') }
-      length = i
-      pbegin++
-    }
-        // Skip leading zeroes in base58 result.
-    var it2 = size - length
-    while (it2 !== size && b58[it2] === 0) {
-      it2++
-    }
-        // Translate the result into a string.
-    var str = LEADER.repeat(zeroes)
-    for (; it2 < size; ++it2) { str += ALPHABET.charAt(b58[it2]) }
-    return str
-  }
-  function decodeUnsafe (source) {
-    if (typeof source !== 'string') { throw new TypeError('Expected String') }
-    if (source.length === 0) { return _Buffer.alloc(0) }
-    var psz = 0
-        // Skip and count leading '1's.
-    var zeroes = 0
-    var length = 0
-    while (source[psz] === LEADER) {
-      zeroes++
-      psz++
-    }
-        // Allocate enough space in big-endian base256 representation.
-    var size = (((source.length - psz) * FACTOR) + 1) >>> 0 // log(58) / log(256), rounded up.
-    var b256 = new Uint8Array(size)
-        // Process the characters.
-    while (psz < source.length) {
-            // Find code of next character
-      var charCode = source.charCodeAt(psz)
-            // Base map can not be indexed using char code
-      if (charCode > 255) { return }
-            // Decode character
-      var carry = BASE_MAP[charCode]
-            // Invalid character
-      if (carry === 255) { return }
-      var i = 0
-      for (var it3 = size - 1; (carry !== 0 || i < length) && (it3 !== -1); it3--, i++) {
-        carry += (BASE * b256[it3]) >>> 0
-        b256[it3] = (carry % 256) >>> 0
-        carry = (carry / 256) >>> 0
-      }
-      if (carry !== 0) { throw new Error('Non-zero carry') }
-      length = i
-      psz++
-    }
-        // Skip leading zeroes in b256.
-    var it4 = size - length
-    while (it4 !== size && b256[it4] === 0) {
-      it4++
-    }
-    var vch = _Buffer.allocUnsafe(zeroes + (size - it4))
-    vch.fill(0x00, 0, zeroes)
-    var j = zeroes
-    while (it4 !== size) {
-      vch[j++] = b256[it4++]
-    }
-    return vch
-  }
-  function decode (string) {
-    var buffer = decodeUnsafe(string)
-    if (buffer) { return buffer }
-    throw new Error('Non-base' + BASE + ' character')
-  }
-  return {
-    encode: encode,
-    decodeUnsafe: decodeUnsafe,
-    decode: decode
-  }
-}
-module.exports = base
+    BorshDeserializer.prototype.decode = function (schema) {
+        return this.decode_value(schema);
+    };
+    BorshDeserializer.prototype.decode_value = function (schema) {
+        if (typeof schema === 'string') {
+            if (_types_js__WEBPACK_IMPORTED_MODULE_0__.integers.includes(schema))
+                return this.decode_integer(schema);
+            if (schema === 'string')
+                return this.decode_string();
+            if (schema === 'bool')
+                return this.decode_boolean();
+        }
+        if (typeof schema === 'object') {
+            if ('option' in schema)
+                return this.decode_option(schema);
+            if ('enum' in schema)
+                return this.decode_enum(schema);
+            if ('array' in schema)
+                return this.decode_array(schema);
+            if ('set' in schema)
+                return this.decode_set(schema);
+            if ('map' in schema)
+                return this.decode_map(schema);
+            if ('struct' in schema)
+                return this.decode_struct(schema);
+        }
+        throw new Error("Unsupported type: ".concat(schema));
+    };
+    BorshDeserializer.prototype.decode_integer = function (schema) {
+        var size = parseInt(schema.substring(1));
+        if (size <= 32 || schema == 'f64') {
+            return this.buffer.consume_value(schema);
+        }
+        return this.decode_bigint(size, schema.startsWith('i'));
+    };
+    BorshDeserializer.prototype.decode_bigint = function (size, signed) {
+        if (signed === void 0) { signed = false; }
+        var buffer_len = size / 8;
+        var buffer = new Uint8Array(this.buffer.consume_bytes(buffer_len));
+        var bits = buffer.reduceRight(function (r, x) { return r + x.toString(16).padStart(2, '0'); }, '');
+        if (signed && buffer[buffer_len - 1]) {
+            return BigInt.asIntN(size, BigInt("0x".concat(bits)));
+        }
+        return BigInt("0x".concat(bits));
+    };
+    BorshDeserializer.prototype.decode_string = function () {
+        var len = this.decode_integer('u32');
+        var buffer = new Uint8Array(this.buffer.consume_bytes(len));
+        return String.fromCharCode.apply(null, buffer);
+    };
+    BorshDeserializer.prototype.decode_boolean = function () {
+        return this.buffer.consume_value('u8') > 0;
+    };
+    BorshDeserializer.prototype.decode_option = function (schema) {
+        var option = this.buffer.consume_value('u8');
+        if (option === 1) {
+            return this.decode_value(schema.option);
+        }
+        if (option !== 0) {
+            throw new Error("Invalid option ".concat(option));
+        }
+        return null;
+    };
+    BorshDeserializer.prototype.decode_enum = function (schema) {
+        var _a;
+        var valueIndex = this.buffer.consume_value('u8');
+        if (valueIndex > schema["enum"].length) {
+            throw new Error("Enum option ".concat(valueIndex, " is not available"));
+        }
+        var struct = schema["enum"][valueIndex].struct;
+        var key = Object.keys(struct)[0];
+        return _a = {}, _a[key] = this.decode_value(struct[key]), _a;
+    };
+    BorshDeserializer.prototype.decode_array = function (schema) {
+        var result = [];
+        var len = schema.array.len ? schema.array.len : this.decode_integer('u32');
+        for (var i = 0; i < len; ++i) {
+            result.push(this.decode_value(schema.array.type));
+        }
+        return result;
+    };
+    BorshDeserializer.prototype.decode_set = function (schema) {
+        var len = this.decode_integer('u32');
+        var result = new Set();
+        for (var i = 0; i < len; ++i) {
+            result.add(this.decode_value(schema.set));
+        }
+        return result;
+    };
+    BorshDeserializer.prototype.decode_map = function (schema) {
+        var len = this.decode_integer('u32');
+        var result = new Map();
+        for (var i = 0; i < len; ++i) {
+            var key = this.decode_value(schema.map.key);
+            var value = this.decode_value(schema.map.value);
+            result.set(key, value);
+        }
+        return result;
+    };
+    BorshDeserializer.prototype.decode_struct = function (schema) {
+        var result = {};
+        for (var key in schema.struct) {
+            result[key] = this.decode_value(schema.struct[key]);
+        }
+        return result;
+    };
+    return BorshDeserializer;
+}());
+
 
 
 /***/ }),
 
-/***/ "./node_modules/borsh/node_modules/bs58/index.js":
-/*!*******************************************************!*\
-  !*** ./node_modules/borsh/node_modules/bs58/index.js ***!
-  \*******************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ "./node_modules/borsh/lib/esm/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/borsh/lib/esm/index.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
-var basex = __webpack_require__(/*! base-x */ "./node_modules/borsh/node_modules/base-x/src/index.js")
-var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   deserialize: () => (/* binding */ deserialize),
+/* harmony export */   serialize: () => (/* binding */ serialize)
+/* harmony export */ });
+/* harmony import */ var _serialize_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./serialize.js */ "./node_modules/borsh/lib/esm/serialize.js");
+/* harmony import */ var _deserialize_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./deserialize.js */ "./node_modules/borsh/lib/esm/deserialize.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils.js */ "./node_modules/borsh/lib/esm/utils.js");
 
-module.exports = basex(ALPHABET)
+
+
+function serialize(schema, value, validate) {
+    if (validate === void 0) { validate = true; }
+    if (validate)
+        _utils_js__WEBPACK_IMPORTED_MODULE_2__.validate_schema(schema);
+    var serializer = new _serialize_js__WEBPACK_IMPORTED_MODULE_0__.BorshSerializer(validate);
+    return serializer.encode(value, schema);
+}
+function deserialize(schema, buffer, validate) {
+    if (validate === void 0) { validate = true; }
+    if (validate)
+        _utils_js__WEBPACK_IMPORTED_MODULE_2__.validate_schema(schema);
+    var deserializer = new _deserialize_js__WEBPACK_IMPORTED_MODULE_1__.BorshDeserializer(buffer);
+    return deserializer.decode(schema);
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/borsh/lib/esm/serialize.js":
+/*!*************************************************!*\
+  !*** ./node_modules/borsh/lib/esm/serialize.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BorshSerializer: () => (/* binding */ BorshSerializer)
+/* harmony export */ });
+/* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/borsh/lib/esm/types.js");
+/* harmony import */ var _buffer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./buffer.js */ "./node_modules/borsh/lib/esm/buffer.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils.js */ "./node_modules/borsh/lib/esm/utils.js");
+
+
+
+var BorshSerializer = /** @class */ (function () {
+    function BorshSerializer(checkTypes) {
+        this.encoded = new _buffer_js__WEBPACK_IMPORTED_MODULE_1__.EncodeBuffer();
+        this.fieldPath = ['value'];
+        this.checkTypes = checkTypes;
+    }
+    BorshSerializer.prototype.encode = function (value, schema) {
+        this.encode_value(value, schema);
+        return this.encoded.get_used_buffer();
+    };
+    BorshSerializer.prototype.encode_value = function (value, schema) {
+        if (typeof schema === 'string') {
+            if (_types_js__WEBPACK_IMPORTED_MODULE_0__.integers.includes(schema))
+                return this.encode_integer(value, schema);
+            if (schema === 'string')
+                return this.encode_string(value);
+            if (schema === 'bool')
+                return this.encode_boolean(value);
+        }
+        if (typeof schema === 'object') {
+            if ('option' in schema)
+                return this.encode_option(value, schema);
+            if ('enum' in schema)
+                return this.encode_enum(value, schema);
+            if ('array' in schema)
+                return this.encode_array(value, schema);
+            if ('set' in schema)
+                return this.encode_set(value, schema);
+            if ('map' in schema)
+                return this.encode_map(value, schema);
+            if ('struct' in schema)
+                return this.encode_struct(value, schema);
+        }
+    };
+    BorshSerializer.prototype.encode_integer = function (value, schema) {
+        var size = parseInt(schema.substring(1));
+        if (size <= 32 || schema == 'f64') {
+            this.checkTypes && _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_type(value, 'number', this.fieldPath);
+            this.encoded.store_value(value, schema);
+        }
+        else {
+            this.checkTypes && _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_bigint(value, this.fieldPath);
+            this.encode_bigint(BigInt(value), size);
+        }
+    };
+    BorshSerializer.prototype.encode_bigint = function (value, size) {
+        var buffer_len = size / 8;
+        var buffer = new Uint8Array(buffer_len);
+        for (var i = 0; i < buffer_len; i++) {
+            buffer[i] = Number(value & BigInt(0xff));
+            value = value >> BigInt(8);
+        }
+        this.encoded.store_bytes(new Uint8Array(buffer));
+    };
+    BorshSerializer.prototype.encode_string = function (value) {
+        this.checkTypes && _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_type(value, 'string', this.fieldPath);
+        var _value = value;
+        // 4 bytes for length
+        this.encoded.store_value(_value.length, 'u32');
+        // string bytes
+        for (var i = 0; i < _value.length; i++) {
+            this.encoded.store_value(_value.charCodeAt(i), 'u8');
+        }
+    };
+    BorshSerializer.prototype.encode_boolean = function (value) {
+        this.checkTypes && _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_type(value, 'boolean', this.fieldPath);
+        this.encoded.store_value(value ? 1 : 0, 'u8');
+    };
+    BorshSerializer.prototype.encode_option = function (value, schema) {
+        if (value === null || value === undefined) {
+            this.encoded.store_value(0, 'u8');
+        }
+        else {
+            this.encoded.store_value(1, 'u8');
+            this.encode_value(value, schema.option);
+        }
+    };
+    BorshSerializer.prototype.encode_enum = function (value, schema) {
+        this.checkTypes && _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_enum(value, this.fieldPath);
+        var valueKey = Object.keys(value)[0];
+        for (var i = 0; i < schema["enum"].length; i++) {
+            var valueSchema = schema["enum"][i];
+            if (valueKey === Object.keys(valueSchema.struct)[0]) {
+                this.encoded.store_value(i, 'u8');
+                return this.encode_struct(value, valueSchema);
+            }
+        }
+        throw new Error("Enum key (".concat(valueKey, ") not found in enum schema: ").concat(JSON.stringify(schema), " at ").concat(this.fieldPath.join('.')));
+    };
+    BorshSerializer.prototype.encode_array = function (value, schema) {
+        if (_utils_js__WEBPACK_IMPORTED_MODULE_2__.isArrayLike(value))
+            return this.encode_arraylike(value, schema);
+        if (value instanceof ArrayBuffer)
+            return this.encode_buffer(value, schema);
+        throw new Error("Expected Array-like not ".concat(typeof (value), "(").concat(value, ") at ").concat(this.fieldPath.join('.')));
+    };
+    BorshSerializer.prototype.encode_arraylike = function (value, schema) {
+        if (schema.array.len) {
+            _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_same_size(value.length, schema.array.len, this.fieldPath);
+        }
+        else {
+            // 4 bytes for length
+            this.encoded.store_value(value.length, 'u32');
+        }
+        // array values
+        for (var i = 0; i < value.length; i++) {
+            this.encode_value(value[i], schema.array.type);
+        }
+    };
+    BorshSerializer.prototype.encode_buffer = function (value, schema) {
+        if (schema.array.len) {
+            _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_same_size(value.byteLength, schema.array.len, this.fieldPath);
+        }
+        else {
+            // 4 bytes for length
+            this.encoded.store_value(value.byteLength, 'u32');
+        }
+        // array values
+        this.encoded.store_bytes(new Uint8Array(value));
+    };
+    BorshSerializer.prototype.encode_set = function (value, schema) {
+        this.checkTypes && _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_type(value, 'object', this.fieldPath);
+        var isSet = value instanceof Set;
+        var values = isSet ? Array.from(value.values()) : Object.values(value);
+        // 4 bytes for length
+        this.encoded.store_value(values.length, 'u32');
+        // set values
+        for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
+            var value_1 = values_1[_i];
+            this.encode_value(value_1, schema.set);
+        }
+    };
+    BorshSerializer.prototype.encode_map = function (value, schema) {
+        this.checkTypes && _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_type(value, 'object', this.fieldPath);
+        var isMap = value instanceof Map;
+        var keys = isMap ? Array.from(value.keys()) : Object.keys(value);
+        // 4 bytes for length
+        this.encoded.store_value(keys.length, 'u32');
+        // store key/values
+        for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
+            var key = keys_1[_i];
+            this.encode_value(key, schema.map.key);
+            this.encode_value(isMap ? value.get(key) : value[key], schema.map.value);
+        }
+    };
+    BorshSerializer.prototype.encode_struct = function (value, schema) {
+        this.checkTypes && _utils_js__WEBPACK_IMPORTED_MODULE_2__.expect_type(value, 'object', this.fieldPath);
+        for (var _i = 0, _a = Object.keys(schema.struct); _i < _a.length; _i++) {
+            var key = _a[_i];
+            this.fieldPath.push(key);
+            this.encode_value(value[key], schema.struct[key]);
+            this.fieldPath.pop();
+        }
+    };
+    return BorshSerializer;
+}());
+
+
+
+/***/ }),
+
+/***/ "./node_modules/borsh/lib/esm/types.js":
+/*!*********************************************!*\
+  !*** ./node_modules/borsh/lib/esm/types.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   integers: () => (/* binding */ integers)
+/* harmony export */ });
+var integers = ['u8', 'u16', 'u32', 'u64', 'u128', 'i8', 'i16', 'i32', 'i64', 'i128', 'f32', 'f64'];
+
+
+/***/ }),
+
+/***/ "./node_modules/borsh/lib/esm/utils.js":
+/*!*********************************************!*\
+  !*** ./node_modules/borsh/lib/esm/utils.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ErrorSchema: () => (/* binding */ ErrorSchema),
+/* harmony export */   expect_bigint: () => (/* binding */ expect_bigint),
+/* harmony export */   expect_enum: () => (/* binding */ expect_enum),
+/* harmony export */   expect_same_size: () => (/* binding */ expect_same_size),
+/* harmony export */   expect_type: () => (/* binding */ expect_type),
+/* harmony export */   isArrayLike: () => (/* binding */ isArrayLike),
+/* harmony export */   validate_schema: () => (/* binding */ validate_schema)
+/* harmony export */ });
+/* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/borsh/lib/esm/types.js");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+function isArrayLike(value) {
+    // source: https://stackoverflow.com/questions/24048547/checking-if-an-object-is-array-like
+    return (Array.isArray(value) ||
+        (!!value &&
+            typeof value === 'object' &&
+            'length' in value &&
+            typeof (value.length) === 'number' &&
+            (value.length === 0 ||
+                (value.length > 0 &&
+                    (value.length - 1) in value))));
+}
+function expect_type(value, type, fieldPath) {
+    if (typeof (value) !== type) {
+        throw new Error("Expected ".concat(type, " not ").concat(typeof (value), "(").concat(value, ") at ").concat(fieldPath.join('.')));
+    }
+}
+function expect_bigint(value, fieldPath) {
+    var basicType = ['number', 'string', 'bigint', 'boolean'].includes(typeof (value));
+    var strObject = typeof (value) === 'object' && value !== null && 'toString' in value;
+    if (!basicType && !strObject) {
+        throw new Error("Expected bigint, number, boolean or string not ".concat(typeof (value), "(").concat(value, ") at ").concat(fieldPath.join('.')));
+    }
+}
+function expect_same_size(length, expected, fieldPath) {
+    if (length !== expected) {
+        throw new Error("Array length ".concat(length, " does not match schema length ").concat(expected, " at ").concat(fieldPath.join('.')));
+    }
+}
+function expect_enum(value, fieldPath) {
+    if (typeof (value) !== 'object' || value === null) {
+        throw new Error("Expected object not ".concat(typeof (value), "(").concat(value, ") at ").concat(fieldPath.join('.')));
+    }
+}
+// Validate Schema
+var VALID_STRING_TYPES = _types_js__WEBPACK_IMPORTED_MODULE_0__.integers.concat(['bool', 'string']);
+var VALID_OBJECT_KEYS = ['option', 'enum', 'array', 'set', 'map', 'struct'];
+var ErrorSchema = /** @class */ (function (_super) {
+    __extends(ErrorSchema, _super);
+    function ErrorSchema(schema, expected) {
+        var message = "Invalid schema: ".concat(JSON.stringify(schema), " expected ").concat(expected);
+        return _super.call(this, message) || this;
+    }
+    return ErrorSchema;
+}(Error));
+
+function validate_schema(schema) {
+    if (typeof (schema) === 'string' && VALID_STRING_TYPES.includes(schema)) {
+        return;
+    }
+    if (schema && typeof (schema) === 'object') {
+        var keys = Object.keys(schema);
+        if (keys.length === 1 && VALID_OBJECT_KEYS.includes(keys[0])) {
+            var key = keys[0];
+            if (key === 'option')
+                return validate_schema(schema[key]);
+            if (key === 'enum')
+                return validate_enum_schema(schema[key]);
+            if (key === 'array')
+                return validate_array_schema(schema[key]);
+            if (key === 'set')
+                return validate_schema(schema[key]);
+            if (key === 'map')
+                return validate_map_schema(schema[key]);
+            if (key === 'struct')
+                return validate_struct_schema(schema[key]);
+        }
+    }
+    throw new ErrorSchema(schema, VALID_OBJECT_KEYS.join(', ') + ' or ' + VALID_STRING_TYPES.join(', '));
+}
+function validate_enum_schema(schema) {
+    if (!Array.isArray(schema))
+        throw new ErrorSchema(schema, 'Array');
+    for (var _i = 0, schema_1 = schema; _i < schema_1.length; _i++) {
+        var sch = schema_1[_i];
+        if (typeof sch !== 'object' || !('struct' in sch)) {
+            throw new Error('Missing "struct" key in enum schema');
+        }
+        if (typeof sch.struct !== 'object' || Object.keys(sch.struct).length !== 1) {
+            throw new Error('The "struct" in each enum must have a single key');
+        }
+        validate_schema({ struct: sch.struct });
+    }
+}
+function validate_array_schema(schema) {
+    if (typeof schema !== 'object')
+        throw new ErrorSchema(schema, '{ type, len? }');
+    if (schema.len && typeof schema.len !== 'number') {
+        throw new Error("Invalid schema: ".concat(schema));
+    }
+    if ('type' in schema)
+        return validate_schema(schema.type);
+    throw new ErrorSchema(schema, '{ type, len? }');
+}
+function validate_map_schema(schema) {
+    if (typeof schema === 'object' && 'key' in schema && 'value' in schema) {
+        validate_schema(schema.key);
+        validate_schema(schema.value);
+    }
+    else {
+        throw new ErrorSchema(schema, '{ key, value }');
+    }
+}
+function validate_struct_schema(schema) {
+    if (typeof schema !== 'object')
+        throw new ErrorSchema(schema, 'object');
+    for (var key in schema) {
+        validate_schema(schema[key]);
+    }
+}
 
 
 /***/ }),
@@ -33573,11 +35016,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _sdk_src_sal_host__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../sdk/src/sal/host */ "../sdk/src/sal/host.ts");
 /* harmony import */ var _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @solana/web3.js */ "./node_modules/@solana/web3.js/lib/index.browser.esm.js");
 /* harmony import */ var _sdk_src_types__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../sdk/src/types */ "../sdk/src/types/index.ts");
-/* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! borsh */ "./node_modules/borsh/lib/index.js");
-/* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(borsh__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! borsh */ "./node_modules/borsh/lib/esm/index.js");
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! events */ "./node_modules/events/events.js");
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var buffer__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! buffer */ "./node_modules/buffer/index.js");
+/* harmony import */ var _sdk_src_sal_transport__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../sdk/src/sal/transport */ "../sdk/src/sal/transport/index.ts");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -33598,6 +35041,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
 // Make Buffer available globally
 window.Buffer = buffer__WEBPACK_IMPORTED_MODULE_6__.Buffer;
+ // SDK의 AudioMessageTransport 클래스 가져오기
 
 // 메시지 트랜스포트 모킹 - 실제 애플리케이션에서는 WebSocket 또는 기타 통신 메커니즘을 사용
 var DemoMessageTransport = /*#__PURE__*/function () {
@@ -33794,6 +35238,49 @@ var messageInput = document.getElementById('message');
 var hostKeypair = _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__.Keypair.generate();
 var clientKeypair = _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__.Keypair.generate();
 
+// 페이지 로드 시 오디오 초기화
+document.addEventListener('DOMContentLoaded', function () {
+  console.log('오디오 메시지 트랜스포트 데모가 로드되었습니다.');
+  console.log('마이크 및 오디오 권한이 필요합니다.');
+
+  // 오디오 컨텍스트 초기화 시도 (사용자 상호작용 필요)
+  var activateBtn = document.getElementById('activate-audio');
+  if (activateBtn) {
+    activateBtn.addEventListener('click', function () {
+      // 임시 오디오 컨텍스트 생성 및 시작
+      var tempContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      // 컨텍스트 상태 확인
+      if (tempContext.state === 'suspended') {
+        tempContext.resume().then(function () {
+          document.getElementById('audio-status').textContent = '오디오 상태: 활성화됨 (샘플 레이트: ' + tempContext.sampleRate + 'Hz)';
+          activateBtn.textContent = '✅ 오디오가 활성화되었습니다';
+          activateBtn.style.backgroundColor = '#28a745';
+        });
+      } else {
+        document.getElementById('audio-status').textContent = '오디오 상태: 이미 활성화됨 (샘플 레이트: ' + tempContext.sampleRate + 'Hz)';
+        activateBtn.textContent = '✅ 오디오가 활성화되었습니다';
+        activateBtn.style.backgroundColor = '#28a745';
+      }
+
+      // 마이크 접근 시도
+      navigator.mediaDevices.getUserMedia({
+        audio: true
+      }).then(function (stream) {
+        document.getElementById('mic-status').textContent = '마이크 상태: 접근 권한 획득됨';
+
+        // 스트림 트랙 정지 (권한 확인용으로만 사용)
+        stream.getTracks().forEach(function (track) {
+          return track.stop();
+        });
+      })["catch"](function (err) {
+        document.getElementById('mic-status').textContent = '마이크 상태: 접근 거부됨 - ' + err.message;
+        console.error('마이크 접근 오류:', err);
+      });
+    });
+  }
+});
+
 // 호스트 시작 이벤트 핸들러
 startHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
   var hostConfig, messageHandler, txHandler;
@@ -33801,14 +35288,17 @@ startHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE_
     while (1) switch (_context7.prev = _context7.next) {
       case 0:
         _context7.prev = 0;
-        // 메시지 트랜스포트 설정
-        hostTransport = new DemoMessageTransport('Host');
+        // SDK의 AudioMessageTransport 설정
+        hostTransport = new _sdk_src_sal_transport__WEBPACK_IMPORTED_MODULE_7__.AudioMessageTransport({
+          name: 'Host',
+          logElement: 'host-log'
+        });
 
         // 호스트 구성
         hostConfig = {
           cluster: 'testnet',
           phoneNumber: '123-456-7890',
-          host: hostAddressInput.value || 'test-host',
+          host: hostAddressInput.value || 'audio-host',
           keyPair: hostKeypair
         }; // 호스트 인스턴스 생성
         host = new _sdk_src_sal_host__WEBPACK_IMPORTED_MODULE_1__.SalHost(hostConfig, hostTransport);
@@ -33819,9 +35309,10 @@ startHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE_
             return _regeneratorRuntime().wrap(function _callee5$(_context5) {
               while (1) switch (_context5.prev = _context5.next) {
                 case 0:
-                  hostTransport.log("\uBA54\uC2DC\uC9C0 \uCC98\uB9AC: \"".concat(message, "\" (\uBC1C\uC2E0\uC790: ").concat(sender, ")"), 'info');
+                  console.log("\uBA54\uC2DC\uC9C0 \uCC98\uB9AC: \"".concat(message, "\" (\uBC1C\uC2E0\uC790: ").concat(sender, ")"));
+                  addLogEntry('host-log', "\uBA54\uC2DC\uC9C0 \uCC98\uB9AC: \"".concat(message, "\" (\uBC1C\uC2E0\uC790: ").concat(sender, ")"), 'info');
                   return _context5.abrupt("return", true);
-                case 2:
+                case 3:
                 case "end":
                   return _context5.stop();
               }
@@ -33838,25 +35329,26 @@ startHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE_
               while (1) switch (_context6.prev = _context6.next) {
                 case 0:
                   _context6.prev = 0;
-                  hostTransport.log("\uD2B8\uB79C\uC7AD\uC158 \uC218\uC2E0: ".concat(JSON.stringify(transaction).substring(0, 100), "..."), 'info');
+                  console.log("\uD2B8\uB79C\uC7AD\uC158 \uC218\uC2E0: ".concat(JSON.stringify(transaction).substring(0, 100), "..."));
+                  addLogEntry('host-log', "\uD2B8\uB79C\uC7AD\uC158 \uC218\uC2E0: ".concat(JSON.stringify(transaction).substring(0, 50), "..."), 'info');
 
                   // 트랜잭션 데이터 분석
                   transferAmount = "알 수 없음";
                   if (!(transaction.instructions && transaction.instructions.length > 0)) {
-                    _context6.next = 43;
+                    _context6.next = 44;
                     break;
                   }
                   instruction = transaction.instructions[0]; // System Program인지 확인
                   if (!(instruction.programId === _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__.SystemProgram.programId.toString())) {
-                    _context6.next = 39;
+                    _context6.next = 40;
                     break;
                   }
-                  _context6.prev = 6;
+                  _context6.prev = 7;
                   // Base64로 인코딩된 데이터 디코딩
                   data = buffer__WEBPACK_IMPORTED_MODULE_6__.Buffer.from(instruction.data, 'base64'); // System Program 명령어 타입 확인 (첫 번째 4바이트는 명령어 유형)
                   instructionType = data[0]; // 2 = transfer 명령어
                   if (!(instructionType === 2)) {
-                    _context6.next = 28;
+                    _context6.next = 29;
                     break;
                   }
                   // lamports 값은 4바이트 오프셋 이후 8바이트
@@ -33871,29 +35363,20 @@ startHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE_
                   // 송금자와 수신자 계정 확인
                   sender = ((_instruction$accounts = instruction.accounts[0]) === null || _instruction$accounts === void 0 ? void 0 : _instruction$accounts.pubkey) || "알 수 없음";
                   receiver = ((_instruction$accounts2 = instruction.accounts[1]) === null || _instruction$accounts2 === void 0 ? void 0 : _instruction$accounts2.pubkey) || "알 수 없음";
-                  hostTransport.log("\uC1A1\uAE08\uC790: ".concat(sender.substring(0, 8), "..."), 'info');
-                  hostTransport.log("\uC218\uC2E0\uC790: ".concat(receiver.substring(0, 8), "..."), 'info');
-                  hostTransport.log("\uAE08\uC561: ".concat(lamports, " lamports (").concat(sol, " SOL)"), 'info');
+                  addLogEntry('host-log', "\uC1A1\uAE08\uC790: ".concat(sender.substring(0, 8), "..."), 'info');
+                  addLogEntry('host-log', "\uC218\uC2E0\uC790: ".concat(receiver.substring(0, 8), "..."), 'info');
+                  addLogEntry('host-log', "\uAE08\uC561: ".concat(lamports, " lamports (").concat(sol, " SOL)"), 'info');
 
                   // 트랜잭션 승인 및 처리 시뮬레이션
-                  hostTransport.log("\uD2B8\uB79C\uC7AD\uC158 \uC2B9\uC778 \uC911...", 'info');
+                  addLogEntry('host-log', "\uD2B8\uB79C\uC7AD\uC158 \uC2B9\uC778 \uC911...", 'info');
 
                   // 호스트 서명 추가 시뮬레이션
-                  hostTransport.log("\uD638\uC2A4\uD2B8 \uD0A4\uB85C \uC11C\uBA85 \uC911...", 'info');
-
-                  // 실제 환경에서는 아래 코드와 같이 트랜잭션에 서명하고 직렬화한 후 전송
-                  // 1. 트랜잭션 객체 복원
-                  // const tx = Transaction.from(Buffer.from(transaction.data, 'base64'));
-                  // 2. 호스트 키로 서명
-                  // tx.sign(hostKeypair);
-                  // 3. 트랜잭션 전송
-                  // const connection = new Connection(clusterApiUrl(hostConfig.cluster));
-                  // const signature = await connection.sendRawTransaction(tx.serialize());
+                  addLogEntry('host-log', "\uD638\uC2A4\uD2B8 \uD0A4\uB85C \uC11C\uBA85 \uC911...", 'info');
 
                   // 서명 완료 시뮬레이션
                   simulatedSignature = "".concat(hostKeypair.publicKey.toString().substring(0, 6), "_").concat(Date.now(), "_").concat(Math.floor(Math.random() * 1000000));
-                  hostTransport.log("\uD2B8\uB79C\uC7AD\uC158\uC774 \uC131\uACF5\uC801\uC73C\uB85C \uCC98\uB9AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.", 'info');
-                  hostTransport.log("\uD2B8\uB79C\uC7AD\uC158 \uC11C\uBA85: ".concat(simulatedSignature), 'info');
+                  addLogEntry('host-log', "\uD2B8\uB79C\uC7AD\uC158\uC774 \uC131\uACF5\uC801\uC73C\uB85C \uCC98\uB9AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.", 'info');
+                  addLogEntry('host-log', "\uD2B8\uB79C\uC7AD\uC158 \uC11C\uBA85: ".concat(simulatedSignature), 'info');
                   return _context6.abrupt("return", {
                     signature: simulatedSignature,
                     status: 'confirmed',
@@ -33903,58 +35386,58 @@ startHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE_
                     amount: lamports,
                     sol: sol
                   });
-                case 28:
-                  hostTransport.log("\uC9C0\uC6D0\uD558\uC9C0 \uC54A\uB294 System Program \uBA85\uB839\uC5B4: ".concat(instructionType), 'error');
+                case 29:
+                  addLogEntry('host-log', "\uC9C0\uC6D0\uD558\uC9C0 \uC54A\uB294 System Program \uBA85\uB839\uC5B4: ".concat(instructionType), 'error');
                   return _context6.abrupt("return", {
                     error: "지원하지 않는 명령어",
                     code: "unsupported_instruction"
                   });
-                case 30:
-                  _context6.next = 37;
+                case 31:
+                  _context6.next = 38;
                   break;
-                case 32:
-                  _context6.prev = 32;
-                  _context6.t0 = _context6["catch"](6);
+                case 33:
+                  _context6.prev = 33;
+                  _context6.t0 = _context6["catch"](7);
                   transferAmount = "디코딩 실패: " + _context6.t0.message;
-                  hostTransport.log("\uB514\uCF54\uB529 \uC624\uB958: ".concat(_context6.t0.stack), 'error');
+                  addLogEntry('host-log', "\uB514\uCF54\uB529 \uC624\uB958: ".concat(_context6.t0.message), 'error');
                   return _context6.abrupt("return", {
                     error: "트랜잭션 디코딩 실패",
                     code: "decode_error"
                   });
-                case 37:
-                  _context6.next = 41;
+                case 38:
+                  _context6.next = 42;
                   break;
-                case 39:
-                  hostTransport.log("\uC9C0\uC6D0\uD558\uC9C0 \uC54A\uB294 \uD504\uB85C\uADF8\uB7A8 ID: ".concat(instruction.programId), 'error');
+                case 40:
+                  addLogEntry('host-log', "\uC9C0\uC6D0\uD558\uC9C0 \uC54A\uB294 \uD504\uB85C\uADF8\uB7A8 ID: ".concat(instruction.programId), 'error');
                   return _context6.abrupt("return", {
                     error: "지원하지 않는 프로그램",
                     code: "unsupported_program"
                   });
-                case 41:
-                  _context6.next = 45;
+                case 42:
+                  _context6.next = 46;
                   break;
-                case 43:
-                  hostTransport.log("\uD2B8\uB79C\uC7AD\uC158\uC5D0 \uBA85\uB839\uC5B4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.", 'error');
+                case 44:
+                  addLogEntry('host-log', "\uD2B8\uB79C\uC7AD\uC158\uC5D0 \uBA85\uB839\uC5B4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.", 'error');
                   return _context6.abrupt("return", {
                     error: "명령어 없음",
                     code: "no_instructions"
                   });
-                case 45:
-                  _context6.next = 51;
+                case 46:
+                  _context6.next = 52;
                   break;
-                case 47:
-                  _context6.prev = 47;
+                case 48:
+                  _context6.prev = 48;
                   _context6.t1 = _context6["catch"](0);
-                  hostTransport.log("\uD2B8\uB79C\uC7AD\uC158 \uCC98\uB9AC \uC624\uB958: ".concat(_context6.t1.message), 'error');
+                  addLogEntry('host-log', "\uD2B8\uB79C\uC7AD\uC158 \uCC98\uB9AC \uC624\uB958: ".concat(_context6.t1.message), 'error');
                   return _context6.abrupt("return", {
                     error: _context6.t1.message,
                     code: "processing_error"
                   });
-                case 51:
+                case 52:
                 case "end":
                   return _context6.stop();
               }
-            }, _callee6, null, [[0, 47], [6, 32]]);
+            }, _callee6, null, [[0, 48], [7, 33]]);
           }));
           return function txHandler(_x4) {
             return _ref3.apply(this, arguments);
@@ -33965,20 +35448,23 @@ startHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE_
           txHandler: txHandler
         });
 
-        // 이벤트 핸들러 등록 (호스트는 EventEmitter를 상속받음)
+        // 이벤트 핸들러 등록
         host.emit = host.emit || events__WEBPACK_IMPORTED_MODULE_5__.EventEmitter.prototype.emit;
         host.on = host.on || events__WEBPACK_IMPORTED_MODULE_5__.EventEmitter.prototype.on;
         host.on('client_connected', function (source) {
-          hostTransport.log("\uD074\uB77C\uC774\uC5B8\uD2B8 \uC5F0\uACB0\uB428: ".concat(source), 'info');
+          addLogEntry('host-log', "\uD074\uB77C\uC774\uC5B8\uD2B8 \uC5F0\uACB0\uB428: ".concat(source), 'info');
         });
         host.on('error', function (error) {
-          hostTransport.log("\uC624\uB958: ".concat(error.message), 'error');
+          addLogEntry('host-log', "\uC624\uB958: ".concat(error.message), 'error');
         });
 
-        // 호스트 실행
+        // 오디오 초기화 및 호스트 실행
         _context7.next = 13;
-        return host.run();
+        return hostTransport.initialize();
       case 13:
+        _context7.next = 15;
+        return host.run();
+      case 15:
         isHostRunning = true;
 
         // UI 업데이트
@@ -33986,18 +35472,19 @@ startHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE_
         hostStatusEl.className = 'connected';
         startHostBtn.disabled = true;
         stopHostBtn.disabled = false;
-        hostTransport.log('호스트가 성공적으로 시작되었습니다.', 'info');
-        _context7.next = 24;
+        addLogEntry('host-log', '호스트가 성공적으로 시작되었습니다. 수신 대기 중...', 'info');
+        _context7.next = 27;
         break;
-      case 21:
-        _context7.prev = 21;
+      case 23:
+        _context7.prev = 23;
         _context7.t0 = _context7["catch"](0);
-        hostTransport.log("\uD638\uC2A4\uD2B8 \uC2DC\uC791 \uC2E4\uD328: ".concat(_context7.t0.message), 'error');
-      case 24:
+        console.error("호스트 시작 실패:", _context7.t0);
+        addLogEntry('host-log', "\uD638\uC2A4\uD2B8 \uC2DC\uC791 \uC2E4\uD328: ".concat(_context7.t0.message), 'error');
+      case 27:
       case "end":
         return _context7.stop();
     }
-  }, _callee7, null, [[0, 21]]);
+  }, _callee7, null, [[0, 23]]);
 })));
 
 // 호스트 중지 이벤트 핸들러
@@ -34020,7 +35507,7 @@ stopHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__
         hostStatusEl.className = 'disconnected';
         startHostBtn.disabled = false;
         stopHostBtn.disabled = true;
-        hostTransport.log('호스트가 중지되었습니다.', 'info');
+        addLogEntry('host-log', '호스트가 중지되었습니다.', 'info');
 
         // 클라이언트 연결 해제
         if (!(isClientConnected && client)) {
@@ -34039,14 +35526,14 @@ stopHostBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__
         disconnectClientBtn.disabled = true;
         sendMessageBtn.disabled = true;
         sendTxBtn.disabled = true;
-        clientTransport.log('호스트 종료로 연결이 끊어졌습니다.', 'info');
+        addLogEntry('client-log', '호스트 종료로 연결이 끊어졌습니다.', 'info');
       case 21:
         _context8.next = 26;
         break;
       case 23:
         _context8.prev = 23;
         _context8.t0 = _context8["catch"](0);
-        hostTransport.log("\uD638\uC2A4\uD2B8 \uC911\uC9C0 \uC2E4\uD328: ".concat(_context8.t0.message), 'error');
+        addLogEntry('host-log', "\uD638\uC2A4\uD2B8 \uC911\uC9C0 \uC2E4\uD328: ".concat(_context8.t0.message), 'error');
       case 26:
       case "end":
         return _context8.stop();
@@ -34061,21 +35548,12 @@ connectClientBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__P
     while (1) switch (_context9.prev = _context9.next) {
       case 0:
         _context9.prev = 0;
-        // 메시지 트랜스포트 설정
-        clientTransport = new DemoMessageTransport('Client');
+        // SDK의 AudioMessageTransport 설정
+        clientTransport = new _sdk_src_sal_transport__WEBPACK_IMPORTED_MODULE_7__.AudioMessageTransport({
+          name: 'Client',
+          logElement: 'client-log'
+        });
 
-        // 호스트 트랜스포트가 있으면 연결
-        if (!hostTransport) {
-          _context9.next = 7;
-          break;
-        }
-        clientTransport.connectToPeer(hostTransport);
-        hostTransport.connectToPeer(clientTransport);
-        _context9.next = 8;
-        break;
-      case 7:
-        throw new Error('호스트가 실행 중이 아닙니다.');
-      case 8:
         // 클라이언트 구성
         clientConfig = {
           cluster: 'testnet',
@@ -34083,13 +35561,17 @@ connectClientBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__P
         }; // 클라이언트 인스턴스 생성
         client = new _sdk_src_sal_client__WEBPACK_IMPORTED_MODULE_0__.SalClient(clientConfig, clientTransport);
 
-        // 이벤트 핸들러 등록 (클라이언트는 EventEmitter를 상속받음)
+        // 오디오 초기화
+        _context9.next = 6;
+        return clientTransport.initialize();
+      case 6:
+        // 이벤트 핸들러 등록
         client.emit = client.emit || events__WEBPACK_IMPORTED_MODULE_5__.EventEmitter.prototype.emit;
         client.on = client.on || events__WEBPACK_IMPORTED_MODULE_5__.EventEmitter.prototype.on;
 
         // 이벤트 핸들러 등록
         client.on('connected', function (host) {
-          clientTransport.log("\uD638\uC2A4\uD2B8\uC5D0 \uC5F0\uACB0\uB428: ".concat(host), 'info');
+          addLogEntry('client-log', "\uD638\uC2A4\uD2B8\uC5D0 \uC5F0\uACB0\uB428: ".concat(host), 'info');
           isClientConnected = true;
 
           // UI 업데이트
@@ -34100,46 +35582,30 @@ connectClientBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__P
           sendMessageBtn.disabled = false;
           sendTxBtn.disabled = false;
         });
-        client.on('disconnected', function () {
-          clientTransport.log('호스트와 연결이 끊어졌습니다.', 'info');
-          isClientConnected = false;
-
-          // UI 업데이트
-          clientStatusEl.textContent = '연결 안됨';
-          clientStatusEl.className = 'disconnected';
-          connectClientBtn.disabled = false;
-          disconnectClientBtn.disabled = true;
-          sendMessageBtn.disabled = true;
-          sendTxBtn.disabled = true;
+        client.on('message', function (message) {
+          addLogEntry('client-log', "\uD638\uC2A4\uD2B8\uB85C\uBD80\uD130 \uBA54\uC2DC\uC9C0 \uC218\uC2E0: ".concat(message), 'info');
         });
         client.on('error', function (error) {
-          clientTransport.log("\uC624\uB958: ".concat(error.message), 'error');
+          addLogEntry('client-log', "\uC624\uB958: ".concat(error.message), 'error');
         });
 
         // 호스트에 연결
-        client.onSuccess(function () {
-          clientTransport.log('호스트에 성공적으로 연결되었습니다.', 'info');
-        }).onFailure(function (error) {
-          clientTransport.log("\uC5F0\uACB0 \uC2E4\uD328: ".concat(error.message), 'error');
-        });
-        hostAddress = hostAddressInput.value || 'test-host';
-        client.connect(hostAddress);
-        clientTransport.log("".concat(hostAddress, "\uC5D0 \uC5F0\uACB0 \uC911..."), 'info');
-        _context9.next = 24;
+        hostAddress = hostAddressInput.value || 'audio-host';
+        addLogEntry('client-log', "\uD638\uC2A4\uD2B8 ".concat(hostAddress, "\uC5D0 \uC5F0\uACB0 \uC911..."), 'info');
+        _context9.next = 15;
+        return client.connect(hostAddress);
+      case 15:
+        _context9.next = 20;
         break;
-      case 21:
-        _context9.prev = 21;
+      case 17:
+        _context9.prev = 17;
         _context9.t0 = _context9["catch"](0);
-        if (clientTransport) {
-          clientTransport.log("\uC5F0\uACB0 \uC2E4\uD328: ".concat(_context9.t0.message), 'error');
-        } else {
-          console.error("\uC5F0\uACB0 \uC2E4\uD328: ".concat(_context9.t0.message));
-        }
-      case 24:
+        addLogEntry('client-log', "\uD074\uB77C\uC774\uC5B8\uD2B8 \uC5F0\uACB0 \uC2E4\uD328: ".concat(_context9.t0.message), 'error');
+      case 20:
       case "end":
         return _context9.stop();
     }
-  }, _callee9, null, [[0, 21]]);
+  }, _callee9, null, [[0, 17]]);
 })));
 
 // 클라이언트 연결 해제 이벤트 핸들러
@@ -34164,14 +35630,14 @@ disconnectClientBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#
         disconnectClientBtn.disabled = true;
         sendMessageBtn.disabled = true;
         sendTxBtn.disabled = true;
-        clientTransport.log('호스트와 연결이 끊어졌습니다.', 'info');
+        addLogEntry('client-log', '호스트와의 연결이 종료되었습니다.', 'info');
       case 12:
         _context10.next = 17;
         break;
       case 14:
         _context10.prev = 14;
         _context10.t0 = _context10["catch"](0);
-        clientTransport.log("\uC5F0\uACB0 \uD574\uC81C \uC2E4\uD328: ".concat(_context10.t0.message), 'error');
+        addLogEntry('client-log', "\uC5F0\uACB0 \uD574\uC81C \uC2E4\uD328: ".concat(_context10.t0.message), 'error');
       case 17:
       case "end":
         return _context10.stop();
@@ -34180,173 +35646,177 @@ disconnectClientBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#
 })));
 
 // 메시지 전송 이벤트 핸들러
-sendMessageBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
-  var message, response;
-  return _regeneratorRuntime().wrap(function _callee11$(_context11) {
-    while (1) switch (_context11.prev = _context11.next) {
+sendMessageBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
+  var message, sendMessageRequest;
+  return _regeneratorRuntime().wrap(function _callee12$(_context12) {
+    while (1) switch (_context12.prev = _context12.next) {
       case 0:
-        message = messageInput.value.trim();
-        if (!(message && client && isClientConnected)) {
-          _context11.next = 15;
+        _context12.prev = 0;
+        if (!(!client || !isClientConnected)) {
+          _context12.next = 4;
           break;
         }
-        _context11.prev = 2;
-        clientTransport.log("\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC911: \"".concat(message, "\""), 'info');
-        _context11.next = 6;
-        return client.send(message);
-      case 6:
-        response = _context11.sent;
-        clientTransport.log("\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC131\uACF5, \uC751\uB2F5: ".concat(JSON.stringify(response.msg.body)), 'info');
-        _context11.next = 13;
-        break;
-      case 10:
-        _context11.prev = 10;
-        _context11.t0 = _context11["catch"](2);
-        clientTransport.log("\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328: ".concat(_context11.t0.message), 'error');
-      case 13:
-        _context11.next = 16;
-        break;
-      case 15:
-        if (!message) {
-          clientTransport.log('보낼 메시지를 입력하세요.', 'error');
+        addLogEntry('client-log', '호스트에 연결되어 있지 않습니다. 먼저 연결하세요.', 'error');
+        return _context12.abrupt("return");
+      case 4:
+        message = messageInput.value.trim();
+        if (message) {
+          _context12.next = 8;
+          break;
         }
-      case 16:
+        addLogEntry('client-log', '전송할 메시지를 입력하세요.', 'error');
+        return _context12.abrupt("return");
+      case 8:
+        addLogEntry('client-log', "\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC911: \"".concat(message, "\""), 'request');
+
+        // 메시지 전송
+        sendMessageRequest = /*#__PURE__*/function () {
+          var _ref8 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee11(message) {
+            var messageRequest;
+            return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+              while (1) switch (_context11.prev = _context11.next) {
+                case 0:
+                  _context11.prev = 0;
+                  // 메시지 타입 생성 (문자열)
+                  messageRequest = {
+                    method: _sdk_src_types__WEBPACK_IMPORTED_MODULE_3__.SalMethod.MSG,
+                    data: message
+                  }; // 메시지 전송
+                  _context11.next = 4;
+                  return client.send(JSON.stringify(messageRequest));
+                case 4:
+                  addLogEntry('client-log', "\uBA54\uC2DC\uC9C0\uAC00 \uC131\uACF5\uC801\uC73C\uB85C \uC804\uC1A1\uB418\uC5C8\uC2B5\uB2C8\uB2E4.", 'request');
+                  return _context11.abrupt("return", true);
+                case 8:
+                  _context11.prev = 8;
+                  _context11.t0 = _context11["catch"](0);
+                  addLogEntry('client-log', "\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328: ".concat(_context11.t0.message), 'error');
+                  return _context11.abrupt("return", false);
+                case 12:
+                case "end":
+                  return _context11.stop();
+              }
+            }, _callee11, null, [[0, 8]]);
+          }));
+          return function sendMessageRequest(_x5) {
+            return _ref8.apply(this, arguments);
+          };
+        }();
+        _context12.next = 12;
+        return sendMessageRequest(message);
+      case 12:
+        _context12.next = 17;
+        break;
+      case 14:
+        _context12.prev = 14;
+        _context12.t0 = _context12["catch"](0);
+        addLogEntry('client-log', "\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC624\uB958: ".concat(_context12.t0.message), 'error');
+      case 17:
       case "end":
-        return _context11.stop();
+        return _context12.stop();
     }
-  }, _callee11, null, [[2, 10]]);
+  }, _callee12, null, [[0, 14]]);
 })));
 
 // 트랜잭션 전송 이벤트 핸들러
-sendTxBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
-  var lamports, fromPubkey, toPubkey, transferInstruction, data, base64Data, uint8Array, binaryString, recentBlockhash, mockTransaction, sendTransactionRequest, response, result;
-  return _regeneratorRuntime().wrap(function _callee13$(_context13) {
-    while (1) switch (_context13.prev = _context13.next) {
+sendTxBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
+  var sampleTransaction, sendTransactionRequest;
+  return _regeneratorRuntime().wrap(function _callee14$(_context14) {
+    while (1) switch (_context14.prev = _context14.next) {
       case 0:
-        if (!(client && isClientConnected)) {
-          _context13.next = 27;
+        _context14.prev = 0;
+        if (!(!client || !isClientConnected)) {
+          _context14.next = 4;
           break;
         }
-        _context13.prev = 1;
-        // 명확하게 0.01 SOL을 나타내는 10,000,000 lamports 값
-        lamports = 10000000; // 0.01 SOL
-        // 클라이언트 전송 중임을 표시
-        clientTransport.log("===== SOL \uC804\uC1A1 \uD2B8\uB79C\uC7AD\uC158 \uC0DD\uC131 \uC911 =====", 'info');
+        addLogEntry('client-log', '호스트에 연결되어 있지 않습니다. 먼저 연결하세요.', 'error');
+        return _context14.abrupt("return");
+      case 4:
+        addLogEntry('client-log', "\uAC04\uB2E8\uD55C \uD2B8\uB79C\uC7AD\uC158 \uC804\uC1A1 \uC911...", 'request');
 
-        // Solana 라이브러리를 사용하여 전송 명령어 생성
-        fromPubkey = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__.PublicKey(clientKeypair.publicKey);
-        toPubkey = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__.PublicKey(hostKeypair.publicKey);
-        clientTransport.log("\uC1A1\uAE08\uC790: ".concat(fromPubkey.toString().substring(0, 8), "..."), 'info');
-        clientTransport.log("\uC218\uC2E0\uC790: ".concat(toPubkey.toString().substring(0, 8), "..."), 'info');
-        clientTransport.log("\uAE08\uC561: ".concat(lamports, " lamports (").concat(lamports / 1000000000, " SOL)"), 'info');
-
-        // SystemProgram의 transfer 명령어 생성
-        transferInstruction = _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__.SystemProgram.transfer({
-          fromPubkey: fromPubkey,
-          toPubkey: toPubkey,
-          lamports: lamports
-        }); // 직렬화된 명령어 데이터 가져오기
-        data = transferInstruction.data; // Base64로 인코딩 (브라우저 호환)
-        if (typeof buffer__WEBPACK_IMPORTED_MODULE_6__.Buffer !== 'undefined') {
-          // Node.js 환경 또는 Buffer 폴리필 사용 가능한 경우
-          base64Data = buffer__WEBPACK_IMPORTED_MODULE_6__.Buffer.from(data).toString('base64');
-        } else {
-          // 순수 브라우저 환경에서의 대안
-          uint8Array = new Uint8Array(data);
-          binaryString = Array.from(uint8Array).map(function (_byte) {
-            return String.fromCharCode(_byte);
-          }).join('');
-          base64Data = btoa(binaryString);
-        }
-
-        // 실제 트랜잭션과 유사한 정보 구성
-        recentBlockhash = 'GHtXQBsoZHVnNFa9YevAzFr17DJjgHXk3ycTKD5xD3Zi';
-        clientTransport.log("\uBE14\uB85D\uD574\uC2DC: ".concat(recentBlockhash), 'info');
-
-        // 0.01 SOL 전송 트랜잭션 데이터 생성
-        mockTransaction = {
-          version: 0,
-          blockhash: recentBlockhash,
-          recentBlockhash: recentBlockhash,
-          feePayer: clientKeypair.publicKey.toString(),
-          lastValidBlockHeight: 150000000,
-          // 임의의 값
+        // 가상의 트랜잭션 생성
+        sampleTransaction = {
           instructions: [{
-            programId: transferInstruction.programId.toString(),
-            // System Program
-            accounts: transferInstruction.keys.map(function (key) {
-              return {
-                pubkey: key.pubkey.toString(),
-                isSigner: key.isSigner,
-                isWritable: key.isWritable
-              };
-            }),
-            data: base64Data // Solana 라이브러리로 생성한 데이터
+            programId: _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__.SystemProgram.programId.toString(),
+            accounts: [{
+              pubkey: clientKeypair.publicKey.toString(),
+              isSigner: true,
+              isWritable: true
+            }, {
+              pubkey: hostKeypair.publicKey.toString(),
+              isSigner: false,
+              isWritable: true
+            }],
+            data: buffer__WEBPACK_IMPORTED_MODULE_6__.Buffer.from([2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0]).toString('base64')
           }],
-          // 클라이언트가 서명했음을 나타내는 정보
-          signatures: [{
-            pubkey: clientKeypair.publicKey.toString(),
-            signature: "client_sig_".concat(Date.now())
-          }]
-        };
-        clientTransport.log("\uD2B8\uB79C\uC7AD\uC158 \uC0DD\uC131 \uC644\uB8CC", 'info');
-        clientTransport.log("\uD638\uC2A4\uD2B8\uC5D0 \uD2B8\uB79C\uC7AD\uC158 \uC804\uC1A1 \uC694\uCCAD \uC911...", 'info');
-
-        // SalClient의 sendRequest 메서드 접근을 위한 Helper
+          recentBlockhash: "GHtXQBsoZHVnNk5PxcuZPJMdkWEgFjwYbQzBUHnmxVVc"
+        }; // 트랜잭션 전송
         sendTransactionRequest = /*#__PURE__*/function () {
-          var _ref9 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee12(transaction) {
-            var headers;
-            return _regeneratorRuntime().wrap(function _callee12$(_context12) {
-              while (1) switch (_context12.prev = _context12.next) {
+          var _ref10 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee13(transaction) {
+            var txRequest;
+            return _regeneratorRuntime().wrap(function _callee13$(_context13) {
+              while (1) switch (_context13.prev = _context13.next) {
                 case 0:
-                  // @ts-ignore: typescript에서 private 메서드 접근을 위한 임시 방법
-                  headers = {
-                    host: hostAddressInput.value || 'test-host',
-                    nonce: Math.random().toString(36).substring(2, 15),
-                    publicKey: clientKeypair.publicKey.toString()
-                  }; // @ts-ignore: typescript에서 private 메서드 접근을 위한 임시 방법
-                  return _context12.abrupt("return", client.sendRequest(_sdk_src_types__WEBPACK_IMPORTED_MODULE_3__.SalMethod.TX, headers, transaction));
-                case 2:
+                  _context13.prev = 0;
+                  // 트랜잭션 요청 생성
+                  txRequest = {
+                    method: _sdk_src_types__WEBPACK_IMPORTED_MODULE_3__.SalMethod.TX,
+                    data: transaction
+                  }; // 트랜잭션 전송
+                  addLogEntry('client-log', "\uD2B8\uB79C\uC7AD\uC158 \uC694\uCCAD \uC804\uC1A1 \uC911...", 'request');
+                  _context13.next = 5;
+                  return client.send(JSON.stringify(txRequest));
+                case 5:
+                  addLogEntry('client-log', "\uD2B8\uB79C\uC7AD\uC158\uC774 \uC131\uACF5\uC801\uC73C\uB85C \uC804\uC1A1\uB418\uC5C8\uC2B5\uB2C8\uB2E4.", 'request');
+                  return _context13.abrupt("return", true);
+                case 9:
+                  _context13.prev = 9;
+                  _context13.t0 = _context13["catch"](0);
+                  addLogEntry('client-log', "\uD2B8\uB79C\uC7AD\uC158 \uC804\uC1A1 \uC2E4\uD328: ".concat(_context13.t0.message), 'error');
+                  return _context13.abrupt("return", false);
+                case 13:
                 case "end":
-                  return _context12.stop();
+                  return _context13.stop();
               }
-            }, _callee12);
+            }, _callee13, null, [[0, 9]]);
           }));
-          return function sendTransactionRequest(_x5) {
-            return _ref9.apply(this, arguments);
+          return function sendTransactionRequest(_x6) {
+            return _ref10.apply(this, arguments);
           };
-        }(); // 트랜잭션 전송
-        _context13.next = 20;
-        return sendTransactionRequest(mockTransaction);
-      case 20:
-        response = _context13.sent;
-        // 응답 처리
-        if (response.status === 'ok') {
-          result = response.msg.body;
-          clientTransport.log("\uD2B8\uB79C\uC7AD\uC158 \uCC98\uB9AC \uACB0\uACFC: ".concat(result), 'info');
-          if (result.error) {
-            clientTransport.log("\uD2B8\uB79C\uC7AD\uC158 \uCC98\uB9AC \uC2E4\uD328: ".concat(result.error, " (\uCF54\uB4DC: ").concat(result.code, ")"), 'error');
-          } else {
-            clientTransport.log("===== \uD2B8\uB79C\uC7AD\uC158 \uCC98\uB9AC \uACB0\uACFC =====", 'info');
-            clientTransport.log("\uC0C1\uD0DC: ".concat(result.status), 'info');
-            clientTransport.log("\uC11C\uBA85: ".concat(JSON.stringify(result.signature)), 'info');
-            clientTransport.log("===== \uD2B8\uB79C\uC7AD\uC158 \uC644\uB8CC =====", 'info');
-          }
-        } else {
-          clientTransport.log("\uC694\uCCAD \uCC98\uB9AC \uC2E4\uD328: ".concat(response.msg.body.error || '알 수 없는 오류'), 'error');
-        }
-        _context13.next = 27;
+        }();
+        _context14.next = 9;
+        return sendTransactionRequest(sampleTransaction);
+      case 9:
+        _context14.next = 14;
         break;
-      case 24:
-        _context13.prev = 24;
-        _context13.t0 = _context13["catch"](1);
-        clientTransport.log("\uD2B8\uB79C\uC7AD\uC158 \uC804\uC1A1 \uC2E4\uD328: ".concat(_context13.t0.message), 'error');
-      case 27:
+      case 11:
+        _context14.prev = 11;
+        _context14.t0 = _context14["catch"](0);
+        addLogEntry('client-log', "\uD2B8\uB79C\uC7AD\uC158 \uC804\uC1A1 \uC624\uB958: ".concat(_context14.t0.message), 'error');
+      case 14:
       case "end":
-        return _context13.stop();
+        return _context14.stop();
     }
-  }, _callee13, null, [[1, 24]]);
+  }, _callee14, null, [[0, 11]]);
 })));
+
+// 로그 출력 도우미 함수
+function addLogEntry(logId, message) {
+  var type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'info';
+  var logDiv = document.getElementById(logId);
+  if (!logDiv) {
+    console.error("\uB85C\uADF8 \uD328\uB110\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: ".concat(logId));
+    return;
+  }
+
+  // 콘솔에도 로깅
+  console.log("[".concat(logId, "] ").concat(message));
+  var entry = document.createElement('div');
+  entry.className = "log-entry ".concat(type);
+  entry.textContent = "[".concat(new Date().toLocaleTimeString(), "] ").concat(message);
+  logDiv.appendChild(entry);
+  logDiv.scrollTop = logDiv.scrollHeight;
+}
 })();
 
 /******/ })()

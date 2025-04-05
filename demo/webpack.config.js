@@ -3,10 +3,12 @@ const webpack = require('webpack');
 
 module.exports = {
   mode: 'development',
-  entry: './app.js',
+  entry: {
+    bundle: './app.js'
+  },
   output: {
     path: path.resolve(__dirname),
-    filename: 'bundle.js'
+    filename: '[name].js'
   },
   resolve: {
     extensions: ['.js', '.ts'],

@@ -82,3 +82,32 @@ export interface ISalHost {
 
 export type MessageHandler = (message: string, sender: string) => Promise<void> | void;
 export type TransactionHandler = (transaction: any) => Promise<string> | string;
+
+/**
+ * 메시지 전송을 위한 인터페이스
+ * 모든 메시지 전송 구현체는 이 인터페이스를 구현해야 함
+ */
+export interface MessageTransport {
+  /**
+   * 연결 시작
+   * @returns 연결 성공 여부
+   */
+  connect(): Promise<boolean>;
+  
+  /**
+   * 연결 종료
+   */
+  disconnect(): Promise<void>;
+  
+  /**
+   * 메시지 전송
+   * @param message 전송할 메시지
+   */
+  sendMessage(message: string): Promise<void>;
+  
+  /**
+   * 메시지 수신 핸들러 등록
+   * @param handler 메시지 수신 시 호출될 핸들러
+   */
+  onMessage(handler: (message: string) => void): void;
+}

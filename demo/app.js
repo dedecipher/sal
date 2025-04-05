@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 import { Buffer } from 'buffer';
 // Make Buffer available globally
 window.Buffer = Buffer;
+import { AudioMessageTransport } from '../sdk/src/sal/transport'; // SDK의 AudioMessageTransport 클래스 가져오기
 
 // 메시지 트랜스포트 모킹 - 실제 애플리케이션에서는 WebSocket 또는 기타 통신 메커니즘을 사용
 class DemoMessageTransport {
@@ -138,17 +139,65 @@ const messageInput = document.getElementById('message');
 const hostKeypair = Keypair.generate();
 const clientKeypair = Keypair.generate();
 
+// 페이지 로드 시 오디오 초기화
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('오디오 메시지 트랜스포트 데모가 로드되었습니다.');
+  console.log('마이크 및 오디오 권한이 필요합니다.');
+  
+  // 오디오 컨텍스트 초기화 시도 (사용자 상호작용 필요)
+  const activateBtn = document.getElementById('activate-audio');
+  if (activateBtn) {
+    activateBtn.addEventListener('click', () => {
+      // 임시 오디오 컨텍스트 생성 및 시작
+      const tempContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // 컨텍스트 상태 확인
+      if (tempContext.state === 'suspended') {
+        tempContext.resume().then(() => {
+          document.getElementById('audio-status').textContent = 
+            '오디오 상태: 활성화됨 (샘플 레이트: ' + tempContext.sampleRate + 'Hz)';
+          activateBtn.textContent = '✅ 오디오가 활성화되었습니다';
+          activateBtn.style.backgroundColor = '#28a745';
+        });
+      } else {
+        document.getElementById('audio-status').textContent = 
+          '오디오 상태: 이미 활성화됨 (샘플 레이트: ' + tempContext.sampleRate + 'Hz)';
+        activateBtn.textContent = '✅ 오디오가 활성화되었습니다';
+        activateBtn.style.backgroundColor = '#28a745';
+      }
+      
+      // 마이크 접근 시도
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          document.getElementById('mic-status').textContent = 
+            '마이크 상태: 접근 권한 획득됨';
+          
+          // 스트림 트랙 정지 (권한 확인용으로만 사용)
+          stream.getTracks().forEach(track => track.stop());
+        })
+        .catch(err => {
+          document.getElementById('mic-status').textContent = 
+            '마이크 상태: 접근 거부됨 - ' + err.message;
+          console.error('마이크 접근 오류:', err);
+        });
+    });
+  }
+});
+
 // 호스트 시작 이벤트 핸들러
 startHostBtn.addEventListener('click', async () => {
   try {
-    // 메시지 트랜스포트 설정
-    hostTransport = new DemoMessageTransport('Host');
+    // SDK의 AudioMessageTransport 설정
+    hostTransport = new AudioMessageTransport({
+      name: 'Host',
+      logElement: 'host-log'
+    });
     
     // 호스트 구성
     const hostConfig = {
       cluster: 'testnet',
       phoneNumber: '123-456-7890',
-      host: hostAddressInput.value || 'test-host',
+      host: hostAddressInput.value || 'audio-host',
       keyPair: hostKeypair
     };
     
@@ -157,14 +206,16 @@ startHostBtn.addEventListener('click', async () => {
     
     // 호스트의 메시지 핸들러 등록
     const messageHandler = async (message, sender) => {
-      hostTransport.log(`메시지 처리: "${message}" (발신자: ${sender})`, 'info');
+      console.log(`메시지 처리: "${message}" (발신자: ${sender})`);
+      addLogEntry('host-log', `메시지 처리: "${message}" (발신자: ${sender})`, 'info');
       return true;
     };
     
     // 호스트의 트랜잭션 핸들러 등록
     const txHandler = async (transaction) => {
       try {
-        hostTransport.log(`트랜잭션 수신: ${JSON.stringify(transaction).substring(0, 100)}...`, 'info');
+        console.log(`트랜잭션 수신: ${JSON.stringify(transaction).substring(0, 100)}...`);
+        addLogEntry('host-log', `트랜잭션 수신: ${JSON.stringify(transaction).substring(0, 50)}...`, 'info');
         
         // 트랜잭션 데이터 분석
         let transferAmount = "알 수 없음";
@@ -196,30 +247,21 @@ startHostBtn.addEventListener('click', async () => {
                 const sender = instruction.accounts[0]?.pubkey || "알 수 없음";
                 const receiver = instruction.accounts[1]?.pubkey || "알 수 없음";
                 
-                hostTransport.log(`송금자: ${sender.substring(0, 8)}...`, 'info');
-                hostTransport.log(`수신자: ${receiver.substring(0, 8)}...`, 'info');
-                hostTransport.log(`금액: ${lamports} lamports (${sol} SOL)`, 'info');
+                addLogEntry('host-log', `송금자: ${sender.substring(0, 8)}...`, 'info');
+                addLogEntry('host-log', `수신자: ${receiver.substring(0, 8)}...`, 'info');
+                addLogEntry('host-log', `금액: ${lamports} lamports (${sol} SOL)`, 'info');
                 
                 // 트랜잭션 승인 및 처리 시뮬레이션
-                hostTransport.log(`트랜잭션 승인 중...`, 'info');
+                addLogEntry('host-log', `트랜잭션 승인 중...`, 'info');
                 
                 // 호스트 서명 추가 시뮬레이션
-                hostTransport.log(`호스트 키로 서명 중...`, 'info');
-                
-                // 실제 환경에서는 아래 코드와 같이 트랜잭션에 서명하고 직렬화한 후 전송
-                // 1. 트랜잭션 객체 복원
-                // const tx = Transaction.from(Buffer.from(transaction.data, 'base64'));
-                // 2. 호스트 키로 서명
-                // tx.sign(hostKeypair);
-                // 3. 트랜잭션 전송
-                // const connection = new Connection(clusterApiUrl(hostConfig.cluster));
-                // const signature = await connection.sendRawTransaction(tx.serialize());
+                addLogEntry('host-log', `호스트 키로 서명 중...`, 'info');
                 
                 // 서명 완료 시뮬레이션
                 const simulatedSignature = `${hostKeypair.publicKey.toString().substring(0, 6)}_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
                 
-                hostTransport.log(`트랜잭션이 성공적으로 처리되었습니다.`, 'info');
-                hostTransport.log(`트랜잭션 서명: ${simulatedSignature}`, 'info');
+                addLogEntry('host-log', `트랜잭션이 성공적으로 처리되었습니다.`, 'info');
+                addLogEntry('host-log', `트랜잭션 서명: ${simulatedSignature}`, 'info');
                 
                 return {
                   signature: simulatedSignature,
@@ -231,43 +273,44 @@ startHostBtn.addEventListener('click', async () => {
                   sol: sol
                 };
               } else {
-                hostTransport.log(`지원하지 않는 System Program 명령어: ${instructionType}`, 'error');
+                addLogEntry('host-log', `지원하지 않는 System Program 명령어: ${instructionType}`, 'error');
                 return { error: "지원하지 않는 명령어", code: "unsupported_instruction" };
               }
             } catch (err) {
               transferAmount = "디코딩 실패: " + err.message;
-              hostTransport.log(`디코딩 오류: ${err.stack}`, 'error');
+              addLogEntry('host-log', `디코딩 오류: ${err.message}`, 'error');
               return { error: "트랜잭션 디코딩 실패", code: "decode_error" };
             }
           } else {
-            hostTransport.log(`지원하지 않는 프로그램 ID: ${instruction.programId}`, 'error');
+            addLogEntry('host-log', `지원하지 않는 프로그램 ID: ${instruction.programId}`, 'error');
             return { error: "지원하지 않는 프로그램", code: "unsupported_program" };
           }
         } else {
-          hostTransport.log(`트랜잭션에 명령어가 없습니다.`, 'error');
+          addLogEntry('host-log', `트랜잭션에 명령어가 없습니다.`, 'error');
           return { error: "명령어 없음", code: "no_instructions" };
         }
       } catch (error) {
-        hostTransport.log(`트랜잭션 처리 오류: ${error.message}`, 'error');
+        addLogEntry('host-log', `트랜잭션 처리 오류: ${error.message}`, 'error');
         return { error: error.message, code: "processing_error" };
       }
     };
     
     host.register({ messageHandler, txHandler });
     
-    // 이벤트 핸들러 등록 (호스트는 EventEmitter를 상속받음)
+    // 이벤트 핸들러 등록
     host.emit = host.emit || EventEmitter.prototype.emit;
     host.on = host.on || EventEmitter.prototype.on;
     
     host.on('client_connected', (source) => {
-      hostTransport.log(`클라이언트 연결됨: ${source}`, 'info');
+      addLogEntry('host-log', `클라이언트 연결됨: ${source}`, 'info');
     });
     
     host.on('error', (error) => {
-      hostTransport.log(`오류: ${error.message}`, 'error');
+      addLogEntry('host-log', `오류: ${error.message}`, 'error');
     });
     
-    // 호스트 실행
+    // 오디오 초기화 및 호스트 실행
+    await hostTransport.initialize();
     await host.run();
     isHostRunning = true;
     
@@ -277,9 +320,10 @@ startHostBtn.addEventListener('click', async () => {
     startHostBtn.disabled = true;
     stopHostBtn.disabled = false;
     
-    hostTransport.log('호스트가 성공적으로 시작되었습니다.', 'info');
+    addLogEntry('host-log', '호스트가 성공적으로 시작되었습니다. 수신 대기 중...', 'info');
   } catch (error) {
-    hostTransport.log(`호스트 시작 실패: ${error.message}`, 'error');
+    console.error("호스트 시작 실패:", error);
+    addLogEntry('host-log', `호스트 시작 실패: ${error.message}`, 'error');
   }
 });
 
@@ -296,7 +340,7 @@ stopHostBtn.addEventListener('click', async () => {
       startHostBtn.disabled = false;
       stopHostBtn.disabled = true;
       
-      hostTransport.log('호스트가 중지되었습니다.', 'info');
+      addLogEntry('host-log', '호스트가 중지되었습니다.', 'info');
       
       // 클라이언트 연결 해제
       if (isClientConnected && client) {
@@ -311,27 +355,22 @@ stopHostBtn.addEventListener('click', async () => {
         sendMessageBtn.disabled = true;
         sendTxBtn.disabled = true;
         
-        clientTransport.log('호스트 종료로 연결이 끊어졌습니다.', 'info');
+        addLogEntry('client-log', '호스트 종료로 연결이 끊어졌습니다.', 'info');
       }
     }
   } catch (error) {
-    hostTransport.log(`호스트 중지 실패: ${error.message}`, 'error');
+    addLogEntry('host-log', `호스트 중지 실패: ${error.message}`, 'error');
   }
 });
 
 // 클라이언트 연결 이벤트 핸들러
 connectClientBtn.addEventListener('click', async () => {
   try {
-    // 메시지 트랜스포트 설정
-    clientTransport = new DemoMessageTransport('Client');
-    
-    // 호스트 트랜스포트가 있으면 연결
-    if (hostTransport) {
-      clientTransport.connectToPeer(hostTransport);
-      hostTransport.connectToPeer(clientTransport);
-    } else {
-      throw new Error('호스트가 실행 중이 아닙니다.');
-    }
+    // SDK의 AudioMessageTransport 설정
+    clientTransport = new AudioMessageTransport({
+      name: 'Client',
+      logElement: 'client-log'
+    });
     
     // 클라이언트 구성
     const clientConfig = {
@@ -342,13 +381,16 @@ connectClientBtn.addEventListener('click', async () => {
     // 클라이언트 인스턴스 생성
     client = new SalClient(clientConfig, clientTransport);
     
-    // 이벤트 핸들러 등록 (클라이언트는 EventEmitter를 상속받음)
+    // 오디오 초기화
+    await clientTransport.initialize();
+    
+    // 이벤트 핸들러 등록
     client.emit = client.emit || EventEmitter.prototype.emit;
     client.on = client.on || EventEmitter.prototype.on;
     
     // 이벤트 핸들러 등록
     client.on('connected', (host) => {
-      clientTransport.log(`호스트에 연결됨: ${host}`, 'info');
+      addLogEntry('client-log', `호스트에 연결됨: ${host}`, 'info');
       isClientConnected = true;
       
       // UI 업데이트
@@ -360,41 +402,21 @@ connectClientBtn.addEventListener('click', async () => {
       sendTxBtn.disabled = false;
     });
     
-    client.on('disconnected', () => {
-      clientTransport.log('호스트와 연결이 끊어졌습니다.', 'info');
-      isClientConnected = false;
-      
-      // UI 업데이트
-      clientStatusEl.textContent = '연결 안됨';
-      clientStatusEl.className = 'disconnected';
-      connectClientBtn.disabled = false;
-      disconnectClientBtn.disabled = true;
-      sendMessageBtn.disabled = true;
-      sendTxBtn.disabled = true;
+    client.on('message', (message) => {
+      addLogEntry('client-log', `호스트로부터 메시지 수신: ${message}`, 'info');
     });
     
     client.on('error', (error) => {
-      clientTransport.log(`오류: ${error.message}`, 'error');
+      addLogEntry('client-log', `오류: ${error.message}`, 'error');
     });
     
     // 호스트에 연결
-    client.onSuccess(() => {
-      clientTransport.log('호스트에 성공적으로 연결되었습니다.', 'info');
-    }).onFailure((error) => {
-      clientTransport.log(`연결 실패: ${error.message}`, 'error');
-    });
-    
-    const hostAddress = hostAddressInput.value || 'test-host';
-    client.connect(hostAddress);
-    
-    clientTransport.log(`${hostAddress}에 연결 중...`, 'info');
+    const hostAddress = hostAddressInput.value || 'audio-host';
+    addLogEntry('client-log', `호스트 ${hostAddress}에 연결 중...`, 'info');
+    await client.connect(hostAddress);
     
   } catch (error) {
-    if (clientTransport) {
-      clientTransport.log(`연결 실패: ${error.message}`, 'error');
-    } else {
-      console.error(`연결 실패: ${error.message}`);
-    }
+    addLogEntry('client-log', `클라이언트 연결 실패: ${error.message}`, 'error');
   }
 });
 
@@ -413,140 +435,129 @@ disconnectClientBtn.addEventListener('click', async () => {
       sendMessageBtn.disabled = true;
       sendTxBtn.disabled = true;
       
-      clientTransport.log('호스트와 연결이 끊어졌습니다.', 'info');
+      addLogEntry('client-log', '호스트와의 연결이 종료되었습니다.', 'info');
     }
   } catch (error) {
-    clientTransport.log(`연결 해제 실패: ${error.message}`, 'error');
+    addLogEntry('client-log', `연결 해제 실패: ${error.message}`, 'error');
   }
 });
 
 // 메시지 전송 이벤트 핸들러
 sendMessageBtn.addEventListener('click', async () => {
-  const message = messageInput.value.trim();
-  if (message && client && isClientConnected) {
-    try {
-      clientTransport.log(`메시지 전송 중: "${message}"`, 'info');
-      const response = await client.send(message);
-      
-      clientTransport.log(`메시지 전송 성공, 응답: ${JSON.stringify(response.msg.body)}`, 'info');
-    } catch (error) {
-      clientTransport.log(`메시지 전송 실패: ${error.message}`, 'error');
+  try {
+    if (!client || !isClientConnected) {
+      addLogEntry('client-log', '호스트에 연결되어 있지 않습니다. 먼저 연결하세요.', 'error');
+      return;
     }
-  } else if (!message) {
-    clientTransport.log('보낼 메시지를 입력하세요.', 'error');
+    
+    const message = messageInput.value.trim();
+    if (!message) {
+      addLogEntry('client-log', '전송할 메시지를 입력하세요.', 'error');
+      return;
+    }
+    
+    addLogEntry('client-log', `메시지 전송 중: "${message}"`, 'request');
+    
+    // 메시지 전송
+    const sendMessageRequest = async (message) => {
+      try {
+        // 메시지 타입 생성 (문자열)
+        const messageRequest = {
+          method: SalMethod.MSG,
+          data: message
+        };
+        
+        // 메시지 전송
+        await client.send(JSON.stringify(messageRequest));
+        
+        addLogEntry('client-log', `메시지가 성공적으로 전송되었습니다.`, 'request');
+        return true;
+      } catch (error) {
+        addLogEntry('client-log', `메시지 전송 실패: ${error.message}`, 'error');
+        return false;
+      }
+    };
+    
+    await sendMessageRequest(message);
+  } catch (error) {
+    addLogEntry('client-log', `메시지 전송 오류: ${error.message}`, 'error');
   }
 });
 
 // 트랜잭션 전송 이벤트 핸들러
 sendTxBtn.addEventListener('click', async () => {
-  if (client && isClientConnected) {
-    try {
-      // 명확하게 0.01 SOL을 나타내는 10,000,000 lamports 값
-      const lamports = 10000000; // 0.01 SOL
-      
-      // 클라이언트 전송 중임을 표시
-      clientTransport.log(`===== SOL 전송 트랜잭션 생성 중 =====`, 'info');
-      
-      // Solana 라이브러리를 사용하여 전송 명령어 생성
-      const fromPubkey = new PublicKey(clientKeypair.publicKey);
-      const toPubkey = new PublicKey(hostKeypair.publicKey);
-      
-      clientTransport.log(`송금자: ${fromPubkey.toString().substring(0, 8)}...`, 'info');
-      clientTransport.log(`수신자: ${toPubkey.toString().substring(0, 8)}...`, 'info');
-      clientTransport.log(`금액: ${lamports} lamports (${lamports / 1000000000} SOL)`, 'info');
-      
-      // SystemProgram의 transfer 명령어 생성
-      const transferInstruction = SystemProgram.transfer({
-        fromPubkey,
-        toPubkey,
-        lamports
-      });
-      
-      // 직렬화된 명령어 데이터 가져오기
-      const data = transferInstruction.data;
-      
-      // Base64로 인코딩 (브라우저 호환)
-      let base64Data;
-      if (typeof Buffer !== 'undefined') {
-        // Node.js 환경 또는 Buffer 폴리필 사용 가능한 경우
-        base64Data = Buffer.from(data).toString('base64');
-      } else {
-        // 순수 브라우저 환경에서의 대안
-        const uint8Array = new Uint8Array(data);
-        const binaryString = Array.from(uint8Array)
-          .map(byte => String.fromCharCode(byte))
-          .join('');
-        base64Data = btoa(binaryString);
-      }
-      
-      // 실제 트랜잭션과 유사한 정보 구성
-      const recentBlockhash = 'GHtXQBsoZHVnNFa9YevAzFr17DJjgHXk3ycTKD5xD3Zi';
-      clientTransport.log(`블록해시: ${recentBlockhash}`, 'info');
-      
-      // 0.01 SOL 전송 트랜잭션 데이터 생성
-      const mockTransaction = {
-        version: 0,
-        blockhash: recentBlockhash,
-        recentBlockhash: recentBlockhash,
-        feePayer: clientKeypair.publicKey.toString(),
-        lastValidBlockHeight: 150000000, // 임의의 값
-        instructions: [
-          {
-            programId: transferInstruction.programId.toString(), // System Program
-            accounts: transferInstruction.keys.map(key => ({
-              pubkey: key.pubkey.toString(),
-              isSigner: key.isSigner,
-              isWritable: key.isWritable
-            })),
-            data: base64Data // Solana 라이브러리로 생성한 데이터
-          }
-        ],
-        // 클라이언트가 서명했음을 나타내는 정보
-        signatures: [
-          {
-            pubkey: clientKeypair.publicKey.toString(),
-            signature: `client_sig_${Date.now()}`
-          }
-        ]
-      };
-      
-      clientTransport.log(`트랜잭션 생성 완료`, 'info');
-      clientTransport.log(`호스트에 트랜잭션 전송 요청 중...`, 'info');
-      
-      // SalClient의 sendRequest 메서드 접근을 위한 Helper
-      const sendTransactionRequest = async (transaction) => {
-        // @ts-ignore: typescript에서 private 메서드 접근을 위한 임시 방법
-        const headers = {
-          host: hostAddressInput.value || 'test-host',
-          nonce: Math.random().toString(36).substring(2, 15),
-          publicKey: clientKeypair.publicKey.toString()
+  try {
+    if (!client || !isClientConnected) {
+      addLogEntry('client-log', '호스트에 연결되어 있지 않습니다. 먼저 연결하세요.', 'error');
+      return;
+    }
+    
+    addLogEntry('client-log', `간단한 트랜잭션 전송 중...`, 'request');
+    
+    // 가상의 트랜잭션 생성
+    const sampleTransaction = {
+      instructions: [
+        {
+          programId: SystemProgram.programId.toString(),
+          accounts: [
+            {
+              pubkey: clientKeypair.publicKey.toString(),
+              isSigner: true,
+              isWritable: true
+            },
+            {
+              pubkey: hostKeypair.publicKey.toString(),
+              isSigner: false,
+              isWritable: true
+            }
+          ],
+          data: Buffer.from([2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0]).toString('base64')
+        }
+      ],
+      recentBlockhash: "GHtXQBsoZHVnNk5PxcuZPJMdkWEgFjwYbQzBUHnmxVVc"
+    };
+    
+    // 트랜잭션 전송
+    const sendTransactionRequest = async (transaction) => {
+      try {
+        // 트랜잭션 요청 생성
+        const txRequest = {
+          method: SalMethod.TX,
+          data: transaction
         };
         
-        // @ts-ignore: typescript에서 private 메서드 접근을 위한 임시 방법
-        return client.sendRequest(SalMethod.TX, headers, transaction);
-      };
-      
-      // 트랜잭션 전송
-      const response = await sendTransactionRequest(mockTransaction);
-      
-      // 응답 처리
-      if (response.status === 'ok') {
-        const result = response.msg.body;
-        clientTransport.log(`트랜잭션 처리 결과: ${result}`, 'info');
+        // 트랜잭션 전송
+        addLogEntry('client-log', `트랜잭션 요청 전송 중...`, 'request');
+        await client.send(JSON.stringify(txRequest));
         
-        if (result.error) {
-          clientTransport.log(`트랜잭션 처리 실패: ${result.error} (코드: ${result.code})`, 'error');
-        } else {
-          clientTransport.log(`===== 트랜잭션 처리 결과 =====`, 'info');
-          clientTransport.log(`상태: ${result.status}`, 'info');        
-          clientTransport.log(`서명: ${JSON.stringify(result.signature)}`, 'info');
-          clientTransport.log(`===== 트랜잭션 완료 =====`, 'info');
-        }
-      } else {
-        clientTransport.log(`요청 처리 실패: ${response.msg.body.error || '알 수 없는 오류'}`, 'error');
+        addLogEntry('client-log', `트랜잭션이 성공적으로 전송되었습니다.`, 'request');
+        return true;
+      } catch (error) {
+        addLogEntry('client-log', `트랜잭션 전송 실패: ${error.message}`, 'error');
+        return false;
       }
-    } catch (error) {
-      clientTransport.log(`트랜잭션 전송 실패: ${error.message}`, 'error');
-    }
+    };
+    
+    await sendTransactionRequest(sampleTransaction);
+  } catch (error) {
+    addLogEntry('client-log', `트랜잭션 전송 오류: ${error.message}`, 'error');
   }
 });
+
+// 로그 출력 도우미 함수
+function addLogEntry(logId, message, type = 'info') {
+  const logDiv = document.getElementById(logId);
+  if (!logDiv) {
+    console.error(`로그 패널을 찾을 수 없습니다: ${logId}`);
+    return;
+  }
+  
+  // 콘솔에도 로깅
+  console.log(`[${logId}] ${message}`);
+  
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+  logDiv.appendChild(entry);
+  logDiv.scrollTop = logDiv.scrollHeight;
+}

@@ -224,7 +224,7 @@ export class SalClient extends EventEmitter implements ISalClient {
         this.pendingRequests.delete(headers.nonce);
         reject(new Error('응답 타임아웃'));
       }, 20000);
-
+      
       // 요청 등록
       this.pendingRequests.set(headers.nonce, {
         resolve: (response: SalResponse) => {

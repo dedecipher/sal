@@ -5,9 +5,7 @@
   "main": "app.js",
   "scripts": {
     "build": "webpack",
-    "serve": "webpack && http-server -p 8080 .",
-    "build:audio": "webpack --config audio-webpack.config.js",
-    "serve:audio": "webpack --config audio-webpack.config.js && http-server -p 8080 ."
+    "serve": "webpack && http-server -p 8080 ."
   },
   "dependencies": {
     "@solana/web3.js": "^1.78.5",
