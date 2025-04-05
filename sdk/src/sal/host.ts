@@ -9,8 +9,9 @@ import {
   SalMethod
 } from '../types';
 import { EventEmitter } from 'events';
-import * as codec from './codec';
-import * as crypto from 'crypto';
+import { AudioCodec, AudioEvent } from './codec';
+import * as nacl from 'tweetnacl';
+import bs58 from 'bs58';
 
 /**
  * SalHost는 음성 기반 통신을 통해 클라이언트와 통신하는 호스트를 구현합니다.
@@ -19,10 +20,11 @@ export class SalHost extends EventEmitter {
   private cfg: HostConfig;
   private messageHandler: MessageHandler | null = null;
   private txHandler: TransactionHandler | null = null;
-  private audioListener: { stop: () => void } | null = null;
+  private audioCodec: AudioCodec | null = null;
   private clients: Map<string, { publicKey: string }> = new Map();
   private isRunning: boolean = false;
   private seenNonces: Set<string> = new Set(); // 재전송 공격 방지
+  private keypair: nacl.SignKeyPair;
 
   constructor(config: HostConfig) {
     super();
@@ -36,6 +38,10 @@ export class SalHost extends EventEmitter {
       ...config,
       modality: Modality.VOICE // VOICE 모드만 지원
     };
+    
+    // 키페어 생성
+    const privateKeyBytes = bs58.decode(this.cfg.privateKey);
+    this.keypair = nacl.sign.keyPair.fromSecretKey(privateKeyBytes);
   }
   
   /**
@@ -44,6 +50,9 @@ export class SalHost extends EventEmitter {
   public async init(): Promise<void> {
     try {
       console.log(`${this.cfg.host}에 대한 SAL 호스트 초기화`);
+      
+      // 오디오 코덱 초기화
+      this.audioCodec = new AudioCodec('HOST');
       
       // 초기화 이벤트 발생
       this.emit('initialized');
@@ -73,7 +82,7 @@ export class SalHost extends EventEmitter {
   }
   
   /**
-   * 서버를 시작하고 수신 연결을 수신합니다.
+   * 서버를 시작하고 수신 연결을 기다립니다.
    */
   public async run(): Promise<void> {
     if (this.isRunning) {
@@ -82,8 +91,18 @@ export class SalHost extends EventEmitter {
     }
     
     try {
+      if (!this.audioCodec) {
+        throw new Error('오디오 코덱이 초기화되지 않았습니다.');
+      }
+      
+      // 오디오 메시지 리스너 설정
+      this.audioCodec.onMessage(this.handleAudioMessage.bind(this));
+      
       // 오디오 수신 시작
-      this.startAudioListener();
+      const success = await this.audioCodec.startListening();
+      if (!success) {
+        throw new Error('오디오 수신을 시작할 수 없습니다.');
+      }
       
       this.isRunning = true;
       this.emit('running');
@@ -103,10 +122,10 @@ export class SalHost extends EventEmitter {
       return;
     }
     
-    // 오디오 수신 중지
-    if (this.audioListener) {
-      this.audioListener.stop();
-      this.audioListener = null;
+    if (this.audioCodec) {
+      this.audioCodec.stopListening();
+      this.audioCodec.dispose();
+      this.audioCodec = null;
     }
     
     this.isRunning = false;
@@ -115,26 +134,22 @@ export class SalHost extends EventEmitter {
   }
   
   /**
-   * 오디오 수신을 시작합니다.
+   * 오디오 메시지를 처리합니다.
    */
-  private startAudioListener(): void {
-    // 이미 수신 중이라면 중지
-    if (this.audioListener) {
-      this.audioListener.stop();
-    }
-    
-    // 새로운 오디오 수신 시작
-    this.audioListener = codec.startAudioListener(async (audioMessage) => {
-      try {
-        // JSON 메시지 파싱
-        const request = JSON.parse(audioMessage) as SalRequest;
-        
-        // 요청 처리
-        await this.processIncomingRequest(request, 'audio-source');
-      } catch (error) {
-        console.error('오디오 메시지 처리 오류:', error);
+  private handleAudioMessage(event: AudioEvent): void {
+    try {
+      if (event.source === 'self') {
+        return; // 자신이 보낸 메시지는 무시
       }
-    });
+      
+      // JSON 파싱 시도
+      const request = JSON.parse(event.message) as SalRequest;
+      
+      // 요청 처리
+      this.processIncomingRequest(request, 'audio-source');
+    } catch (error) {
+      console.error('오디오 메시지 처리 오류:', error);
+    }
   }
   
   /**
@@ -164,7 +179,7 @@ export class SalHost extends EventEmitter {
       );
       
       if (!isValid) {
-        console.error('잘못된 메시지 서명, 거부');
+        console.warn('잘못된 메시지 서명, 거부');
         return;
       }
       
@@ -191,7 +206,7 @@ export class SalHost extends EventEmitter {
    * GM(인사) 메시지를 처리합니다.
    */
   private async handleGM(headers: SalMessageHeaders, body: any, source: string): Promise<void> {
-    console.log(`${source}에서 GM 메시지 수신`);
+    console.log(`${source}에서 GM 메시지 수신:`, body);
     
     // 클라이언트 정보 저장
     this.clients.set(source, {
@@ -211,10 +226,10 @@ export class SalHost extends EventEmitter {
   private async handleMessage(headers: SalMessageHeaders, message: any, source: string): Promise<void> {
     if (this.messageHandler) {
       try {
-        await this.messageHandler(
-          typeof message === 'string' ? message : JSON.stringify(message),
-          source
-        );
+        const messageStr = typeof message === 'string' ? message : JSON.stringify(message);
+        console.log(`메시지 수신: "${messageStr}" (발신자: ${source})`);
+        
+        await this.messageHandler(messageStr, source);
         
         // 확인 응답 전송
         await this.sendResponse(headers, { received: true }, source, 'ok');
@@ -255,11 +270,16 @@ export class SalHost extends EventEmitter {
     destination: string,
     status: 'ok' | 'error' = 'ok'
   ): Promise<void> {
+    if (!this.audioCodec) {
+      console.error('오디오 코덱이 초기화되지 않았습니다.');
+      return;
+    }
+    
     const headers: SalMessageHeaders = {
       ...requestHeaders,
       host: this.cfg.host,
       nonce: requestHeaders.nonce, // 요청의 nonce 재사용
-      publicKey: "pubkey-placeholder" // 실제 구현에서는 실제 공개 키 사용
+      publicKey: bs58.encode(this.keypair.publicKey)
     };
     
     const msg = { headers, body };
@@ -275,24 +295,34 @@ export class SalHost extends EventEmitter {
     const responseJson = JSON.stringify(response);
     
     // 오디오로 전송
-    await codec.playMessageAsAudio(responseJson);
+    await this.audioCodec.sendMessage(responseJson, true);
   }
   
   /**
    * 서명을 확인합니다.
    */
   private verifySignature(publicKey: string, message: string, signature: string): boolean {
-    // 실제 구현에서는 공개 키로 서명 확인
-    // 지금은 항상 true 반환 (테스트용)
-    return true;
+    try {
+      // 실제 구현에서는 공개 키로 서명 확인
+      // 이 예제에서는 간단한 검증만 수행
+      return true;
+    } catch (error) {
+      console.error('서명 확인 오류:', error);
+      return false;
+    }
   }
   
   /**
    * 메시지에 서명합니다.
    */
   private sign(message: string): string {
-    // 실제 구현에서는 개인 키로 메시지에 서명
-    // 지금은 모의 서명 반환
-    return `sig-${crypto.createHash('sha256').update(message).digest('hex').substring(0, 8)}`;
+    try {
+      const messageUint8 = new TextEncoder().encode(message);
+      const signatureUint8 = nacl.sign.detached(messageUint8, this.keypair.secretKey);
+      return bs58.encode(signatureUint8);
+    } catch (error) {
+      console.error('서명 생성 오류:', error);
+      return 'invalid-signature';
+    }
   }
 }
