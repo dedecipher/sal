@@ -146,6 +146,8 @@ export class SalHost extends EventEmitter implements ISalHost {
       this.emit('error', error);
       throw error;
     }
+
+    // await this.messageTransport.sendMessage(JSON.stringify({"key": "gm"}));
   }
 
   /**
@@ -292,7 +294,7 @@ export class SalHost extends EventEmitter implements ISalHost {
     }
 
     // delay 1.5 sec for stable interaction
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     const headers: SalMessageHeaders = {
       ...requestHeaders,

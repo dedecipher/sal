@@ -1,10 +1,10 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "../../../../node_modules/@noble/curves/esm/_shortw_utils.js":
-/*!*******************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/_shortw_utils.js ***!
-  \*******************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/_shortw_utils.js":
+/*!**************************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/_shortw_utils.js ***!
+  \**************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -13,9 +13,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   createCurve: () => (/* binding */ createCurve),
 /* harmony export */   getHash: () => (/* binding */ getHash)
 /* harmony export */ });
-/* harmony import */ var _noble_hashes_hmac__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @noble/hashes/hmac */ "../../../../node_modules/@noble/hashes/esm/hmac.js");
-/* harmony import */ var _noble_hashes_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @noble/hashes/utils */ "../../../../node_modules/@noble/hashes/esm/utils.js");
-/* harmony import */ var _abstract_weierstrass_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./abstract/weierstrass.js */ "../../../../node_modules/@noble/curves/esm/abstract/weierstrass.js");
+/* harmony import */ var _noble_hashes_hmac__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @noble/hashes/hmac */ "../sdk/node_modules/@noble/hashes/esm/hmac.js");
+/* harmony import */ var _noble_hashes_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @noble/hashes/utils */ "../sdk/node_modules/@noble/hashes/esm/utils.js");
+/* harmony import */ var _abstract_weierstrass_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./abstract/weierstrass.js */ "../sdk/node_modules/@noble/curves/esm/abstract/weierstrass.js");
 /**
  * Utilities for short weierstrass curves, combined with noble-hashes.
  * @module
@@ -40,10 +40,10 @@ function createCurve(curveDef, defHash) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/abstract/curve.js":
-/*!********************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/abstract/curve.js ***!
-  \********************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/abstract/curve.js":
+/*!***************************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/abstract/curve.js ***!
+  \***************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -54,8 +54,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   validateBasic: () => (/* binding */ validateBasic),
 /* harmony export */   wNAF: () => (/* binding */ wNAF)
 /* harmony export */ });
-/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modular.js */ "../../../../node_modules/@noble/curves/esm/abstract/modular.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/curves/esm/abstract/utils.js");
+/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modular.js */ "../sdk/node_modules/@noble/curves/esm/abstract/modular.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js");
 /**
  * Methods for elliptic curve multiplication by scalars.
  * Contains wNAF, pippenger
@@ -433,10 +433,10 @@ function validateBasic(curve) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/abstract/edwards.js":
-/*!**********************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/abstract/edwards.js ***!
-  \**********************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/abstract/edwards.js":
+/*!*****************************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/abstract/edwards.js ***!
+  \*****************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -444,9 +444,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   twistedEdwards: () => (/* binding */ twistedEdwards)
 /* harmony export */ });
-/* harmony import */ var _curve_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./curve.js */ "../../../../node_modules/@noble/curves/esm/abstract/curve.js");
-/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modular.js */ "../../../../node_modules/@noble/curves/esm/abstract/modular.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/curves/esm/abstract/utils.js");
+/* harmony import */ var _curve_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./curve.js */ "../sdk/node_modules/@noble/curves/esm/abstract/curve.js");
+/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modular.js */ "../sdk/node_modules/@noble/curves/esm/abstract/modular.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js");
 /**
  * Twisted Edwards curve. The formula is: ax² + y² = 1 + dx²y².
  * For design rationale of types / exports, see weierstrass module documentation.
@@ -899,10 +899,10 @@ function twistedEdwards(curveDef) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/abstract/hash-to-curve.js":
-/*!****************************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/abstract/hash-to-curve.js ***!
-  \****************************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/abstract/hash-to-curve.js":
+/*!***********************************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/abstract/hash-to-curve.js ***!
+  \***********************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -914,8 +914,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   hash_to_field: () => (/* binding */ hash_to_field),
 /* harmony export */   isogenyMap: () => (/* binding */ isogenyMap)
 /* harmony export */ });
-/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modular.js */ "../../../../node_modules/@noble/curves/esm/abstract/modular.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/curves/esm/abstract/utils.js");
+/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modular.js */ "../sdk/node_modules/@noble/curves/esm/abstract/modular.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js");
 
 
 // Octet Stream to Integer. "spec" implementation of os2ip is 2.5x slower vs bytesToNumberBE.
@@ -1098,10 +1098,10 @@ function createHasher(Point, mapToCurve, def) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/abstract/modular.js":
-/*!**********************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/abstract/modular.js ***!
-  \**********************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/abstract/modular.js":
+/*!*****************************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/abstract/modular.js ***!
+  \*****************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1129,7 +1129,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   tonelliShanks: () => (/* binding */ tonelliShanks),
 /* harmony export */   validateField: () => (/* binding */ validateField)
 /* harmony export */ });
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/curves/esm/abstract/utils.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js");
 /**
  * Utils for modular division and finite fields.
  * A finite field over 11 is integer number operations `mod 11`.
@@ -1590,10 +1590,10 @@ function mapHashToField(key, fieldOrder, isLE = false) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/abstract/montgomery.js":
-/*!*************************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/abstract/montgomery.js ***!
-  \*************************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/abstract/montgomery.js":
+/*!********************************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/abstract/montgomery.js ***!
+  \********************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1601,8 +1601,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   montgomery: () => (/* binding */ montgomery)
 /* harmony export */ });
-/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modular.js */ "../../../../node_modules/@noble/curves/esm/abstract/modular.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/curves/esm/abstract/utils.js");
+/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modular.js */ "../sdk/node_modules/@noble/curves/esm/abstract/modular.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js");
 /**
  * Montgomery curve methods. It's not really whole montgomery curve,
  * just bunch of very specific methods for X25519 / X448 from
@@ -1763,10 +1763,10 @@ function montgomery(curveDef) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/abstract/utils.js":
-/*!********************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/abstract/utils.js ***!
-  \********************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js":
+/*!***************************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/abstract/utils.js ***!
+  \***************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2137,10 +2137,10 @@ function memoized(fn) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/abstract/weierstrass.js":
-/*!**************************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/abstract/weierstrass.js ***!
-  \**************************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/abstract/weierstrass.js":
+/*!*********************************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/abstract/weierstrass.js ***!
+  \*********************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2153,9 +2153,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   weierstrass: () => (/* binding */ weierstrass),
 /* harmony export */   weierstrassPoints: () => (/* binding */ weierstrassPoints)
 /* harmony export */ });
-/* harmony import */ var _curve_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./curve.js */ "../../../../node_modules/@noble/curves/esm/abstract/curve.js");
-/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modular.js */ "../../../../node_modules/@noble/curves/esm/abstract/modular.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/curves/esm/abstract/utils.js");
+/* harmony import */ var _curve_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./curve.js */ "../sdk/node_modules/@noble/curves/esm/abstract/curve.js");
+/* harmony import */ var _modular_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modular.js */ "../sdk/node_modules/@noble/curves/esm/abstract/modular.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js");
 /**
  * Short Weierstrass curve methods. The formula is: y² = x³ + ax + b.
  *
@@ -3341,10 +3341,10 @@ function mapToCurveSimpleSWU(Fp, opts) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/ed25519.js":
-/*!*************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/ed25519.js ***!
-  \*************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/ed25519.js":
+/*!********************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/ed25519.js ***!
+  \********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -3364,14 +3364,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   hash_to_ristretto255: () => (/* binding */ hash_to_ristretto255),
 /* harmony export */   x25519: () => (/* binding */ x25519)
 /* harmony export */ });
-/* harmony import */ var _noble_hashes_sha512__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @noble/hashes/sha512 */ "../../../../node_modules/@noble/hashes/esm/sha512.js");
-/* harmony import */ var _noble_hashes_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @noble/hashes/utils */ "../../../../node_modules/@noble/hashes/esm/utils.js");
-/* harmony import */ var _abstract_curve_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./abstract/curve.js */ "../../../../node_modules/@noble/curves/esm/abstract/curve.js");
-/* harmony import */ var _abstract_edwards_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./abstract/edwards.js */ "../../../../node_modules/@noble/curves/esm/abstract/edwards.js");
-/* harmony import */ var _abstract_hash_to_curve_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./abstract/hash-to-curve.js */ "../../../../node_modules/@noble/curves/esm/abstract/hash-to-curve.js");
-/* harmony import */ var _abstract_modular_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./abstract/modular.js */ "../../../../node_modules/@noble/curves/esm/abstract/modular.js");
-/* harmony import */ var _abstract_montgomery_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./abstract/montgomery.js */ "../../../../node_modules/@noble/curves/esm/abstract/montgomery.js");
-/* harmony import */ var _abstract_utils_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./abstract/utils.js */ "../../../../node_modules/@noble/curves/esm/abstract/utils.js");
+/* harmony import */ var _noble_hashes_sha512__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @noble/hashes/sha512 */ "../sdk/node_modules/@noble/hashes/esm/sha512.js");
+/* harmony import */ var _noble_hashes_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @noble/hashes/utils */ "../sdk/node_modules/@noble/hashes/esm/utils.js");
+/* harmony import */ var _abstract_curve_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./abstract/curve.js */ "../sdk/node_modules/@noble/curves/esm/abstract/curve.js");
+/* harmony import */ var _abstract_edwards_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./abstract/edwards.js */ "../sdk/node_modules/@noble/curves/esm/abstract/edwards.js");
+/* harmony import */ var _abstract_hash_to_curve_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./abstract/hash-to-curve.js */ "../sdk/node_modules/@noble/curves/esm/abstract/hash-to-curve.js");
+/* harmony import */ var _abstract_modular_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./abstract/modular.js */ "../sdk/node_modules/@noble/curves/esm/abstract/modular.js");
+/* harmony import */ var _abstract_montgomery_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./abstract/montgomery.js */ "../sdk/node_modules/@noble/curves/esm/abstract/montgomery.js");
+/* harmony import */ var _abstract_utils_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./abstract/utils.js */ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js");
 /**
  * ed25519 Twisted Edwards curve with following addons:
  * - X25519 ECDH
@@ -3842,10 +3842,10 @@ const hash_to_ristretto255 = hashToRistretto255; // legacy
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/curves/esm/secp256k1.js":
-/*!***************************************************************!*\
-  !*** ../../../../node_modules/@noble/curves/esm/secp256k1.js ***!
-  \***************************************************************/
+/***/ "../sdk/node_modules/@noble/curves/esm/secp256k1.js":
+/*!**********************************************************!*\
+  !*** ../sdk/node_modules/@noble/curves/esm/secp256k1.js ***!
+  \**********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -3856,13 +3856,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   schnorr: () => (/* binding */ schnorr),
 /* harmony export */   secp256k1: () => (/* binding */ secp256k1)
 /* harmony export */ });
-/* harmony import */ var _noble_hashes_sha256__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @noble/hashes/sha256 */ "../../../../node_modules/@noble/hashes/esm/sha256.js");
-/* harmony import */ var _noble_hashes_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @noble/hashes/utils */ "../../../../node_modules/@noble/hashes/esm/utils.js");
-/* harmony import */ var _shortw_utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_shortw_utils.js */ "../../../../node_modules/@noble/curves/esm/_shortw_utils.js");
-/* harmony import */ var _abstract_hash_to_curve_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./abstract/hash-to-curve.js */ "../../../../node_modules/@noble/curves/esm/abstract/hash-to-curve.js");
-/* harmony import */ var _abstract_modular_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./abstract/modular.js */ "../../../../node_modules/@noble/curves/esm/abstract/modular.js");
-/* harmony import */ var _abstract_utils_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./abstract/utils.js */ "../../../../node_modules/@noble/curves/esm/abstract/utils.js");
-/* harmony import */ var _abstract_weierstrass_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./abstract/weierstrass.js */ "../../../../node_modules/@noble/curves/esm/abstract/weierstrass.js");
+/* harmony import */ var _noble_hashes_sha256__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @noble/hashes/sha256 */ "../sdk/node_modules/@noble/hashes/esm/sha256.js");
+/* harmony import */ var _noble_hashes_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @noble/hashes/utils */ "../sdk/node_modules/@noble/hashes/esm/utils.js");
+/* harmony import */ var _shortw_utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_shortw_utils.js */ "../sdk/node_modules/@noble/curves/esm/_shortw_utils.js");
+/* harmony import */ var _abstract_hash_to_curve_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./abstract/hash-to-curve.js */ "../sdk/node_modules/@noble/curves/esm/abstract/hash-to-curve.js");
+/* harmony import */ var _abstract_modular_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./abstract/modular.js */ "../sdk/node_modules/@noble/curves/esm/abstract/modular.js");
+/* harmony import */ var _abstract_utils_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./abstract/utils.js */ "../sdk/node_modules/@noble/curves/esm/abstract/utils.js");
+/* harmony import */ var _abstract_weierstrass_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./abstract/weierstrass.js */ "../sdk/node_modules/@noble/curves/esm/abstract/weierstrass.js");
 /**
  * NIST secp256k1. See [pdf](https://www.secg.org/sec2-v2.pdf).
  *
@@ -4150,10 +4150,10 @@ const encodeToCurve = /* @__PURE__ */ (() => htf.encodeToCurve)();
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/_assert.js":
-/*!*************************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/_assert.js ***!
-  \*************************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/_assert.js":
+/*!********************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/_assert.js ***!
+  \********************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -4212,10 +4212,10 @@ function aoutput(out, instance) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/_md.js":
-/*!*********************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/_md.js ***!
-  \*********************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/_md.js":
+/*!****************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/_md.js ***!
+  \****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -4226,8 +4226,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Maj: () => (/* binding */ Maj),
 /* harmony export */   setBigUint64: () => (/* binding */ setBigUint64)
 /* harmony export */ });
-/* harmony import */ var _assert_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_assert.js */ "../../../../node_modules/@noble/hashes/esm/_assert.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/hashes/esm/utils.js");
+/* harmony import */ var _assert_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_assert.js */ "../sdk/node_modules/@noble/hashes/esm/_assert.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/hashes/esm/utils.js");
 /**
  * Internal Merkle-Damgard hash utils.
  * @module
@@ -4361,10 +4361,10 @@ class HashMD extends _utils_js__WEBPACK_IMPORTED_MODULE_0__.Hash {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/_u64.js":
-/*!**********************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/_u64.js ***!
-  \**********************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/_u64.js":
+/*!*****************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/_u64.js ***!
+  \*****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -4463,10 +4463,10 @@ const u64 = {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/crypto.js":
-/*!************************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/crypto.js ***!
-  \************************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/crypto.js":
+/*!*******************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/crypto.js ***!
+  \*******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -4479,10 +4479,10 @@ const crypto = typeof globalThis === 'object' && 'crypto' in globalThis ? global
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/hmac.js":
-/*!**********************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/hmac.js ***!
-  \**********************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/hmac.js":
+/*!*****************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/hmac.js ***!
+  \*****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -4491,8 +4491,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   HMAC: () => (/* binding */ HMAC),
 /* harmony export */   hmac: () => (/* binding */ hmac)
 /* harmony export */ });
-/* harmony import */ var _assert_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_assert.js */ "../../../../node_modules/@noble/hashes/esm/_assert.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/hashes/esm/utils.js");
+/* harmony import */ var _assert_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_assert.js */ "../sdk/node_modules/@noble/hashes/esm/_assert.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/hashes/esm/utils.js");
 /**
  * HMAC: RFC2104 message authentication code.
  * @module
@@ -4580,10 +4580,10 @@ hmac.create = (hash, key) => new HMAC(hash, key);
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/sha256.js":
-/*!************************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/sha256.js ***!
-  \************************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/sha256.js":
+/*!*******************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/sha256.js ***!
+  \*******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -4593,8 +4593,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   sha224: () => (/* binding */ sha224),
 /* harmony export */   sha256: () => (/* binding */ sha256)
 /* harmony export */ });
-/* harmony import */ var _md_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./_md.js */ "../../../../node_modules/@noble/hashes/esm/_md.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/hashes/esm/utils.js");
+/* harmony import */ var _md_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./_md.js */ "../sdk/node_modules/@noble/hashes/esm/_md.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/hashes/esm/utils.js");
 /**
  * SHA2-256 a.k.a. sha256. In JS, it is the fastest hash, even faster than Blake3.
  *
@@ -4728,10 +4728,10 @@ const sha224 = /* @__PURE__ */ (0,_utils_js__WEBPACK_IMPORTED_MODULE_1__.wrapCon
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/sha3.js":
-/*!**********************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/sha3.js ***!
-  \**********************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/sha3.js":
+/*!*****************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/sha3.js ***!
+  \*****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -4750,9 +4750,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   shake128: () => (/* binding */ shake128),
 /* harmony export */   shake256: () => (/* binding */ shake256)
 /* harmony export */ });
-/* harmony import */ var _assert_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./_assert.js */ "../../../../node_modules/@noble/hashes/esm/_assert.js");
-/* harmony import */ var _u64_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./_u64.js */ "../../../../node_modules/@noble/hashes/esm/_u64.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/hashes/esm/utils.js");
+/* harmony import */ var _assert_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./_assert.js */ "../sdk/node_modules/@noble/hashes/esm/_assert.js");
+/* harmony import */ var _u64_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./_u64.js */ "../sdk/node_modules/@noble/hashes/esm/_u64.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/hashes/esm/utils.js");
 /**
  * SHA3 (keccak) hash function, based on a new "Sponge function" design.
  * Different from older hashes, the internal state is bigger than output size.
@@ -4983,10 +4983,10 @@ const shake256 = /* @__PURE__ */ genShake(0x1f, 136, 256 / 8);
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/sha512.js":
-/*!************************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/sha512.js ***!
-  \************************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/sha512.js":
+/*!*******************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/sha512.js ***!
+  \*******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -5001,9 +5001,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   sha512_224: () => (/* binding */ sha512_224),
 /* harmony export */   sha512_256: () => (/* binding */ sha512_256)
 /* harmony export */ });
-/* harmony import */ var _md_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_md.js */ "../../../../node_modules/@noble/hashes/esm/_md.js");
-/* harmony import */ var _u64_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./_u64.js */ "../../../../node_modules/@noble/hashes/esm/_u64.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils.js */ "../../../../node_modules/@noble/hashes/esm/utils.js");
+/* harmony import */ var _md_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_md.js */ "../sdk/node_modules/@noble/hashes/esm/_md.js");
+/* harmony import */ var _u64_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./_u64.js */ "../sdk/node_modules/@noble/hashes/esm/_u64.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils.js */ "../sdk/node_modules/@noble/hashes/esm/utils.js");
 /**
  * SHA2-512 a.k.a. sha512 and sha384. It is slower than sha256 in js because u64 operations are slow.
  *
@@ -5249,10 +5249,10 @@ const sha384 = /* @__PURE__ */ (0,_utils_js__WEBPACK_IMPORTED_MODULE_2__.wrapCon
 
 /***/ }),
 
-/***/ "../../../../node_modules/@noble/hashes/esm/utils.js":
-/*!***********************************************************!*\
-  !*** ../../../../node_modules/@noble/hashes/esm/utils.js ***!
-  \***********************************************************/
+/***/ "../sdk/node_modules/@noble/hashes/esm/utils.js":
+/*!******************************************************!*\
+  !*** ../sdk/node_modules/@noble/hashes/esm/utils.js ***!
+  \******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -5282,8 +5282,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   wrapConstructorWithOpts: () => (/* binding */ wrapConstructorWithOpts),
 /* harmony export */   wrapXOFConstructorWithOpts: () => (/* binding */ wrapXOFConstructorWithOpts)
 /* harmony export */ });
-/* harmony import */ var _noble_hashes_crypto__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @noble/hashes/crypto */ "../../../../node_modules/@noble/hashes/esm/crypto.js");
-/* harmony import */ var _assert_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./_assert.js */ "../../../../node_modules/@noble/hashes/esm/_assert.js");
+/* harmony import */ var _noble_hashes_crypto__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @noble/hashes/crypto */ "../sdk/node_modules/@noble/hashes/esm/crypto.js");
+/* harmony import */ var _assert_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./_assert.js */ "../sdk/node_modules/@noble/hashes/esm/_assert.js");
 /**
  * Utilities for hex, bytes, CSPRNG.
  * @module
@@ -5499,10 +5499,10 @@ function randomBytes(bytesLength = 32) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/@solana/buffer-layout/lib/Layout.js":
-/*!********************************************************************!*\
-  !*** ../../../../node_modules/@solana/buffer-layout/lib/Layout.js ***!
-  \********************************************************************/
+/***/ "../sdk/node_modules/@solana/buffer-layout/lib/Layout.js":
+/*!***************************************************************!*\
+  !*** ../sdk/node_modules/@solana/buffer-layout/lib/Layout.js ***!
+  \***************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5640,7 +5640,7 @@ function randomBytes(bytesLength = 32) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.s16 = exports.s8 = exports.nu64be = exports.u48be = exports.u40be = exports.u32be = exports.u24be = exports.u16be = exports.nu64 = exports.u48 = exports.u40 = exports.u32 = exports.u24 = exports.u16 = exports.u8 = exports.offset = exports.greedy = exports.Constant = exports.UTF8 = exports.CString = exports.Blob = exports.Boolean = exports.BitField = exports.BitStructure = exports.VariantLayout = exports.Union = exports.UnionLayoutDiscriminator = exports.UnionDiscriminator = exports.Structure = exports.Sequence = exports.DoubleBE = exports.Double = exports.FloatBE = exports.Float = exports.NearInt64BE = exports.NearInt64 = exports.NearUInt64BE = exports.NearUInt64 = exports.IntBE = exports.Int = exports.UIntBE = exports.UInt = exports.OffsetLayout = exports.GreedyCount = exports.ExternalLayout = exports.bindConstructorLayout = exports.nameWithProperty = exports.Layout = exports.uint8ArrayToBuffer = exports.checkUint8Array = void 0;
 exports.constant = exports.utf8 = exports.cstr = exports.blob = exports.unionLayoutDiscriminator = exports.union = exports.seq = exports.bits = exports.struct = exports.f64be = exports.f64 = exports.f32be = exports.f32 = exports.ns64be = exports.s48be = exports.s40be = exports.s32be = exports.s24be = exports.s16be = exports.ns64 = exports.s48 = exports.s40 = exports.s32 = exports.s24 = void 0;
-const buffer_1 = __webpack_require__(/*! buffer */ "../../../../node_modules/buffer/index.js");
+const buffer_1 = __webpack_require__(/*! buffer */ "../sdk/node_modules/buffer/index.js");
 /* Check if a value is a Uint8Array.
  *
  * @ignore */
@@ -7899,10 +7899,10 @@ exports.constant = ((value, property) => new Constant(value, property));
 
 /***/ }),
 
-/***/ "../../../../node_modules/@solana/web3.js/lib/index.browser.esm.js":
-/*!*************************************************************************!*\
-  !*** ../../../../node_modules/@solana/web3.js/lib/index.browser.esm.js ***!
-  \*************************************************************************/
+/***/ "../sdk/node_modules/@solana/web3.js/lib/index.browser.esm.js":
+/*!********************************************************************!*\
+  !*** ../sdk/node_modules/@solana/web3.js/lib/index.browser.esm.js ***!
+  \********************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -7985,23 +7985,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   sendAndConfirmRawTransaction: () => (/* binding */ sendAndConfirmRawTransaction),
 /* harmony export */   sendAndConfirmTransaction: () => (/* binding */ sendAndConfirmTransaction)
 /* harmony export */ });
-/* harmony import */ var buffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! buffer */ "../../../../node_modules/buffer/index.js");
-/* harmony import */ var _noble_curves_ed25519__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @noble/curves/ed25519 */ "../../../../node_modules/@noble/curves/esm/ed25519.js");
-/* harmony import */ var bn_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bn.js */ "../../../../node_modules/bn.js/lib/bn.js");
+/* harmony import */ var buffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! buffer */ "../sdk/node_modules/buffer/index.js");
+/* harmony import */ var _noble_curves_ed25519__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @noble/curves/ed25519 */ "../sdk/node_modules/@noble/curves/esm/ed25519.js");
+/* harmony import */ var bn_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bn.js */ "../sdk/node_modules/bn.js/lib/bn.js");
 /* harmony import */ var bn_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(bn_js__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! bs58 */ "../../../../node_modules/@solana/web3.js/node_modules/bs58/index.js");
+/* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! bs58 */ "../sdk/node_modules/@solana/web3.js/node_modules/bs58/index.js");
 /* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(bs58__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _noble_hashes_sha256__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @noble/hashes/sha256 */ "../../../../node_modules/@noble/hashes/esm/sha256.js");
-/* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! borsh */ "../../../../node_modules/borsh/lib/index.js");
+/* harmony import */ var _noble_hashes_sha256__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @noble/hashes/sha256 */ "../sdk/node_modules/@noble/hashes/esm/sha256.js");
+/* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! borsh */ "../sdk/node_modules/borsh/lib/index.js");
 /* harmony import */ var borsh__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(borsh__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _solana_buffer_layout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @solana/buffer-layout */ "../../../../node_modules/@solana/buffer-layout/lib/Layout.js");
-/* harmony import */ var bigint_buffer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! bigint-buffer */ "../../../../node_modules/bigint-buffer/dist/browser.js");
-/* harmony import */ var superstruct__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! superstruct */ "../../../../node_modules/superstruct/dist/index.mjs");
-/* harmony import */ var jayson_lib_client_browser__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! jayson/lib/client/browser */ "../../../../node_modules/jayson/lib/client/browser/index.js");
+/* harmony import */ var _solana_buffer_layout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @solana/buffer-layout */ "../sdk/node_modules/@solana/buffer-layout/lib/Layout.js");
+/* harmony import */ var bigint_buffer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! bigint-buffer */ "../sdk/node_modules/bigint-buffer/dist/browser.js");
+/* harmony import */ var superstruct__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! superstruct */ "../sdk/node_modules/superstruct/dist/index.mjs");
+/* harmony import */ var jayson_lib_client_browser__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! jayson/lib/client/browser */ "../sdk/node_modules/jayson/lib/client/browser/index.js");
 /* harmony import */ var jayson_lib_client_browser__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(jayson_lib_client_browser__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var rpc_websockets__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! rpc-websockets */ "../../../../node_modules/rpc-websockets/dist/index.browser.mjs");
-/* harmony import */ var _noble_hashes_sha3__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @noble/hashes/sha3 */ "../../../../node_modules/@noble/hashes/esm/sha3.js");
-/* harmony import */ var _noble_curves_secp256k1__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @noble/curves/secp256k1 */ "../../../../node_modules/@noble/curves/esm/secp256k1.js");
+/* harmony import */ var rpc_websockets__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! rpc-websockets */ "../sdk/node_modules/rpc-websockets/dist/index.browser.mjs");
+/* harmony import */ var _noble_hashes_sha3__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @noble/hashes/sha3 */ "../sdk/node_modules/@noble/hashes/esm/sha3.js");
+/* harmony import */ var _noble_curves_secp256k1__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @noble/curves/secp256k1 */ "../sdk/node_modules/@noble/curves/esm/secp256k1.js");
 
 
 
@@ -18477,10 +18477,10 @@ const LAMPORTS_PER_SOL = 1000000000;
 
 /***/ }),
 
-/***/ "../../../../node_modules/@solana/web3.js/node_modules/base-x/src/index.js":
-/*!*********************************************************************************!*\
-  !*** ../../../../node_modules/@solana/web3.js/node_modules/base-x/src/index.js ***!
-  \*********************************************************************************/
+/***/ "../sdk/node_modules/@solana/web3.js/node_modules/base-x/src/index.js":
+/*!****************************************************************************!*\
+  !*** ../sdk/node_modules/@solana/web3.js/node_modules/base-x/src/index.js ***!
+  \****************************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -18491,7 +18491,7 @@ const LAMPORTS_PER_SOL = 1000000000;
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 // @ts-ignore
-var _Buffer = (__webpack_require__(/*! safe-buffer */ "../../../../node_modules/safe-buffer/index.js").Buffer)
+var _Buffer = (__webpack_require__(/*! safe-buffer */ "../sdk/node_modules/safe-buffer/index.js").Buffer)
 function base (ALPHABET) {
   if (ALPHABET.length >= 255) { throw new TypeError('Alphabet too long') }
   var BASE_MAP = new Uint8Array(256)
@@ -18611,13 +18611,13 @@ module.exports = base
 
 /***/ }),
 
-/***/ "../../../../node_modules/@solana/web3.js/node_modules/bs58/index.js":
-/*!***************************************************************************!*\
-  !*** ../../../../node_modules/@solana/web3.js/node_modules/bs58/index.js ***!
-  \***************************************************************************/
+/***/ "../sdk/node_modules/@solana/web3.js/node_modules/bs58/index.js":
+/*!**********************************************************************!*\
+  !*** ../sdk/node_modules/@solana/web3.js/node_modules/bs58/index.js ***!
+  \**********************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var basex = __webpack_require__(/*! base-x */ "../../../../node_modules/@solana/web3.js/node_modules/base-x/src/index.js")
+var basex = __webpack_require__(/*! base-x */ "../sdk/node_modules/@solana/web3.js/node_modules/base-x/src/index.js")
 var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 module.exports = basex(ALPHABET)
@@ -18625,10 +18625,10 @@ module.exports = basex(ALPHABET)
 
 /***/ }),
 
-/***/ "../../../../node_modules/base-x/src/esm/index.js":
-/*!********************************************************!*\
-  !*** ../../../../node_modules/base-x/src/esm/index.js ***!
-  \********************************************************/
+/***/ "../sdk/node_modules/base-x/src/esm/index.js":
+/*!***************************************************!*\
+  !*** ../sdk/node_modules/base-x/src/esm/index.js ***!
+  \***************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -18764,10 +18764,10 @@ function base (ALPHABET) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/base64-js/index.js":
-/*!***************************************************!*\
-  !*** ../../../../node_modules/base64-js/index.js ***!
-  \***************************************************/
+/***/ "../sdk/node_modules/base64-js/index.js":
+/*!**********************************************!*\
+  !*** ../sdk/node_modules/base64-js/index.js ***!
+  \**********************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -18925,14 +18925,14 @@ function fromByteArray (uint8) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/bigint-buffer/dist/browser.js":
-/*!**************************************************************!*\
-  !*** ../../../../node_modules/bigint-buffer/dist/browser.js ***!
-  \**************************************************************/
+/***/ "../sdk/node_modules/bigint-buffer/dist/browser.js":
+/*!*********************************************************!*\
+  !*** ../sdk/node_modules/bigint-buffer/dist/browser.js ***!
+  \*********************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "../../../../node_modules/buffer/index.js")["Buffer"];
+/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "../sdk/node_modules/buffer/index.js")["Buffer"];
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
@@ -19006,10 +19006,10 @@ exports.toBufferBE = toBufferBE;
 
 /***/ }),
 
-/***/ "../../../../node_modules/bn.js/lib/bn.js":
-/*!************************************************!*\
-  !*** ../../../../node_modules/bn.js/lib/bn.js ***!
-  \************************************************/
+/***/ "../sdk/node_modules/bn.js/lib/bn.js":
+/*!*******************************************!*\
+  !*** ../sdk/node_modules/bn.js/lib/bn.js ***!
+  \*******************************************/
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 /* module decorator */ module = __webpack_require__.nmd(module);
@@ -19068,7 +19068,7 @@ exports.toBufferBE = toBufferBE;
     if (typeof window !== 'undefined' && typeof window.Buffer !== 'undefined') {
       Buffer = window.Buffer;
     } else {
-      Buffer = (__webpack_require__(/*! buffer */ "?e53f").Buffer);
+      Buffer = (__webpack_require__(/*! buffer */ "?9b40").Buffer);
     }
   } catch (e) {
   }
@@ -22564,14 +22564,14 @@ exports.toBufferBE = toBufferBE;
 
 /***/ }),
 
-/***/ "../../../../node_modules/borsh/lib/index.js":
-/*!***************************************************!*\
-  !*** ../../../../node_modules/borsh/lib/index.js ***!
-  \***************************************************/
+/***/ "../sdk/node_modules/borsh/lib/index.js":
+/*!**********************************************!*\
+  !*** ../sdk/node_modules/borsh/lib/index.js ***!
+  \**********************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
-/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "../../../../node_modules/buffer/index.js")["Buffer"];
+/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "../sdk/node_modules/buffer/index.js")["Buffer"];
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -22603,10 +22603,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deserializeUnchecked = exports.deserialize = exports.serialize = exports.BinaryReader = exports.BinaryWriter = exports.BorshError = exports.baseDecode = exports.baseEncode = void 0;
-const bn_js_1 = __importDefault(__webpack_require__(/*! bn.js */ "../../../../node_modules/bn.js/lib/bn.js"));
-const bs58_1 = __importDefault(__webpack_require__(/*! bs58 */ "../../../../node_modules/borsh/node_modules/bs58/index.js"));
+const bn_js_1 = __importDefault(__webpack_require__(/*! bn.js */ "../sdk/node_modules/bn.js/lib/bn.js"));
+const bs58_1 = __importDefault(__webpack_require__(/*! bs58 */ "../sdk/node_modules/borsh/node_modules/bs58/index.js"));
 // TODO: Make sure this polyfill not included when not required
-const encoding = __importStar(__webpack_require__(/*! text-encoding-utf-8 */ "../../../../node_modules/text-encoding-utf-8/lib/encoding.lib.js"));
+const encoding = __importStar(__webpack_require__(/*! text-encoding-utf-8 */ "../sdk/node_modules/text-encoding-utf-8/lib/encoding.lib.js"));
 const ResolvedTextDecoder = typeof TextDecoder !== "function" ? encoding.TextDecoder : TextDecoder;
 const textDecoder = new ResolvedTextDecoder("utf-8", { fatal: true });
 function baseEncode(value) {
@@ -23016,10 +23016,10 @@ exports.deserializeUnchecked = deserializeUnchecked;
 
 /***/ }),
 
-/***/ "../../../../node_modules/borsh/node_modules/base-x/src/index.js":
-/*!***********************************************************************!*\
-  !*** ../../../../node_modules/borsh/node_modules/base-x/src/index.js ***!
-  \***********************************************************************/
+/***/ "../sdk/node_modules/borsh/node_modules/base-x/src/index.js":
+/*!******************************************************************!*\
+  !*** ../sdk/node_modules/borsh/node_modules/base-x/src/index.js ***!
+  \******************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -23030,7 +23030,7 @@ exports.deserializeUnchecked = deserializeUnchecked;
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 // @ts-ignore
-var _Buffer = (__webpack_require__(/*! safe-buffer */ "../../../../node_modules/safe-buffer/index.js").Buffer)
+var _Buffer = (__webpack_require__(/*! safe-buffer */ "../sdk/node_modules/safe-buffer/index.js").Buffer)
 function base (ALPHABET) {
   if (ALPHABET.length >= 255) { throw new TypeError('Alphabet too long') }
   var BASE_MAP = new Uint8Array(256)
@@ -23150,13 +23150,13 @@ module.exports = base
 
 /***/ }),
 
-/***/ "../../../../node_modules/borsh/node_modules/bs58/index.js":
-/*!*****************************************************************!*\
-  !*** ../../../../node_modules/borsh/node_modules/bs58/index.js ***!
-  \*****************************************************************/
+/***/ "../sdk/node_modules/borsh/node_modules/bs58/index.js":
+/*!************************************************************!*\
+  !*** ../sdk/node_modules/borsh/node_modules/bs58/index.js ***!
+  \************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var basex = __webpack_require__(/*! base-x */ "../../../../node_modules/borsh/node_modules/base-x/src/index.js")
+var basex = __webpack_require__(/*! base-x */ "../sdk/node_modules/borsh/node_modules/base-x/src/index.js")
 var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 module.exports = basex(ALPHABET)
@@ -23164,10 +23164,10 @@ module.exports = basex(ALPHABET)
 
 /***/ }),
 
-/***/ "../../../../node_modules/bs58/src/esm/index.js":
-/*!******************************************************!*\
-  !*** ../../../../node_modules/bs58/src/esm/index.js ***!
-  \******************************************************/
+/***/ "../sdk/node_modules/bs58/src/esm/index.js":
+/*!*************************************************!*\
+  !*** ../sdk/node_modules/bs58/src/esm/index.js ***!
+  \*************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -23175,7 +23175,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var base_x__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! base-x */ "../../../../node_modules/base-x/src/esm/index.js");
+/* harmony import */ var base_x__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! base-x */ "../sdk/node_modules/base-x/src/esm/index.js");
 
 var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,base_x__WEBPACK_IMPORTED_MODULE_0__["default"])(ALPHABET));
@@ -23183,10 +23183,10 @@ var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 /***/ }),
 
-/***/ "../../../../node_modules/buffer/index.js":
-/*!************************************************!*\
-  !*** ../../../../node_modules/buffer/index.js ***!
-  \************************************************/
+/***/ "../sdk/node_modules/buffer/index.js":
+/*!*******************************************!*\
+  !*** ../sdk/node_modules/buffer/index.js ***!
+  \*******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -23200,8 +23200,8 @@ var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 
 
-const base64 = __webpack_require__(/*! base64-js */ "../../../../node_modules/base64-js/index.js")
-const ieee754 = __webpack_require__(/*! ieee754 */ "../../../../node_modules/ieee754/index.js")
+const base64 = __webpack_require__(/*! base64-js */ "../sdk/node_modules/base64-js/index.js")
+const ieee754 = __webpack_require__(/*! ieee754 */ "../sdk/node_modules/ieee754/index.js")
 const customInspectSymbol =
   (typeof Symbol === 'function' && typeof Symbol['for'] === 'function') // eslint-disable-line dot-notation
     ? Symbol['for']('nodejs.util.inspect.custom') // eslint-disable-line dot-notation
@@ -25300,10 +25300,10 @@ function BufferBigIntNotDefined () {
 
 /***/ }),
 
-/***/ "../../../../node_modules/eventemitter3/index.js":
-/*!*******************************************************!*\
-  !*** ../../../../node_modules/eventemitter3/index.js ***!
-  \*******************************************************/
+/***/ "../sdk/node_modules/eventemitter3/index.js":
+/*!**************************************************!*\
+  !*** ../sdk/node_modules/eventemitter3/index.js ***!
+  \**************************************************/
 /***/ ((module) => {
 
 "use strict";
@@ -25647,10 +25647,10 @@ if (true) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/eventemitter3/index.mjs":
-/*!********************************************************!*\
-  !*** ../../../../node_modules/eventemitter3/index.mjs ***!
-  \********************************************************/
+/***/ "../sdk/node_modules/eventemitter3/index.mjs":
+/*!***************************************************!*\
+  !*** ../sdk/node_modules/eventemitter3/index.mjs ***!
+  \***************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -25659,7 +25659,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   EventEmitter: () => (/* reexport default export from named module */ _index_js__WEBPACK_IMPORTED_MODULE_0__),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "../../../../node_modules/eventemitter3/index.js");
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "../sdk/node_modules/eventemitter3/index.js");
 
 
 
@@ -25668,10 +25668,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "../../../../node_modules/events/events.js":
-/*!*************************************************!*\
-  !*** ../../../../node_modules/events/events.js ***!
-  \*************************************************/
+/***/ "../sdk/node_modules/events/events.js":
+/*!********************************************!*\
+  !*** ../sdk/node_modules/events/events.js ***!
+  \********************************************/
 /***/ ((module) => {
 
 "use strict";
@@ -26176,10 +26176,10 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/ieee754/index.js":
-/*!*************************************************!*\
-  !*** ../../../../node_modules/ieee754/index.js ***!
-  \*************************************************/
+/***/ "../sdk/node_modules/ieee754/index.js":
+/*!********************************************!*\
+  !*** ../sdk/node_modules/ieee754/index.js ***!
+  \********************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
@@ -26271,17 +26271,17 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/jayson/lib/client/browser/index.js":
-/*!*******************************************************************!*\
-  !*** ../../../../node_modules/jayson/lib/client/browser/index.js ***!
-  \*******************************************************************/
+/***/ "../sdk/node_modules/jayson/lib/client/browser/index.js":
+/*!**************************************************************!*\
+  !*** ../sdk/node_modules/jayson/lib/client/browser/index.js ***!
+  \**************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const uuid = (__webpack_require__(/*! uuid */ "../../../../node_modules/uuid/dist/esm-browser/index.js").v4);
-const generateRequest = __webpack_require__(/*! ../../generateRequest */ "../../../../node_modules/jayson/lib/generateRequest.js");
+const uuid = (__webpack_require__(/*! uuid */ "../sdk/node_modules/uuid/dist/esm-browser/index.js").v4);
+const generateRequest = __webpack_require__(/*! ../../generateRequest */ "../sdk/node_modules/jayson/lib/generateRequest.js");
 
 /**
  * Constructor for a Jayson Browser Client that does not depend any node.js core libraries
@@ -26445,16 +26445,16 @@ ClientBrowser.prototype._parseResponse = function(err, responseText, callback) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/jayson/lib/generateRequest.js":
-/*!**************************************************************!*\
-  !*** ../../../../node_modules/jayson/lib/generateRequest.js ***!
-  \**************************************************************/
+/***/ "../sdk/node_modules/jayson/lib/generateRequest.js":
+/*!*********************************************************!*\
+  !*** ../sdk/node_modules/jayson/lib/generateRequest.js ***!
+  \*********************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const uuid = (__webpack_require__(/*! uuid */ "../../../../node_modules/uuid/dist/esm-browser/index.js").v4);
+const uuid = (__webpack_require__(/*! uuid */ "../sdk/node_modules/uuid/dist/esm-browser/index.js").v4);
 
 /**
  *  Generates a JSON-RPC 1.0 or 2.0 request
@@ -26519,10 +26519,10 @@ module.exports = generateRequest;
 
 /***/ }),
 
-/***/ "../../../../node_modules/rpc-websockets/dist/index.browser.mjs":
-/*!**********************************************************************!*\
-  !*** ../../../../node_modules/rpc-websockets/dist/index.browser.mjs ***!
-  \**********************************************************************/
+/***/ "../sdk/node_modules/rpc-websockets/dist/index.browser.mjs":
+/*!*****************************************************************!*\
+  !*** ../sdk/node_modules/rpc-websockets/dist/index.browser.mjs ***!
+  \*****************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -26533,8 +26533,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   DefaultDataPack: () => (/* binding */ DefaultDataPack),
 /* harmony export */   WebSocket: () => (/* binding */ WebSocket)
 /* harmony export */ });
-/* harmony import */ var buffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! buffer */ "../../../../node_modules/buffer/index.js");
-/* harmony import */ var eventemitter3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! eventemitter3 */ "../../../../node_modules/eventemitter3/index.mjs");
+/* harmony import */ var buffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! buffer */ "../sdk/node_modules/buffer/index.js");
+/* harmony import */ var eventemitter3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! eventemitter3 */ "../sdk/node_modules/eventemitter3/index.mjs");
 
 
 
@@ -26922,15 +26922,15 @@ var Client = class extends CommonClient {
 
 /***/ }),
 
-/***/ "../../../../node_modules/safe-buffer/index.js":
-/*!*****************************************************!*\
-  !*** ../../../../node_modules/safe-buffer/index.js ***!
-  \*****************************************************/
+/***/ "../sdk/node_modules/safe-buffer/index.js":
+/*!************************************************!*\
+  !*** ../sdk/node_modules/safe-buffer/index.js ***!
+  \************************************************/
 /***/ ((module, exports, __webpack_require__) => {
 
 /*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
 /* eslint-disable node/no-deprecated-api */
-var buffer = __webpack_require__(/*! buffer */ "../../../../node_modules/buffer/index.js")
+var buffer = __webpack_require__(/*! buffer */ "../sdk/node_modules/buffer/index.js")
 var Buffer = buffer.Buffer
 
 // alternative to using Object.keys for old browsers
@@ -26997,10 +26997,10 @@ SafeBuffer.allocUnsafeSlow = function (size) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/superstruct/dist/index.mjs":
-/*!***********************************************************!*\
-  !*** ../../../../node_modules/superstruct/dist/index.mjs ***!
-  \***********************************************************/
+/***/ "../sdk/node_modules/superstruct/dist/index.mjs":
+/*!******************************************************!*\
+  !*** ../sdk/node_modules/superstruct/dist/index.mjs ***!
+  \******************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -28088,10 +28088,10 @@ function refine(struct, name, refiner) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/text-encoding-utf-8/lib/encoding.lib.js":
-/*!************************************************************************!*\
-  !*** ../../../../node_modules/text-encoding-utf-8/lib/encoding.lib.js ***!
-  \************************************************************************/
+/***/ "../sdk/node_modules/text-encoding-utf-8/lib/encoding.lib.js":
+/*!*******************************************************************!*\
+  !*** ../sdk/node_modules/text-encoding-utf-8/lib/encoding.lib.js ***!
+  \*******************************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -28740,10 +28740,10 @@ exports.TextDecoder = TextDecoder;
 
 /***/ }),
 
-/***/ "../../../../node_modules/tweetnacl/nacl-fast.js":
-/*!*******************************************************!*\
-  !*** ../../../../node_modules/tweetnacl/nacl-fast.js ***!
-  \*******************************************************/
+/***/ "../sdk/node_modules/tweetnacl/nacl-fast.js":
+/*!**************************************************!*\
+  !*** ../sdk/node_modules/tweetnacl/nacl-fast.js ***!
+  \**************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 (function(nacl) {
@@ -31125,7 +31125,7 @@ nacl.setPRNG = function(fn) {
     });
   } else if (true) {
     // Node.js.
-    crypto = __webpack_require__(/*! crypto */ "?529e");
+    crypto = __webpack_require__(/*! crypto */ "?d926");
     if (crypto && crypto.randomBytes) {
       nacl.setPRNG(function(x, n) {
         var i, v = crypto.randomBytes(n);
@@ -31141,10 +31141,10 @@ nacl.setPRNG = function(fn) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/index.js":
-/*!***************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/index.js ***!
-  \***************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/index.js":
+/*!**********************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/index.js ***!
+  \**********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31160,15 +31160,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   validate: () => (/* reexport safe */ _validate_js__WEBPACK_IMPORTED_MODULE_6__["default"]),
 /* harmony export */   version: () => (/* reexport safe */ _version_js__WEBPACK_IMPORTED_MODULE_5__["default"])
 /* harmony export */ });
-/* harmony import */ var _v1_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v1.js */ "../../../../node_modules/uuid/dist/esm-browser/v1.js");
-/* harmony import */ var _v3_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./v3.js */ "../../../../node_modules/uuid/dist/esm-browser/v3.js");
-/* harmony import */ var _v4_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./v4.js */ "../../../../node_modules/uuid/dist/esm-browser/v4.js");
-/* harmony import */ var _v5_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./v5.js */ "../../../../node_modules/uuid/dist/esm-browser/v5.js");
-/* harmony import */ var _nil_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./nil.js */ "../../../../node_modules/uuid/dist/esm-browser/nil.js");
-/* harmony import */ var _version_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./version.js */ "../../../../node_modules/uuid/dist/esm-browser/version.js");
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./validate.js */ "../../../../node_modules/uuid/dist/esm-browser/validate.js");
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./stringify.js */ "../../../../node_modules/uuid/dist/esm-browser/stringify.js");
-/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./parse.js */ "../../../../node_modules/uuid/dist/esm-browser/parse.js");
+/* harmony import */ var _v1_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v1.js */ "../sdk/node_modules/uuid/dist/esm-browser/v1.js");
+/* harmony import */ var _v3_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./v3.js */ "../sdk/node_modules/uuid/dist/esm-browser/v3.js");
+/* harmony import */ var _v4_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./v4.js */ "../sdk/node_modules/uuid/dist/esm-browser/v4.js");
+/* harmony import */ var _v5_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./v5.js */ "../sdk/node_modules/uuid/dist/esm-browser/v5.js");
+/* harmony import */ var _nil_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./nil.js */ "../sdk/node_modules/uuid/dist/esm-browser/nil.js");
+/* harmony import */ var _version_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./version.js */ "../sdk/node_modules/uuid/dist/esm-browser/version.js");
+/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./validate.js */ "../sdk/node_modules/uuid/dist/esm-browser/validate.js");
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./stringify.js */ "../sdk/node_modules/uuid/dist/esm-browser/stringify.js");
+/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./parse.js */ "../sdk/node_modules/uuid/dist/esm-browser/parse.js");
 
 
 
@@ -31181,10 +31181,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/md5.js":
-/*!*************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/md5.js ***!
-  \*************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/md5.js":
+/*!********************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/md5.js ***!
+  \********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31410,10 +31410,10 @@ function md5ii(a, b, c, d, x, s, t) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/nil.js":
-/*!*************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/nil.js ***!
-  \*************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/nil.js":
+/*!********************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/nil.js ***!
+  \********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31425,10 +31425,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/parse.js":
-/*!***************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/parse.js ***!
-  \***************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/parse.js":
+/*!**********************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/parse.js ***!
+  \**********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31436,7 +31436,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "../../../../node_modules/uuid/dist/esm-browser/validate.js");
+/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "../sdk/node_modules/uuid/dist/esm-browser/validate.js");
 
 
 function parse(uuid) {
@@ -31475,10 +31475,10 @@ function parse(uuid) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/regex.js":
-/*!***************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/regex.js ***!
-  \***************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/regex.js":
+/*!**********************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/regex.js ***!
+  \**********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31490,10 +31490,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/rng.js":
-/*!*************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/rng.js ***!
-  \*************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/rng.js":
+/*!********************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/rng.js ***!
+  \********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31523,10 +31523,10 @@ function rng() {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/sha1.js":
-/*!**************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/sha1.js ***!
-  \**************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/sha1.js":
+/*!*********************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/sha1.js ***!
+  \*********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31633,10 +31633,10 @@ function sha1(bytes) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/stringify.js":
-/*!*******************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/stringify.js ***!
-  \*******************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/stringify.js":
+/*!**************************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/stringify.js ***!
+  \**************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31644,7 +31644,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "../../../../node_modules/uuid/dist/esm-browser/validate.js");
+/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "../sdk/node_modules/uuid/dist/esm-browser/validate.js");
 
 /**
  * Convert array of 16 byte values to UUID string format of the form:
@@ -31678,10 +31678,10 @@ function stringify(arr) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/v1.js":
-/*!************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/v1.js ***!
-  \************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/v1.js":
+/*!*******************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/v1.js ***!
+  \*******************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31689,8 +31689,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rng.js */ "../../../../node_modules/uuid/dist/esm-browser/rng.js");
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./stringify.js */ "../../../../node_modules/uuid/dist/esm-browser/stringify.js");
+/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rng.js */ "../sdk/node_modules/uuid/dist/esm-browser/rng.js");
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./stringify.js */ "../sdk/node_modules/uuid/dist/esm-browser/stringify.js");
 
  // **`v1()` - Generate time-based UUID**
 //
@@ -31789,10 +31789,10 @@ function v1(options, buf, offset) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/v3.js":
-/*!************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/v3.js ***!
-  \************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/v3.js":
+/*!*******************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/v3.js ***!
+  \*******************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31800,8 +31800,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v35.js */ "../../../../node_modules/uuid/dist/esm-browser/v35.js");
-/* harmony import */ var _md5_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./md5.js */ "../../../../node_modules/uuid/dist/esm-browser/md5.js");
+/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v35.js */ "../sdk/node_modules/uuid/dist/esm-browser/v35.js");
+/* harmony import */ var _md5_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./md5.js */ "../sdk/node_modules/uuid/dist/esm-browser/md5.js");
 
 
 var v3 = (0,_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v3', 0x30, _md5_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
@@ -31809,10 +31809,10 @@ var v3 = (0,_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v3', 0x30, _md5_js
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/v35.js":
-/*!*************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/v35.js ***!
-  \*************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/v35.js":
+/*!********************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/v35.js ***!
+  \********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31822,8 +31822,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   URL: () => (/* binding */ URL),
 /* harmony export */   "default": () => (/* export default binding */ __WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./stringify.js */ "../../../../node_modules/uuid/dist/esm-browser/stringify.js");
-/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./parse.js */ "../../../../node_modules/uuid/dist/esm-browser/parse.js");
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./stringify.js */ "../sdk/node_modules/uuid/dist/esm-browser/stringify.js");
+/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./parse.js */ "../sdk/node_modules/uuid/dist/esm-browser/parse.js");
 
 
 
@@ -31891,10 +31891,10 @@ var URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/v4.js":
-/*!************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/v4.js ***!
-  \************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/v4.js":
+/*!*******************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/v4.js ***!
+  \*******************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31902,8 +31902,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rng.js */ "../../../../node_modules/uuid/dist/esm-browser/rng.js");
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./stringify.js */ "../../../../node_modules/uuid/dist/esm-browser/stringify.js");
+/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rng.js */ "../sdk/node_modules/uuid/dist/esm-browser/rng.js");
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./stringify.js */ "../sdk/node_modules/uuid/dist/esm-browser/stringify.js");
 
 
 
@@ -31931,10 +31931,10 @@ function v4(options, buf, offset) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/v5.js":
-/*!************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/v5.js ***!
-  \************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/v5.js":
+/*!*******************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/v5.js ***!
+  \*******************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31942,8 +31942,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v35.js */ "../../../../node_modules/uuid/dist/esm-browser/v35.js");
-/* harmony import */ var _sha1_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sha1.js */ "../../../../node_modules/uuid/dist/esm-browser/sha1.js");
+/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v35.js */ "../sdk/node_modules/uuid/dist/esm-browser/v35.js");
+/* harmony import */ var _sha1_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sha1.js */ "../sdk/node_modules/uuid/dist/esm-browser/sha1.js");
 
 
 var v5 = (0,_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v5', 0x50, _sha1_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
@@ -31951,10 +31951,10 @@ var v5 = (0,_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v5', 0x50, _sha1_j
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/validate.js":
-/*!******************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/validate.js ***!
-  \******************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/validate.js":
+/*!*************************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/validate.js ***!
+  \*************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31962,7 +31962,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _regex_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./regex.js */ "../../../../node_modules/uuid/dist/esm-browser/regex.js");
+/* harmony import */ var _regex_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./regex.js */ "../sdk/node_modules/uuid/dist/esm-browser/regex.js");
 
 
 function validate(uuid) {
@@ -31973,10 +31973,10 @@ function validate(uuid) {
 
 /***/ }),
 
-/***/ "../../../../node_modules/uuid/dist/esm-browser/version.js":
-/*!*****************************************************************!*\
-  !*** ../../../../node_modules/uuid/dist/esm-browser/version.js ***!
-  \*****************************************************************/
+/***/ "../sdk/node_modules/uuid/dist/esm-browser/version.js":
+/*!************************************************************!*\
+  !*** ../sdk/node_modules/uuid/dist/esm-browser/version.js ***!
+  \************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -31984,7 +31984,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "../../../../node_modules/uuid/dist/esm-browser/validate.js");
+/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "../sdk/node_modules/uuid/dist/esm-browser/validate.js");
 
 
 function version(uuid) {
@@ -32011,13 +32011,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   SalClient: () => (/* binding */ SalClient)
 /* harmony export */ });
 /* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../types */ "../sdk/src/types/index.ts");
-/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! events */ "../../../../node_modules/events/events.js");
+/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! events */ "../sdk/node_modules/events/events.js");
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! bs58 */ "../../../../node_modules/bs58/src/esm/index.js");
-/* harmony import */ var _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @solana/web3.js */ "../../../../node_modules/@solana/web3.js/lib/index.browser.esm.js");
-/* harmony import */ var tweetnacl__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! tweetnacl */ "../../../../node_modules/tweetnacl/nacl-fast.js");
+/* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! bs58 */ "../sdk/node_modules/bs58/src/esm/index.js");
+/* harmony import */ var _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @solana/web3.js */ "../sdk/node_modules/@solana/web3.js/lib/index.browser.esm.js");
+/* harmony import */ var tweetnacl__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! tweetnacl */ "../sdk/node_modules/tweetnacl/nacl-fast.js");
 /* harmony import */ var tweetnacl__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(tweetnacl__WEBPACK_IMPORTED_MODULE_4__);
-/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "../../../../node_modules/buffer/index.js")["Buffer"];
+/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "../sdk/node_modules/buffer/index.js")["Buffer"];
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -32437,7 +32437,7 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
     key: "createSolTransaction",
     value: (function () {
       var _createSolTransaction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(amount, memo, recipient) {
-        var lamports, senderPubkey, recipientPubkey, memoInstruction, transferInstruction, _yield$this$connectio, blockhash, messageV0, versionedTransaction, serializedTransaction;
+        var lamports, senderPubkey, recipientPubkey, memoInstruction, transferInstruction, _yield$this$connectio, blockhash, messageV0, versionedTransaction, balance, serializedTransaction;
         return _regeneratorRuntime().wrap(function _callee6$(_context6) {
           while (1) switch (_context6.prev = _context6.next) {
             case 0:
@@ -32466,7 +32466,7 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
               recipientPubkey = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.PublicKey(recipient);
               memoInstruction = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.TransactionInstruction({
                 keys: [{
-                  pubkey: new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.PublicKey(recipient),
+                  pubkey: recipientPubkey,
                   isSigner: true,
                   isWritable: true
                 }],
@@ -32491,19 +32491,24 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
               }).compileToV0Message();
               versionedTransaction = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.VersionedTransaction(messageV0);
               versionedTransaction.sign([this.keypair]);
+              _context6.next = 21;
+              return this.connection.getBalance(senderPubkey);
+            case 21:
+              balance = _context6.sent;
+              console.log('senderPubkey: ', senderPubkey, 'balance: ', balance);
 
               // 트랜잭션 직렬화
               serializedTransaction = bs58__WEBPACK_IMPORTED_MODULE_2__["default"].encode(versionedTransaction.serialize());
               return _context6.abrupt("return", serializedTransaction);
-            case 23:
-              _context6.prev = 23;
+            case 27:
+              _context6.prev = 27;
               _context6.t0 = _context6["catch"](2);
               throw new Error("SOL \uD2B8\uB79C\uC7AD\uC158 \uC0DD\uC131 \uC624\uB958: ".concat(_context6.t0));
-            case 26:
+            case 30:
             case "end":
               return _context6.stop();
           }
-        }, _callee6, this, [[2, 23]]);
+        }, _callee6, this, [[2, 27]]);
       }));
       function createSolTransaction(_x8, _x9, _x10) {
         return _createSolTransaction.apply(this, arguments);
@@ -32572,17 +32577,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   SalHost: () => (/* binding */ SalHost)
 /* harmony export */ });
 /* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../types */ "../sdk/src/types/index.ts");
-/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! events */ "../../../../node_modules/events/events.js");
+/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! events */ "../sdk/node_modules/events/events.js");
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var tweetnacl__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! tweetnacl */ "../../../../node_modules/tweetnacl/nacl-fast.js");
+/* harmony import */ var tweetnacl__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! tweetnacl */ "../sdk/node_modules/tweetnacl/nacl-fast.js");
 /* harmony import */ var tweetnacl__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(tweetnacl__WEBPACK_IMPORTED_MODULE_2__);
-<<<<<<< Updated upstream
 /* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! bs58 */ "../sdk/node_modules/bs58/src/esm/index.js");
 /* harmony import */ var _solana_web3_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @solana/web3.js */ "../sdk/node_modules/@solana/web3.js/lib/index.browser.esm.js");
-=======
-/* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! bs58 */ "../../../../node_modules/bs58/src/esm/index.js");
-/* harmony import */ var _solana_web3_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @solana/web3.js */ "../../../../node_modules/@solana/web3.js/lib/index.browser.esm.js");
->>>>>>> Stashed changes
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -32671,7 +32671,7 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
     key: "defaultTxHandler",
     value: (function () {
       var _defaultTxHandler = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(serializedTx) {
-        var transaction, txid, latestBlockhash, confirmation;
+        var transaction, txid, latestBlockhash, confirmation, logs;
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
@@ -32708,14 +32708,28 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
               }
               throw new Error("🚨Transaction not confirmed.");
             case 15:
-              console.log("Transaction Successfully Confirmed! \uD83C\uDF89 View on SolScan: https://solscan.io/tx/".concat(txid));
+              console.log("Transaction Successfully Confirmed! \uD83C\uDF89 View on SolScan: https://solscan.io/tx/".concat(txid, "?cluster=devnet"));
               return _context.abrupt("return", txid);
             case 19:
               _context.prev = 19;
               _context.t0 = _context["catch"](0);
+              if (!(_context.t0 instanceof _solana_web3_js__WEBPACK_IMPORTED_MODULE_4__.SendTransactionError)) {
+                _context.next = 29;
+                break;
+              }
+              _context.next = 24;
+              return _context.t0.getLogs(this.connection);
+            case 24:
+              logs = _context.sent;
+              console.log('logs: ', logs);
+              this.emit('error', new Error("\uD2B8\uB79C\uC7AD\uC158 \uCC98\uB9AC \uC624\uB958: ".concat(_context.t0.message)));
+              _context.next = 30;
+              break;
+            case 29:
               this.emit('error', new Error("\uD2B8\uB79C\uC7AD\uC158 \uCC98\uB9AC \uC624\uB958: ".concat(_context.t0)));
+            case 30:
               throw _context.t0;
-            case 23:
+            case 31:
             case "end":
               return _context.stop();
           }
@@ -32771,6 +32785,11 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
               this.emit('error', _context2.t0);
               throw _context2.t0;
             case 18:
+              _context2.next = 20;
+              return this.messageTransport.sendMessage(JSON.stringify({
+                "key": "gm"
+              }));
+            case 20:
             case "end":
               return _context2.stop();
           }
@@ -33061,7 +33080,7 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
             case 4:
               _context8.next = 6;
               return new Promise(function (resolve) {
-                return setTimeout(resolve, 1500);
+                return setTimeout(resolve, 2000);
               });
             case 6:
               headers = _objectSpread(_objectSpread({}, requestHeaders), {}, {
@@ -33142,7 +33161,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   AudioMessageTransport: () => (/* binding */ AudioMessageTransport)
 /* harmony export */ });
-/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! events */ "../../../../node_modules/events/events.js");
+/* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! events */ "../sdk/node_modules/events/events.js");
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_0__);
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
@@ -33187,7 +33206,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     // 메시지 구분자
     _defineProperty(this, "MESSAGE_MARKER", '|@|');
     // 청크 크기 (바이트)
-    _defineProperty(this, "CHUNK_SIZE", 60);
+    _defineProperty(this, "CHUNK_SIZE", 100);
     this.name = config.name || 'AudioTransport';
     this.emitter = new events__WEBPACK_IMPORTED_MODULE_0__.EventEmitter();
 
@@ -33567,7 +33586,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     value: (function () {
       var _sendChunk = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(chunk, chunkNumber, totalChunks) {
         var _this3 = this;
-        var protocol, volume, waveform, buf, buffer, duration, gainNode, compressor, highShelf, source, errorMessage;
+        var protocol, volume, waveform, buf, buffer, duration, gainNode, compressor, source, errorMessage;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
@@ -33592,7 +33611,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               }
 
               // 볼륨 설정
-              volume = 100; // 볼륨 증가 (0-100)
+              volume = 20; // 볼륨 감소 (50 -> 20)
               console.log("[".concat(this.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC778\uCF54\uB529 \uC2DC\uC791 (").concat(chunk.length, "\uC790)"));
 
               // ggwave로 청크 인코딩
@@ -33628,31 +33647,24 @@ var AudioMessageTransport = /*#__PURE__*/function () {
 
               // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
               gainNode = this.context.createGain();
-              gainNode.gain.value = 3.0; // 볼륨 증가
+              gainNode.gain.value = 1.0; // 볼륨 감소 (1.2 -> 1.0)
 
               // 압축기 노드 추가 (다이나믹 레인지 압축으로 더 선명한 사운드)
               compressor = this.context.createDynamicsCompressor();
-              compressor.threshold.value = -50;
-              compressor.knee.value = 40;
-              compressor.ratio.value = 12;
-              compressor.attack.value = 0.002;
+              compressor.threshold.value = -24; // 덜 공격적인 값
+              compressor.knee.value = 30; // 부드러운 압축
+              compressor.ratio.value = 4; // 압축률 추가 감소 (6 -> 4)
+              compressor.attack.value = 0.003;
               compressor.release.value = 0.25;
-
-              // 하이 쉘프 이퀄라이저 추가 (고음역 증폭)
-              highShelf = this.context.createBiquadFilter();
-              highShelf.type = 'highshelf';
-              highShelf.frequency.value = 1000;
-              highShelf.gain.value = 6.0;
 
               // 오디오 소스 생성 및 출력
               source = this.context.createBufferSource();
               source.buffer = buffer;
 
-              // 노드 연결: source -> gain -> compressor -> highShelf -> destination
+              // 노드 연결: source -> gain -> compressor -> destination (하이 쉘프 필터 제거)
               source.connect(gainNode);
               gainNode.connect(compressor);
-              compressor.connect(highShelf);
-              highShelf.connect(this.context.destination);
+              compressor.connect(this.context.destination);
 
               // 재생 시작
               source.start(0);
@@ -33670,18 +33682,18 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                   resolve();
                 }, waitTime);
               }));
-            case 44:
-              _context3.prev = 44;
+            case 39:
+              _context3.prev = 39;
               _context3.t0 = _context3["catch"](0);
               errorMessage = _context3.t0 instanceof Error ? _context3.t0.message : String(_context3.t0);
               console.error("[".concat(this.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC778\uCF54\uB529 \uC624\uB958 \uBC1C\uC0DD:"), _context3.t0);
               this.log("\uCCAD\uD06C #".concat(chunkNumber, " \uC778\uCF54\uB529 \uC624\uB958: ").concat(errorMessage), 'error');
               throw new Error("\uCCAD\uD06C #".concat(chunkNumber, " \uC624\uB514\uC624 \uC778\uCF54\uB529 \uC2E4\uD328: ").concat(errorMessage));
-            case 50:
+            case 45:
             case "end":
               return _context3.stop();
           }
-        }, _callee3, this, [[0, 44]]);
+        }, _callee3, this, [[0, 39]]);
       }));
       function sendChunk(_x2, _x3, _x4) {
         return _sendChunk.apply(this, arguments);
@@ -33972,225 +33984,6 @@ var AudioMessageTransport = /*#__PURE__*/function () {
         return _disconnect.apply(this, arguments);
       }
       return disconnect;
-    }()
-    /**
-     * 오디오 버퍼 재생 (직접 오디오 데이터 재생)
-     * @param waveform 재생할 오디오 파형 데이터
-     * @returns 재생 완료 Promise
-     */
-    )
-  }, {
-    key: "play",
-    value: (function () {
-      var _play = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee8(waveform) {
-        var _this6 = this;
-        var success, wasRecording, errorMessage, gainNode, compressor, source, _errorMessage;
-        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-          while (1) switch (_context8.prev = _context8.next) {
-            case 0:
-              if (this.context) {
-                _context8.next = 7;
-                break;
-              }
-              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uCD08\uAE30\uD654\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4."));
-              _context8.next = 4;
-              return this.initialize();
-            case 4:
-              success = _context8.sent;
-              if (success) {
-                _context8.next = 7;
-                break;
-              }
-              throw new Error('오디오 컨텍스트 초기화 실패');
-            case 7:
-              // 녹음 상태 저장
-              wasRecording = this.isRecording; // 출력 전 녹음 일시 중지 (피드백 방지)
-              if (!wasRecording) {
-                _context8.next = 12;
-                break;
-              }
-              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCD9C\uB825\uC744 \uC704\uD574 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC644\uC804 \uC911\uC9C0"));
-              _context8.next = 12;
-              return this.stopListening();
-            case 12:
-              if (!(this.context.state !== 'running')) {
-                _context8.next = 35;
-                break;
-              }
-              _context8.prev = 13;
-              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC0C1\uD0DC\uAC00 ").concat(this.context.state, "\uC785\uB2C8\uB2E4. \uC7AC\uAC1C \uC2DC\uB3C4."));
-              _context8.next = 17;
-              return this.context.resume();
-            case 17:
-              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uC7AC\uAC1C\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC0C1\uD0DC:"), this.context.state);
-              _context8.next = 35;
-              break;
-            case 20:
-              _context8.prev = 20;
-              _context8.t0 = _context8["catch"](13);
-              errorMessage = _context8.t0 instanceof Error ? _context8.t0.message : String(_context8.t0);
-              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC7AC\uAC1C \uC2E4\uD328:"), _context8.t0);
-              this.log('오디오 컨텍스트를 재개할 수 없습니다', 'error');
-
-              // 오류 발생 시에도 녹음 상태 복원 시도
-              if (!(wasRecording && !this.isRecording)) {
-                _context8.next = 34;
-                break;
-              }
-              _context8.prev = 26;
-              _context8.next = 29;
-              return this.startListening();
-            case 29:
-              _context8.next = 34;
-              break;
-            case 31:
-              _context8.prev = 31;
-              _context8.t1 = _context8["catch"](26);
-              console.error("[".concat(this.name, "] \uC624\uB958 \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328:"), _context8.t1);
-            case 34:
-              throw _context8.t0;
-            case 35:
-              if (!(!waveform || waveform.length === 0)) {
-                _context8.next = 48;
-                break;
-              }
-              console.error("[".concat(this.name, "] \uC7AC\uC0DD\uD560 \uD30C\uD615\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."));
-              this.log('재생할 오디오 데이터가 없습니다', 'error');
-
-              // 조건 누락 시에도 녹음 상태 복원
-              if (!(wasRecording && !this.isRecording)) {
-                _context8.next = 47;
-                break;
-              }
-              _context8.prev = 39;
-              _context8.next = 42;
-              return this.startListening();
-            case 42:
-              _context8.next = 47;
-              break;
-            case 44:
-              _context8.prev = 44;
-              _context8.t2 = _context8["catch"](39);
-              console.error("[".concat(this.name, "] \uC624\uB958 \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328:"), _context8.t2);
-            case 47:
-              return _context8.abrupt("return");
-            case 48:
-              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC900\uBE44, \uD30C\uD615 \uAE38\uC774:"), waveform.length);
-              _context8.prev = 49;
-              // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
-              gainNode = this.context.createGain();
-              gainNode.gain.value = 2.0; // 기본 볼륨 증가 (1.0 -> 2.0)
-
-              // 압축기 노드 추가 (다이나믹 레인지 압축으로 더 선명한 사운드)
-              compressor = this.context.createDynamicsCompressor();
-              compressor.threshold.value = -50;
-              compressor.knee.value = 40;
-              compressor.ratio.value = 12;
-              compressor.attack.value = 0.002;
-              compressor.release.value = 0.25;
-
-              // 오디오 소스 생성 및 출력
-              source = this.context.createBufferSource();
-              source.buffer = waveform;
-
-              // 노드 연결: source -> gain -> compressor -> destination
-              source.connect(gainNode);
-              gainNode.connect(compressor);
-              compressor.connect(this.context.destination);
-
-              // 재생 시작
-              source.start(0);
-              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC2DC\uC791"));
-              this.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC911... (".concat(waveform.length, " \uC0D8\uD50C)"), 'request');
-
-              // 전송이 완료될 때까지 기다림 (인코딩된 오디오 길이 + 여유 시간)
-              return _context8.abrupt("return", new Promise(function (resolve) {
-                var waitTime = Math.min(waveform.length + 1000, 10000); // 밀리초 단위 (여유 시간 증가, 최대 10초)
-                console.log("[".concat(_this6.name, "] ").concat(waitTime, "ms \uD6C4 \uC7AC\uC0DD \uC644\uB8CC \uC608\uC815"));
-                setTimeout(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
-                  var _success2;
-                  return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-                    while (1) switch (_context7.prev = _context7.next) {
-                      case 0:
-                        _this6.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC", 'request');
-                        console.log("[".concat(_this6.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
-
-                        // 이전에 녹음 중이었다면 녹음 재개
-                        if (!wasRecording) {
-                          _context7.next = 18;
-                          break;
-                        }
-                        console.log("[".concat(_this6.name, "] \uC624\uB514\uC624 \uCD9C\uB825 \uC644\uB8CC \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C"));
-                        _this6.log('메시지 전송 완료 - 마이크 감지 재개 준비 중', 'info');
-                        // 약간의 딜레이를 두고 재개 (1000ms로 증가 - 오디오 출력 끝과 새 마이크 감지 시작 사이 충분한 간격)
-                        _context7.next = 7;
-                        return new Promise(function (resolve) {
-                          return setTimeout(resolve, 1000);
-                        });
-                      case 7:
-                        _context7.prev = 7;
-                        _context7.next = 10;
-                        return _this6.startListening();
-                      case 10:
-                        _success2 = _context7.sent;
-                        if (_success2) {
-                          console.log("[".concat(_this6.name, "] \uC0C8 \uB9C8\uC774\uD06C \uC2A4\uD2B8\uB9BC\uC73C\uB85C \uAC10\uC9C0 \uC7AC\uAC1C \uC131\uACF5"));
-                          _this6.log('마이크 감지 재개됨', 'info');
-                        } else {
-                          console.error("[".concat(_this6.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328"));
-                          _this6.log('마이크 감지 재개 실패', 'error');
-                        }
-                        _context7.next = 18;
-                        break;
-                      case 14:
-                        _context7.prev = 14;
-                        _context7.t0 = _context7["catch"](7);
-                        console.error("[".concat(_this6.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC911 \uC624\uB958 \uBC1C\uC0DD:"), _context7.t0);
-                        _this6.log('마이크 감지 재개 중 오류 발생', 'error');
-                      case 18:
-                        resolve();
-                      case 19:
-                      case "end":
-                        return _context7.stop();
-                    }
-                  }, _callee7, null, [[7, 14]]);
-                })), waitTime);
-              }));
-            case 69:
-              _context8.prev = 69;
-              _context8.t3 = _context8["catch"](49);
-              _errorMessage = _context8.t3 instanceof Error ? _context8.t3.message : String(_context8.t3);
-              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328:"), _context8.t3);
-              this.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328: ".concat(_errorMessage), 'error');
-
-              // 오류 발생 시에도 녹음 상태 복원 시도
-              if (!(wasRecording && !this.isRecording)) {
-                _context8.next = 84;
-                break;
-              }
-              _context8.prev = 75;
-              console.log("[".concat(this.name, "] \uC624\uB958 \uBC1C\uC0DD \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2DC\uB3C4"));
-              _context8.next = 79;
-              return this.startListening();
-            case 79:
-              _context8.next = 84;
-              break;
-            case 81:
-              _context8.prev = 81;
-              _context8.t4 = _context8["catch"](75);
-              console.error("[".concat(this.name, "] \uC624\uB958 \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328:"), _context8.t4);
-            case 84:
-              throw _context8.t3;
-            case 85:
-            case "end":
-              return _context8.stop();
-          }
-        }, _callee8, this, [[13, 20], [26, 31], [39, 44], [49, 69], [75, 81]]);
-      }));
-      function play(_x5) {
-        return _play.apply(this, arguments);
-      }
-      return play;
     }())
   }]);
 }();
@@ -64134,16 +63927,6 @@ function version(uuid) {
 
 /***/ }),
 
-/***/ "?529e":
-/*!************************!*\
-  !*** crypto (ignored) ***!
-  \************************/
-/***/ (() => {
-
-/* (ignored) */
-
-/***/ }),
-
 /***/ "?8131":
 /*!************************!*\
   !*** buffer (ignored) ***!
@@ -64154,9 +63937,19 @@ function version(uuid) {
 
 /***/ }),
 
-/***/ "?e53f":
+/***/ "?9b40":
 /*!************************!*\
   !*** buffer (ignored) ***!
+  \************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ "?d926":
+/*!************************!*\
+  !*** crypto (ignored) ***!
   \************************/
 /***/ (() => {
 
