@@ -3,7 +3,7 @@ import { SalHost } from '../src/sal/host';
 import { ClientConfig, HostConfig, IMessageTransport, MessageHandler, TransactionHandler, SalMethod } from '../src/types';
 import { Keypair } from '@solana/web3.js';
 import { EventEmitter } from 'events';
-import { MockMessageTransport } from './utils';
+import { MockMessageTransport } from '../src/sal/utils';
 
 // Jest 타입 선언 (또는 테스트 프레임워크에 맞게 수정)
 declare const describe: any;

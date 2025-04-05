@@ -105,7 +105,6 @@ export class SalClient extends EventEmitter implements ISalClient {
     this.isConnected = false;
     this.currentHost = null;
     this.emit('disconnected');
-    console.log('SAL 클라이언트 연결 종료');
   }
   
   /**
@@ -119,7 +118,7 @@ export class SalClient extends EventEmitter implements ISalClient {
       // 응답 처리
       this.handleResponse(response);
     } catch (error) {
-      console.error('메시지 처리 오류:', error);
+      this.emit('error', new Error(`메시지 처리 오류: ${error}`));
     }
   }
   
@@ -128,8 +127,6 @@ export class SalClient extends EventEmitter implements ISalClient {
    */
   private async performConnection(host: string, phoneNumber?: string): Promise<void> {
     try {
-      console.log(`${host}에 연결 중...`);
-      
       // 전송 계층 연결
       if (this.messageTransport) {
         await this.messageTransport.connect();
@@ -164,8 +161,6 @@ export class SalClient extends EventEmitter implements ISalClient {
         throw new Error(`연결 거부됨: ${JSON.stringify(response.msg.body)}`);
       }
     } catch (error) {
-      console.error('연결 실패:', error);
-      
       if (this.onFailureCallback) {
         this.onFailureCallback(error instanceof Error ? error : new Error(String(error)));
       }
@@ -178,8 +173,6 @@ export class SalClient extends EventEmitter implements ISalClient {
    * 텍스트 메시지를 전송합니다.
    */
   private async sendTextMessage(message: string): Promise<any> {
-    console.log(`${this.currentHost}에 텍스트 메시지 전송: ${message}`);
-    
     const headers: SalMessageHeaders = {
       host: this.currentHost as string,
       nonce: this.generateNonce(),
@@ -252,8 +245,6 @@ export class SalClient extends EventEmitter implements ISalClient {
       // 응답 제공
       pendingRequest.resolve(response);
       this.pendingRequests.delete(nonce);
-    } else {
-      console.warn('알 수 없는 응답 무시:', nonce);
     }
   }
   
@@ -284,7 +275,6 @@ export class SalClient extends EventEmitter implements ISalClient {
       const signature = nacl.sign.detached(messageUint8, this.keypair.secretKey);
       return bs58.encode(signature);
     } catch (error) {
-      console.error('서명 생성 오류:', error);
       return 'invalid-signature';
     }
   }

@@ -4,6 +4,18 @@
 
 import { Keypair } from "@solana/web3.js";
 
+/**
+ * I/O 인터페이스 - 메시지 통신에 사용되는 입출력 인터페이스
+ */
+export interface IMessageTransport {
+  sendMessage(message: string): Promise<void>;
+  onMessage(handler: (message: string) => void): void;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  startListening: () => Promise<boolean>;
+  stopListening: () => void;
+}
+
 export interface HostConfig {
   cluster: string;       // Required: Solana cluster
   phoneNumber: string;   // Required: Phone number
@@ -66,18 +78,6 @@ export interface ISalHost {
   }) => ISalHost;
   run: () => Promise<void>;
   stop: () => Promise<void>;
-}
-
-/**
- * I/O 인터페이스 - 메시지 통신에 사용되는 입출력 인터페이스
- */
-export interface IMessageTransport {
-  sendMessage(message: string): Promise<void>;
-  onMessage(handler: (message: string) => void): void;
-  startListening(): Promise<boolean>;
-  stopListening(): void;
-  connect(): Promise<void>;
-  disconnect(): Promise<void>;
 }
 
 export type MessageHandler = (message: string, sender: string) => Promise<void> | void;
