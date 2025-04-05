@@ -110,14 +110,14 @@ class TestTransport implements IMessageTransport {
 // Generate hardcoded keypairs (NEVER use these in production!)
 function createTestKeypair(index: number): Keypair {
   if (index === 1) {
-    // Client keypair: AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9
+    // Client keypair: AxBA2GAB6QYcZLxApihFnbKpZqtpL3r7senqrBV7Bhob
     return Keypair.fromSecretKey(
-      bs58.decode('2AXDGYSE4f2sz7tvMMzyHvUfcoJmxudvdhBcmiUSo6iuCXagjUCKEQF21awZnUGxmwD4m9vGXuC3qieHXJQHAcT')
+      bs58.decode('4F547k4HhYkfbdCm2rNckqYxqBPgVQGsMNZ82RTPjic41Hi6c7Nv18FJz7rskWKFjLRs6CsatVGXYzkQUfARWdq7')
     );
   } else if (index === 2) {
-    // Host keypair: 9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu
+    // Host keypair: 67AkYVgJkV6AWAn56y77UXpECsRCBmkEvRWWrqiMrXsA
     return Keypair.fromSecretKey(
-      bs58.decode('3L3RY5sT8K4kyEnqhizwaqxLEbcYvpGrGPNEYRwtbCSdSvvMAJawwEEPE3NhshFbVUqmvDV74Ct4vo7MEu7yxJX')
+      bs58.decode('3bxAJkxYddrqkSfv9E5StJegBnakSFvctWCLCUD48LZ22yb2ZMi3wfc3aNkWi6ffW5owjaME8MgWtGNW1PjCLjZE')
     );
   }
 

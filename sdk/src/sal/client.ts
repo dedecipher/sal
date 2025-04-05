@@ -18,7 +18,7 @@ import {
   SystemProgram,
   LAMPORTS_PER_SOL,
   TransactionMessage,
-  VersionedTransaction
+  VersionedTransaction,
 } from '@solana/web3.js';
 import * as nacl from 'tweetnacl';
 
@@ -231,7 +231,7 @@ export class SalClient extends EventEmitter implements ISalClient {
         this.pendingRequests.delete(headers.nonce);
         reject(new Error('응답 타임아웃'));
       }, 1_000_000);
-      
+
       // 요청 등록
       this.pendingRequests.set(headers.nonce, {
         resolve: (response: SalResponse) => {
@@ -331,7 +331,7 @@ export class SalClient extends EventEmitter implements ISalClient {
       const recipientPubkey = new PublicKey(recipient);
 
       const memoInstruction = new TransactionInstruction({
-        keys: [{ pubkey: new PublicKey(recipient), isSigner: true, isWritable: true }],
+        keys: [{ pubkey: recipientPubkey, isSigner: true, isWritable: true }],
         data: Buffer.from(memo, "utf-8"), // Memo message
         programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"), // Memo program
       });
@@ -350,8 +350,12 @@ export class SalClient extends EventEmitter implements ISalClient {
         instructions: [memoInstruction, transferInstruction],
       }).compileToV0Message();
 
-      const versionedTransaction = new VersionedTransaction(messageV0);
+
+      let versionedTransaction = new VersionedTransaction(messageV0);
       versionedTransaction.sign([this.keypair]);
+
+      const balance = await this.connection.getBalance(senderPubkey);
+      console.log('senderPubkey: ', senderPubkey, 'balance: ', balance);
 
       // 트랜잭션 직렬화
       const serializedTransaction = bs58.encode(versionedTransaction.serialize());

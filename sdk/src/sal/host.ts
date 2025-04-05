@@ -12,7 +12,7 @@ import {
 import { EventEmitter } from 'events';
 import * as nacl from 'tweetnacl';
 import bs58 from 'bs58';
-import { Keypair, Connection, Transaction, sendAndConfirmTransaction, VersionedTransaction } from '@solana/web3.js';
+import { Keypair, Connection, Transaction, sendAndConfirmTransaction, VersionedTransaction, SendTransactionError } from '@solana/web3.js';
 import { VersionedMessage } from '@solana/web3.js';
 
 /**
@@ -105,12 +105,18 @@ export class SalHost extends EventEmitter implements ISalHost {
         throw new Error("🚨Transaction not confirmed.");
       }
       console.log(
-        `Transaction Successfully Confirmed! 🎉 View on SolScan: https://solscan.io/tx/${txid}`
+        `Transaction Successfully Confirmed! 🎉 View on SolScan: https://solscan.io/tx/${txid}?cluster=devnet`
       );
 
       return txid;
     } catch (error) {
-      this.emit('error', new Error(`트랜잭션 처리 오류: ${error}`));
+      if (error instanceof SendTransactionError) {
+        const logs = await error.getLogs(this.connection);
+        console.log('logs: ', logs);
+        this.emit('error', new Error(`트랜잭션 처리 오류: ${error.message}`));
+      } else {
+        this.emit('error', new Error(`트랜잭션 처리 오류: ${error}`));
+      }
       throw error;
     }
   }
