@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
+  output: "export",
   webpack: (config) => {
     // WebAssembly 지원 활성화
     config.experiments = {
@@ -9,7 +10,7 @@ const nextConfig: NextConfig = {
       asyncWebAssembly: true,
       syncWebAssembly: true,
     };
-    
+
     return config;
   },
 };
