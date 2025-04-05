@@ -2,6 +2,8 @@
  * Types for secure Solana transactions through S3L (Secure Solana Link) communication
  */
 
+import { Keypair } from "@solana/web3.js";
+
 export enum Modality {
   VOICE = 'voice',
   TCP = 'tcp'
@@ -11,13 +13,13 @@ export interface HostConfig {
   cluster: string;       // Required: Solana cluster
   phoneNumber: string;   // Required: Phone number
   host: string;          // Required: Host address
-  privateKey: string;    // Required: Solana private key
+  keyPair: Keypair;    // Required: Solana private key
   modality?: Modality;   // Optional: Communication modality (default: VOICE)
 }
 
 export interface ClientConfig {
   cluster: string;       // Required: Solana cluster
-  privateKey: string;    // Required: Solana private key
+  keyPair: Keypair;    // Required: Solana private key
   modality?: Modality;   // Optional: Communication modality (default: VOICE)
 }
 

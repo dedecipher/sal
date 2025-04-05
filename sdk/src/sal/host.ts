@@ -12,6 +12,7 @@ import { EventEmitter } from 'events';
 import { AudioCodec, AudioEvent } from './codec';
 import * as nacl from 'tweetnacl';
 import bs58 from 'bs58';
+import { Keypair } from '@solana/web3.js';
 
 /**
  * SalHost는 음성 기반 통신을 통해 클라이언트와 통신하는 호스트를 구현합니다.
@@ -24,13 +25,13 @@ export class SalHost extends EventEmitter {
   private clients: Map<string, { publicKey: string }> = new Map();
   private isRunning: boolean = false;
   private seenNonces: Set<string> = new Set(); // 재전송 공격 방지
-  private keypair: nacl.SignKeyPair;
+  private keypair: Keypair;
 
   constructor(config: HostConfig) {
     super();
     
     // 필수 설정 확인
-    if (!config.cluster || !config.phoneNumber || !config.host || !config.privateKey) {
+    if (!config.cluster || !config.phoneNumber || !config.host || !config.keyPair) {
       throw new Error('필수 설정 매개변수가 누락되었습니다.');
     }
     
@@ -40,8 +41,7 @@ export class SalHost extends EventEmitter {
     };
     
     // 키페어 생성
-    const privateKeyBytes = bs58.decode(this.cfg.privateKey);
-    this.keypair = nacl.sign.keyPair.fromSecretKey(privateKeyBytes);
+    this.keypair = config.keyPair;
   }
   
   /**
@@ -279,7 +279,7 @@ export class SalHost extends EventEmitter {
       ...requestHeaders,
       host: this.cfg.host,
       nonce: requestHeaders.nonce, // 요청의 nonce 재사용
-      publicKey: bs58.encode(this.keypair.publicKey)
+      publicKey: this.keypair.publicKey.toString()
     };
     
     const msg = { headers, body };

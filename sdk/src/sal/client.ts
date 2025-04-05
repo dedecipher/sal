@@ -8,9 +8,9 @@ import {
 } from '../types';
 import { EventEmitter } from 'events';
 import { AudioCodec, AudioEvent } from './codec';
-import * as nacl from 'tweetnacl';
 import bs58 from 'bs58';
-
+import { Keypair } from '@solana/web3.js';
+import * as nacl from 'tweetnacl';
 /**
  * SalClient는 음성 기반 통신을 통해 SalHost와 통신하는 클라이언트입니다.
  */
@@ -20,7 +20,7 @@ export class SalClient extends EventEmitter {
   private currentHost: string | null = null;
   private audioCodec: AudioCodec | null = null;
   private pendingRequests: Map<string, { resolve: (value: any) => void, reject: (reason?: any) => void }> = new Map();
-  private keypair: nacl.SignKeyPair;
+  private keypair: Keypair;
 
   // 콜백 함수
   private onSuccessCallback: (() => void) | null = null;
@@ -30,7 +30,7 @@ export class SalClient extends EventEmitter {
     super();
     
     // 필수 설정 확인
-    if (!config.cluster || !config.privateKey) {
+    if (!config.cluster || !config.keyPair) {
       throw new Error('필수 설정 매개변수가 누락되었습니다.');
     }
     
@@ -40,8 +40,7 @@ export class SalClient extends EventEmitter {
     };
     
     // 키페어 생성
-    const privateKeyBytes = bs58.decode(this.cfg.privateKey);
-    this.keypair = nacl.sign.keyPair.fromSecretKey(privateKeyBytes);
+    this.keypair = config.keyPair;
   }
   
   /**
@@ -159,7 +158,7 @@ export class SalClient extends EventEmitter {
       const headers: SalMessageHeaders = {
         host,
         nonce: this.generateNonce(),
-        publicKey: bs58.encode(this.keypair.publicKey)
+        publicKey: this.keypair.publicKey.toString()
       };
       
       if (phoneNumber) {
@@ -203,7 +202,7 @@ export class SalClient extends EventEmitter {
     const headers: SalMessageHeaders = {
       host: this.currentHost as string,
       nonce: this.generateNonce(),
-      publicKey: bs58.encode(this.keypair.publicKey)
+      publicKey: this.keypair.publicKey.toString()
     };
     
     // 메시지 전송
@@ -297,8 +296,9 @@ export class SalClient extends EventEmitter {
   private sign(message: string): string {
     try {
       const messageUint8 = new TextEncoder().encode(message);
-      const signatureUint8 = nacl.sign.detached(messageUint8, this.keypair.secretKey);
-      return bs58.encode(signatureUint8);
+      // @solana/web3.js의 sign 함수 사용
+      const signature = nacl.sign.detached(messageUint8, this.keypair.secretKey);
+      return bs58.encode(signature);
     } catch (error) {
       console.error('서명 생성 오류:', error);
       return 'invalid-signature';
