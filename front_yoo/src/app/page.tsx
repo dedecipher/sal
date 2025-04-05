@@ -1,11 +1,23 @@
+'use client';
+
+import { useState } from 'react';
 import AudioMessenger from '@/components/AudioMessenger';
+import ModeSelector from '@/components/ModeSelector';
 
 export default function Home() {
+  const [currentMode, setCurrentMode] = useState<'HOST' | 'CLIENT' | null>(null);
+
+  const handleModeChange = (mode: 'HOST' | 'CLIENT') => {
+    setCurrentMode(mode);
+  };
+
   return (
     <main className="min-h-screen bg-black">
       <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold text-center mb-8 text-white">Audio Messenger</h1>
-        <AudioMessenger />
+        <div className="flex justify-between items-center mb-8">
+          <ModeSelector onModeChange={handleModeChange} />
+        </div>
+        {currentMode && <AudioMessenger mode={currentMode} />}
       </div>
     </main>
   );

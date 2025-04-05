@@ -168,6 +168,9 @@ export async function sendAudioMessage(message: string, audioContext: AudioConte
     }
     
     source.start(0);
+    source.onended = () => {
+      audioMessageEmitter.emit('playbackComplete');
+    };
     audioMessageEmitter.emit('audioMessage', message);
 
     return true;
