@@ -211,7 +211,7 @@ export class SalClient extends EventEmitter implements ISalClient {
       const timeoutId = setTimeout(() => {
         this.pendingRequests.delete(headers.nonce);
         reject(new Error('응답 타임아웃'));
-      }, 10000);
+      }, 20000);
       
       // 요청 등록
       this.pendingRequests.set(headers.nonce, {
