@@ -34,7 +34,7 @@ export class AudioMessageTransport implements MessageTransport {
   // 메시지 구분자
   private readonly MESSAGE_MARKER = '|@|';
   // 청크 크기 (바이트)
-  private readonly CHUNK_SIZE = 120;
+  private readonly CHUNK_SIZE = 60;
   
   /**
    * AudioMessageTransport 생성자
@@ -209,8 +209,9 @@ export class AudioMessageTransport implements MessageTransport {
     
     // 출력 전 녹음 일시 중지 (피드백 방지)
     if (wasRecording) {
-      console.log(`[${this.name}] 메시지 출력을 위해 마이크 감지 일시 중지`);
-      this.stopListening();
+      console.log(`[${this.name}] 메시지 출력을 위해 마이크 감지 완전 중지`);
+      this.log('메시지 전송 중 마이크 감지 중지', 'info');
+      await this.stopListening(); // 마이크 완전히 해제
     }
     
     try {
@@ -279,21 +280,40 @@ export class AudioMessageTransport implements MessageTransport {
       // 이전에 녹음 중이었다면 녹음 재개
       if (wasRecording) {
         console.log(`[${this.name}] 메시지 출력 완료 후 마이크 감지 재개`);
-        setTimeout(() => {
-          this.startListening().then(success => {
-            if (success) {
-              console.log(`[${this.name}] 마이크 감지 재개 성공`);
-            } else {
-              console.error(`[${this.name}] 마이크 감지 재개 실패`);
-            }
-          });
-        }, 300); // 약간의 딜레이를 두고 재개 (300ms)
+        this.log('메시지 전송 완료 - 마이크 감지 재개 준비 중', 'info');
+        // 약간의 딜레이를 두고 재개 (1000ms로 증가 - 오디오 출력 끝과 새 마이크 감지 시작 사이 충분한 간격)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          // 새로운 마이크 스트림 생성 및 녹음 시작
+          const success = await this.startListening();
+          if (success) {
+            console.log(`[${this.name}] 새 마이크 스트림으로 감지 재개 성공`);
+            this.log('마이크 감지 재개됨', 'info');
+          } else {
+            console.error(`[${this.name}] 마이크 감지 재개 실패`);
+            this.log('마이크 감지 재개 실패', 'error');
+          }
+        } catch (resumeError) {
+          console.error(`[${this.name}] 마이크 감지 재개 중 오류 발생:`, resumeError);
+          this.log('마이크 감지 재개 중 오류 발생', 'error');
+        }
       }
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.log(`메시지 전송 실패: ${errorMessage}`, 'error');
       console.error(`[${this.name}] 메시지 전송 실패:`, error);
+      
+      // 오류 발생 시에도 녹음 상태 복원 시도
+      if (wasRecording && !this.isRecording) {
+        try {
+          console.log(`[${this.name}] 오류 발생 후 마이크 감지 재개 시도`);
+          await this.startListening();
+        } catch (resumeError) {
+          console.error(`[${this.name}] 오류 후 마이크 감지 재개 실패:`, resumeError);
+        }
+      }
+      
       throw error;
     }
   }
@@ -325,7 +345,7 @@ export class AudioMessageTransport implements MessageTransport {
       }
       
       // 볼륨 설정
-      const volume = 80; // 볼륨 증가 (0-100)
+      const volume = 100; // 볼륨 증가 (0-100)
       
       console.log(`[${this.name}] 청크 #${chunkNumber} 인코딩 시작 (${chunk.length}자)`);
       
@@ -362,15 +382,31 @@ export class AudioMessageTransport implements MessageTransport {
       
       // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
       const gainNode = this.context.createGain();
-      gainNode.gain.value = 2.5; // 볼륨 증가
+      gainNode.gain.value = 3.0; // 볼륨 증가
+      
+      // 압축기 노드 추가 (다이나믹 레인지 압축으로 더 선명한 사운드)
+      const compressor = this.context.createDynamicsCompressor();
+      compressor.threshold.value = -50;
+      compressor.knee.value = 40;
+      compressor.ratio.value = 12;
+      compressor.attack.value = 0.002;
+      compressor.release.value = 0.25;
+      
+      // 하이 쉘프 이퀄라이저 추가 (고음역 증폭)
+      const highShelf = this.context.createBiquadFilter();
+      highShelf.type = 'highshelf';
+      highShelf.frequency.value = 1000;
+      highShelf.gain.value = 6.0;
       
       // 오디오 소스 생성 및 출력
       const source = this.context.createBufferSource();
       source.buffer = buffer;
       
-      // 노드 연결: source -> gain -> destination
+      // 노드 연결: source -> gain -> compressor -> highShelf -> destination
       source.connect(gainNode);
-      gainNode.connect(this.context.destination);
+      gainNode.connect(compressor);
+      compressor.connect(highShelf);
+      highShelf.connect(this.context.destination);
       
       // 재생 시작
       source.start(0);
@@ -439,6 +475,7 @@ export class AudioMessageTransport implements MessageTransport {
         }
       };
       
+      // 마이크 스트림 새로 획득
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       this.log('마이크 접근 권한 획득 성공', 'info');
       console.log(`[${this.name}] 마이크 스트림 획득 성공:`, stream);
@@ -478,15 +515,10 @@ export class AudioMessageTransport implements MessageTransport {
         // 5초마다 로그 출력 (디버깅용)
         if (now - lastLog > 5000) {
           lastLog = now;
+          console.log(`[${this.name}] 오디오 처리 중... 신호 강도: ${signalStrength.toFixed(5)}`);
         }
         
         try {
-          // 모든 오디오 입력을 디코딩 시도하지 않고, 좀 더 엄격한 필터링 적용
-          // 신호 강도가 특정 임계값을 넘을 때만 디코딩 시도
-          if (signalStrength < 0.001) {
-            return; // 신호가 너무 약하면 처리하지 않음
-          }
-          
           // ggwave 인스턴스 확인
           if (!this.instance || typeof this.instance !== 'number' || !this.ggwave) {
             console.error(`[${this.name}] ggwave 인스턴스가 유효하지 않습니다.`);
@@ -570,10 +602,10 @@ export class AudioMessageTransport implements MessageTransport {
   /**
    * 녹음 중지 (메시지 수신 대기 중지)
    */
-  public stopListening(): void {
+  public stopListening(): Promise<void> {
     if (!this.isRecording) {
       this.log('녹음 중이 아닙니다.', 'info');
-      return;
+      return Promise.resolve();
     }
     
     try {
@@ -581,20 +613,34 @@ export class AudioMessageTransport implements MessageTransport {
       
       // 리소스 정리
       if (this.recorder) {
+        console.log(`[${this.name}] 스크립트 프로세서 노드 연결 해제`);
         this.recorder.disconnect();
+        this.recorder.onaudioprocess = null; // 이벤트 핸들러 명시적 제거
         this.recorder = null;
       }
       
       if (this.mediaStream) {
-        this.mediaStream.getTracks().forEach(track => track.stop());
+        console.log(`[${this.name}] 모든 마이크 트랙 중지 및 해제`);
+        // 모든 트랙에 대해 명시적으로 중지
+        const tracks = this.mediaStream.getTracks();
+        tracks.forEach(track => {
+          console.log(`[${this.name}] 마이크 트랙 중지: ${track.kind} (${track.label})`);
+          track.stop();
+          // 선택적: 트랙 활성화 상태 로깅
+          console.log(`[${this.name}] 트랙 활성화 상태: ${track.enabled}`);
+        });
+        
         this.mediaStream = null;
       }
       
       this.isRecording = false;
+      console.log(`[${this.name}] 마이크 녹음 중지 완료`);
+      return Promise.resolve();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.log(`녹음 중지 실패: ${errorMessage}`, 'error');
-      console.error('녹음 중지 실패:', error);
+      console.error(`[${this.name}] 녹음 중지 실패:`, error);
+      return Promise.reject(error);
     }
   }
   
@@ -635,8 +681,8 @@ export class AudioMessageTransport implements MessageTransport {
     
     // 출력 전 녹음 일시 중지 (피드백 방지)
     if (wasRecording) {
-      console.log(`[${this.name}] 오디오 출력을 위해 마이크 감지 일시 중지`);
-      this.stopListening();
+      console.log(`[${this.name}] 오디오 출력을 위해 마이크 감지 완전 중지`);
+      await this.stopListening(); // 마이크 완전히 해제
     }
     
     if (this.context!.state !== 'running') {
@@ -648,6 +694,16 @@ export class AudioMessageTransport implements MessageTransport {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error(`[${this.name}] 오디오 컨텍스트 재개 실패:`, error);
         this.log('오디오 컨텍스트를 재개할 수 없습니다', 'error');
+        
+        // 오류 발생 시에도 녹음 상태 복원 시도
+        if (wasRecording && !this.isRecording) {
+          try {
+            await this.startListening();
+          } catch (resumeError) {
+            console.error(`[${this.name}] 오류 후 마이크 감지 재개 실패:`, resumeError);
+          }
+        }
+        
         throw error;
       }
     }
@@ -655,6 +711,16 @@ export class AudioMessageTransport implements MessageTransport {
     if (!waveform || waveform.length === 0) {
       console.error(`[${this.name}] 재생할 파형이 없습니다.`);
       this.log('재생할 오디오 데이터가 없습니다', 'error');
+      
+      // 조건 누락 시에도 녹음 상태 복원
+      if (wasRecording && !this.isRecording) {
+        try {
+          await this.startListening();
+        } catch (resumeError) {
+          console.error(`[${this.name}] 오류 후 마이크 감지 재개 실패:`, resumeError);
+        }
+      }
+      
       return;
     }
     
@@ -693,22 +759,30 @@ export class AudioMessageTransport implements MessageTransport {
         const waitTime = Math.min(waveform.length + 1000, 10000); // 밀리초 단위 (여유 시간 증가, 최대 10초)
         console.log(`[${this.name}] ${waitTime}ms 후 재생 완료 예정`);
         
-        setTimeout(() => {
+        setTimeout(async () => {
           this.log(`오디오 재생 완료`, 'request');
           console.log(`[${this.name}] 오디오 재생 완료`);
           
           // 이전에 녹음 중이었다면 녹음 재개
           if (wasRecording) {
             console.log(`[${this.name}] 오디오 출력 완료 후 마이크 감지 재개`);
-            setTimeout(() => {
-              this.startListening().then(success => {
-                if (success) {
-                  console.log(`[${this.name}] 마이크 감지 재개 성공`);
-                } else {
-                  console.error(`[${this.name}] 마이크 감지 재개 실패`);
-                }
-              });
-            }, 200); // 약간의 딜레이를 두고 재개 (200ms)
+            this.log('메시지 전송 완료 - 마이크 감지 재개 준비 중', 'info');
+            // 약간의 딜레이를 두고 재개 (1000ms로 증가 - 오디오 출력 끝과 새 마이크 감지 시작 사이 충분한 간격)
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            try {
+              // 새로운 마이크 스트림 생성 및 녹음 시작
+              const success = await this.startListening();
+              if (success) {
+                console.log(`[${this.name}] 새 마이크 스트림으로 감지 재개 성공`);
+                this.log('마이크 감지 재개됨', 'info');
+              } else {
+                console.error(`[${this.name}] 마이크 감지 재개 실패`);
+                this.log('마이크 감지 재개 실패', 'error');
+              }
+            } catch (resumeError) {
+              console.error(`[${this.name}] 마이크 감지 재개 중 오류 발생:`, resumeError);
+              this.log('마이크 감지 재개 중 오류 발생', 'error');
+            }
           }
           
           resolve();
@@ -718,6 +792,17 @@ export class AudioMessageTransport implements MessageTransport {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`[${this.name}] 오디오 재생 실패:`, error);
       this.log(`오디오 재생 실패: ${errorMessage}`, 'error');
+      
+      // 오류 발생 시에도 녹음 상태 복원 시도
+      if (wasRecording && !this.isRecording) {
+        try {
+          console.log(`[${this.name}] 오류 발생 후 마이크 감지 재개 시도`);
+          await this.startListening();
+        } catch (resumeError) {
+          console.error(`[${this.name}] 오류 후 마이크 감지 재개 실패:`, resumeError);
+        }
+      }
+      
       throw error;
     }
   }

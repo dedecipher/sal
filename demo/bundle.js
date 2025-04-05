@@ -32076,6 +32076,9 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
 
     // 메시지 핸들러 등록
     _this.messageTransport.onMessage(_this.handleIncomingMessage.bind(_this));
+    if (config.testMode) {
+      _this.isConnected = true;
+    }
     return _this;
   }
 
@@ -32434,7 +32437,7 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
     key: "createSolTransaction",
     value: (function () {
       var _createSolTransaction = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(amount, memo, recipient) {
-        var lamports, senderPubkey, recipientPubkey, transaction, _yield$this$connectio, blockhash, serializedTransaction;
+        var lamports, senderPubkey, recipientPubkey, memoInstruction, transferInstruction, _yield$this$connectio, blockhash, messageV0, versionedTransaction, serializedTransaction;
         return _regeneratorRuntime().wrap(function _callee6$(_context6) {
           while (1) switch (_context6.prev = _context6.next) {
             case 0:
@@ -32460,10 +32463,8 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
               // SOL을 lamports로 변환 (1 SOL = 10^9 lamports)
               lamports = amount * _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.LAMPORTS_PER_SOL; // 발신자 및 수신자의 PublicKey
               senderPubkey = this.keypair.publicKey;
-              recipientPubkey = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.PublicKey(recipient); // SOL 전송 명령어 생성
-              transaction = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.Transaction().add(
-              // Add memo instruction first - this will be signed by the host
-              new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.TransactionInstruction({
+              recipientPubkey = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.PublicKey(recipient);
+              memoInstruction = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.TransactionInstruction({
                 keys: [{
                   pubkey: new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.PublicKey(recipient),
                   isSigner: true,
@@ -32472,33 +32473,37 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
                 data: Buffer.from(memo, "utf-8"),
                 // Memo message
                 programId: new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr") // Memo program
-              }),
-              // Add transfer instruction - this will be signed by the client
-              _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.SystemProgram.transfer({
+              });
+              transferInstruction = _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.SystemProgram.transfer({
                 fromPubkey: senderPubkey,
                 toPubkey: recipientPubkey,
                 lamports: lamports
-              })); // 최근 블록해시 가져오기
-              _context6.next = 13;
+              });
+              _context6.next = 14;
               return this.connection.getLatestBlockhash();
-            case 13:
+            case 14:
               _yield$this$connectio = _context6.sent;
               blockhash = _yield$this$connectio.blockhash;
-              transaction.recentBlockhash = blockhash;
-              transaction.feePayer = senderPubkey;
+              messageV0 = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.TransactionMessage({
+                payerKey: senderPubkey,
+                recentBlockhash: blockhash,
+                instructions: [memoInstruction, transferInstruction]
+              }).compileToV0Message();
+              versionedTransaction = new _solana_web3_js__WEBPACK_IMPORTED_MODULE_3__.VersionedTransaction(messageV0);
+              versionedTransaction.sign([this.keypair]);
 
               // 트랜잭션 직렬화
-              serializedTransaction = bs58__WEBPACK_IMPORTED_MODULE_2__["default"].encode(transaction.serialize());
+              serializedTransaction = bs58__WEBPACK_IMPORTED_MODULE_2__["default"].encode(versionedTransaction.serialize());
               return _context6.abrupt("return", serializedTransaction);
-            case 21:
-              _context6.prev = 21;
+            case 23:
+              _context6.prev = 23;
               _context6.t0 = _context6["catch"](2);
               throw new Error("SOL \uD2B8\uB79C\uC7AD\uC158 \uC0DD\uC131 \uC624\uB958: ".concat(_context6.t0));
-            case 24:
+            case 26:
             case "end":
               return _context6.stop();
           }
-        }, _callee6, this, [[2, 21]]);
+        }, _callee6, this, [[2, 23]]);
       }));
       function createSolTransaction(_x8, _x9, _x10) {
         return _createSolTransaction.apply(this, arguments);
@@ -32573,7 +32578,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tweetnacl__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(tweetnacl__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var bs58__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! bs58 */ "../sdk/node_modules/bs58/src/esm/index.js");
 /* harmony import */ var _solana_web3_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @solana/web3.js */ "../sdk/node_modules/@solana/web3.js/lib/index.browser.esm.js");
-/* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "../sdk/node_modules/buffer/index.js")["Buffer"];
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -32593,7 +32597,6 @@ function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf 
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-
 
 
 
@@ -32663,34 +32666,55 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
     key: "defaultTxHandler",
     value: (function () {
       var _defaultTxHandler = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(serializedTx) {
-        var transactionBuffer, transaction, signature;
+        var transaction, txid, latestBlockhash, confirmation;
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
               _context.prev = 0;
-              // 직렬화된 트랜잭션 디코딩
-              transactionBuffer = Buffer.from(bs58__WEBPACK_IMPORTED_MODULE_3__["default"].decode(serializedTx));
-              transaction = _solana_web3_js__WEBPACK_IMPORTED_MODULE_4__.Transaction.from(transactionBuffer); // 호스트의 서명 추가 - memo 명령어에 필요합니다
-              transaction.sign(this.keypair);
+              // deserialize
+              transaction = _solana_web3_js__WEBPACK_IMPORTED_MODULE_4__.VersionedTransaction.deserialize(bs58__WEBPACK_IMPORTED_MODULE_3__["default"].decode(serializedTx)); // sign
+              transaction.sign([this.keypair]);
 
-              // 트랜잭션 브로드캐스트
-              _context.next = 6;
-              return (0,_solana_web3_js__WEBPACK_IMPORTED_MODULE_4__.sendAndConfirmTransaction)(this.connection, transaction, [this.keypair], {
-                commitment: 'confirmed'
+              // broadcast
+              _context.next = 5;
+              return this.connection.sendTransaction(transaction, {
+                maxRetries: 20
               });
-            case 6:
-              signature = _context.sent;
-              return _context.abrupt("return", signature);
-            case 10:
-              _context.prev = 10;
+            case 5:
+              txid = _context.sent;
+              console.log("Transaction Submitted: ".concat(txid));
+
+              // confirm
+              _context.next = 9;
+              return this.connection.getLatestBlockhash("confirmed");
+            case 9:
+              latestBlockhash = _context.sent;
+              _context.next = 12;
+              return this.connection.confirmTransaction({
+                signature: txid,
+                blockhash: latestBlockhash.blockhash,
+                lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+              }, "confirmed");
+            case 12:
+              confirmation = _context.sent;
+              if (!confirmation.value.err) {
+                _context.next = 15;
+                break;
+              }
+              throw new Error("🚨Transaction not confirmed.");
+            case 15:
+              console.log("Transaction Successfully Confirmed! \uD83C\uDF89 View on SolScan: https://solscan.io/tx/".concat(txid));
+              return _context.abrupt("return", txid);
+            case 19:
+              _context.prev = 19;
               _context.t0 = _context["catch"](0);
               this.emit('error', new Error("\uD2B8\uB79C\uC7AD\uC158 \uCC98\uB9AC \uC624\uB958: ".concat(_context.t0)));
               throw _context.t0;
-            case 14:
+            case 23:
             case "end":
               return _context.stop();
           }
-        }, _callee, this, [[0, 10]]);
+        }, _callee, this, [[0, 19]]);
       }));
       function defaultTxHandler(_x) {
         return _defaultTxHandler.apply(this, arguments);
@@ -33030,6 +33054,11 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
               this.emit('error', new Error('메시지 전송 인터페이스가 설정되지 않았습니다.'));
               return _context8.abrupt("return");
             case 4:
+              _context8.next = 6;
+              return new Promise(function (resolve) {
+                return setTimeout(resolve, 1500);
+              });
+            case 6:
               headers = _objectSpread(_objectSpread({}, requestHeaders), {}, {
                 host: this.cfg.host,
                 nonce: requestHeaders.nonce,
@@ -33047,9 +33076,9 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
                 msg: msg
               }; // 응답을 JSON 문자열로 변환
               responseJson = JSON.stringify(response); // 메시지 전송
-              _context8.next = 10;
+              _context8.next = 12;
               return this.messageTransport.sendMessage(responseJson);
-            case 10:
+            case 12:
             case "end":
               return _context8.stop();
           }
@@ -33153,7 +33182,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     // 메시지 구분자
     _defineProperty(this, "MESSAGE_MARKER", '|@|');
     // 청크 크기 (바이트)
-    _defineProperty(this, "CHUNK_SIZE", 120);
+    _defineProperty(this, "CHUNK_SIZE", 60);
     this.name = config.name || 'AudioTransport';
     this.emitter = new events__WEBPACK_IMPORTED_MODULE_0__.EventEmitter();
 
@@ -33348,8 +33377,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     key: "sendMessage",
     value: (function () {
       var _sendMessage = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(message) {
-        var _this3 = this;
-        var success, wasRecording, messageStr, validRegex, markedMessage, messageBytesUTF8, messageBytes, totalChunks, i, start, end, chunkBytes, chunkStr, errorMessage;
+        var success, wasRecording, messageStr, validRegex, markedMessage, messageBytesUTF8, messageBytes, totalChunks, i, start, end, chunkBytes, chunkStr, _success, errorMessage;
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
@@ -33369,25 +33397,30 @@ var AudioMessageTransport = /*#__PURE__*/function () {
             case 6:
               // 녹음 상태 저장
               wasRecording = this.isRecording; // 출력 전 녹음 일시 중지 (피드백 방지)
-              if (wasRecording) {
-                console.log("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uCD9C\uB825\uC744 \uC704\uD574 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC77C\uC2DC \uC911\uC9C0"));
-                this.stopListening();
+              if (!wasRecording) {
+                _context2.next = 12;
+                break;
               }
-              _context2.prev = 8;
+              console.log("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uCD9C\uB825\uC744 \uC704\uD574 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC644\uC804 \uC911\uC9C0"));
+              this.log('메시지 전송 중 마이크 감지 중지', 'info');
+              _context2.next = 12;
+              return this.stopListening();
+            case 12:
+              _context2.prev = 12;
               if (!(message === undefined || message === null)) {
-                _context2.next = 11;
+                _context2.next = 15;
                 break;
               }
               throw new Error('메시지가 null 또는 undefined입니다');
-            case 11:
+            case 15:
               // 문자열로 변환 확보 및 엄격한 검증
               messageStr = String(message); // 문자열 길이 검증
               if (!(messageStr.length === 0)) {
-                _context2.next = 14;
+                _context2.next = 18;
                 break;
               }
               throw new Error('빈 메시지는 전송할 수 없습니다');
-            case 14:
+            case 18:
               // 메시지 길이 제한 - 너무 긴 메시지는 오디오로 전송하기 어려움
               if (messageStr.length > 5000) {
                 console.warn("[".concat(this.name, "] \uBA54\uC2DC\uC9C0\uAC00 \uB9E4\uC6B0 \uAE41\uB2C8\uB2E4(").concat(messageStr.length, "\uC790). \uCC98\uB9AC \uC2DC\uAC04\uC774 \uC624\uB798 \uAC78\uB9B4 \uC218 \uC788\uC2B5\uB2C8\uB2E4."));
@@ -33414,9 +33447,9 @@ var AudioMessageTransport = /*#__PURE__*/function () {
 
               // 각 청크 전송
               i = 0;
-            case 25:
+            case 29:
               if (!(i < totalChunks)) {
-                _context2.next = 40;
+                _context2.next = 44;
                 break;
               }
               start = i * this.CHUNK_SIZE;
@@ -33427,52 +33460,90 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               this.log("\uCCAD\uD06C ".concat(i + 1, "/").concat(totalChunks, " \uC804\uC1A1 \uC911..."), 'request');
 
               // 각 청크 인코딩 및 전송
-              _context2.next = 34;
+              _context2.next = 38;
               return this.sendChunk(chunkStr, i + 1, totalChunks);
-            case 34:
+            case 38:
               if (!(i < totalChunks - 1)) {
-                _context2.next = 37;
+                _context2.next = 41;
                 break;
               }
-              _context2.next = 37;
+              _context2.next = 41;
               return new Promise(function (resolve) {
                 return setTimeout(resolve, 200);
               });
-            case 37:
+            case 41:
               i++;
-              _context2.next = 25;
+              _context2.next = 29;
               break;
-            case 40:
+            case 44:
               this.log("\uBAA8\uB4E0 \uCCAD\uD06C \uC804\uC1A1 \uC644\uB8CC (".concat(totalChunks, "\uAC1C)"), 'request');
               console.log("[".concat(this.name, "] \uBAA8\uB4E0 \uCCAD\uD06C \uC804\uC1A1 \uC644\uB8CC"));
 
               // 이전에 녹음 중이었다면 녹음 재개
-              if (wasRecording) {
-                console.log("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uCD9C\uB825 \uC644\uB8CC \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C"));
-                setTimeout(function () {
-                  _this3.startListening().then(function (success) {
-                    if (success) {
-                      console.log("[".concat(_this3.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC131\uACF5"));
-                    } else {
-                      console.error("[".concat(_this3.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328"));
-                    }
-                  });
-                }, 300); // 약간의 딜레이를 두고 재개 (300ms)
+              if (!wasRecording) {
+                _context2.next = 62;
+                break;
               }
+              console.log("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uCD9C\uB825 \uC644\uB8CC \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C"));
+              this.log('메시지 전송 완료 - 마이크 감지 재개 준비 중', 'info');
+              // 약간의 딜레이를 두고 재개 (1000ms로 증가 - 오디오 출력 끝과 새 마이크 감지 시작 사이 충분한 간격)
               _context2.next = 51;
-              break;
-            case 45:
-              _context2.prev = 45;
-              _context2.t0 = _context2["catch"](8);
-              errorMessage = _context2.t0 instanceof Error ? _context2.t0.message : String(_context2.t0);
-              this.log("\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328: ".concat(errorMessage), 'error');
-              console.error("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328:"), _context2.t0);
-              throw _context2.t0;
+              return new Promise(function (resolve) {
+                return setTimeout(resolve, 1000);
+              });
             case 51:
+              _context2.prev = 51;
+              _context2.next = 54;
+              return this.startListening();
+            case 54:
+              _success = _context2.sent;
+              if (_success) {
+                console.log("[".concat(this.name, "] \uC0C8 \uB9C8\uC774\uD06C \uC2A4\uD2B8\uB9BC\uC73C\uB85C \uAC10\uC9C0 \uC7AC\uAC1C \uC131\uACF5"));
+                this.log('마이크 감지 재개됨', 'info');
+              } else {
+                console.error("[".concat(this.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328"));
+                this.log('마이크 감지 재개 실패', 'error');
+              }
+              _context2.next = 62;
+              break;
+            case 58:
+              _context2.prev = 58;
+              _context2.t0 = _context2["catch"](51);
+              console.error("[".concat(this.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC911 \uC624\uB958 \uBC1C\uC0DD:"), _context2.t0);
+              this.log('마이크 감지 재개 중 오류 발생', 'error');
+            case 62:
+              _context2.next = 80;
+              break;
+            case 64:
+              _context2.prev = 64;
+              _context2.t1 = _context2["catch"](12);
+              errorMessage = _context2.t1 instanceof Error ? _context2.t1.message : String(_context2.t1);
+              this.log("\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328: ".concat(errorMessage), 'error');
+              console.error("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328:"), _context2.t1);
+
+              // 오류 발생 시에도 녹음 상태 복원 시도
+              if (!(wasRecording && !this.isRecording)) {
+                _context2.next = 79;
+                break;
+              }
+              _context2.prev = 70;
+              console.log("[".concat(this.name, "] \uC624\uB958 \uBC1C\uC0DD \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2DC\uB3C4"));
+              _context2.next = 74;
+              return this.startListening();
+            case 74:
+              _context2.next = 79;
+              break;
+            case 76:
+              _context2.prev = 76;
+              _context2.t2 = _context2["catch"](70);
+              console.error("[".concat(this.name, "] \uC624\uB958 \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328:"), _context2.t2);
+            case 79:
+              throw _context2.t1;
+            case 80:
             case "end":
               return _context2.stop();
           }
-        }, _callee2, this, [[8, 45]]);
+        }, _callee2, this, [[12, 64], [51, 58], [70, 76]]);
       }));
       function sendMessage(_x) {
         return _sendMessage.apply(this, arguments);
@@ -33490,8 +33561,8 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     key: "sendChunk",
     value: (function () {
       var _sendChunk = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(chunk, chunkNumber, totalChunks) {
-        var _this4 = this;
-        var protocol, volume, waveform, buf, buffer, duration, gainNode, source, errorMessage;
+        var _this3 = this;
+        var protocol, volume, waveform, buf, buffer, duration, gainNode, compressor, highShelf, source, errorMessage;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
@@ -33516,7 +33587,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               }
 
               // 볼륨 설정
-              volume = 80; // 볼륨 증가 (0-100)
+              volume = 100; // 볼륨 증가 (0-100)
               console.log("[".concat(this.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC778\uCF54\uB529 \uC2DC\uC791 (").concat(chunk.length, "\uC790)"));
 
               // ggwave로 청크 인코딩
@@ -33552,15 +33623,31 @@ var AudioMessageTransport = /*#__PURE__*/function () {
 
               // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
               gainNode = this.context.createGain();
-              gainNode.gain.value = 2.5; // 볼륨 증가
+              gainNode.gain.value = 3.0; // 볼륨 증가
+
+              // 압축기 노드 추가 (다이나믹 레인지 압축으로 더 선명한 사운드)
+              compressor = this.context.createDynamicsCompressor();
+              compressor.threshold.value = -50;
+              compressor.knee.value = 40;
+              compressor.ratio.value = 12;
+              compressor.attack.value = 0.002;
+              compressor.release.value = 0.25;
+
+              // 하이 쉘프 이퀄라이저 추가 (고음역 증폭)
+              highShelf = this.context.createBiquadFilter();
+              highShelf.type = 'highshelf';
+              highShelf.frequency.value = 1000;
+              highShelf.gain.value = 6.0;
 
               // 오디오 소스 생성 및 출력
               source = this.context.createBufferSource();
               source.buffer = buffer;
 
-              // 노드 연결: source -> gain -> destination
+              // 노드 연결: source -> gain -> compressor -> highShelf -> destination
               source.connect(gainNode);
-              gainNode.connect(this.context.destination);
+              gainNode.connect(compressor);
+              compressor.connect(highShelf);
+              highShelf.connect(this.context.destination);
 
               // 재생 시작
               source.start(0);
@@ -33572,24 +33659,24 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                 var bufferDuration = duration * 1000; // 밀리초로 변환
                 var extraTime = Math.max(300, duration * 1000 * 0.2); // 여유 시간 (최소 300ms, 또는 재생 시간의 20%)
                 var waitTime = bufferDuration + extraTime;
-                console.log("[".concat(_this4.name, "] \uCCAD\uD06C #").concat(chunkNumber, " ").concat(waitTime.toFixed(0), "ms \uD6C4 \uC7AC\uC0DD \uC644\uB8CC \uC608\uC815"));
+                console.log("[".concat(_this3.name, "] \uCCAD\uD06C #").concat(chunkNumber, " ").concat(waitTime.toFixed(0), "ms \uD6C4 \uC7AC\uC0DD \uC644\uB8CC \uC608\uC815"));
                 setTimeout(function () {
-                  console.log("[".concat(_this4.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
+                  console.log("[".concat(_this3.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
                   resolve();
                 }, waitTime);
               }));
-            case 32:
-              _context3.prev = 32;
+            case 44:
+              _context3.prev = 44;
               _context3.t0 = _context3["catch"](0);
               errorMessage = _context3.t0 instanceof Error ? _context3.t0.message : String(_context3.t0);
               console.error("[".concat(this.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC778\uCF54\uB529 \uC624\uB958 \uBC1C\uC0DD:"), _context3.t0);
               this.log("\uCCAD\uD06C #".concat(chunkNumber, " \uC778\uCF54\uB529 \uC624\uB958: ").concat(errorMessage), 'error');
               throw new Error("\uCCAD\uD06C #".concat(chunkNumber, " \uC624\uB514\uC624 \uC778\uCF54\uB529 \uC2E4\uD328: ").concat(errorMessage));
-            case 38:
+            case 50:
             case "end":
               return _context3.stop();
           }
-        }, _callee3, this, [[0, 32]]);
+        }, _callee3, this, [[0, 44]]);
       }));
       function sendChunk(_x2, _x3, _x4) {
         return _sendChunk.apply(this, arguments);
@@ -33615,7 +33702,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     key: "startListening",
     value: (function () {
       var _startListening = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-        var _this5 = this;
+        var _this4 = this;
         var success, constraints, stream, mediaStreamSource, processCount, lastLog, errorMessage;
         return _regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) switch (_context4.prev = _context4.next) {
@@ -33654,7 +33741,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                   autoGainControl: false,
                   noiseSuppression: false
                 }
-              };
+              }; // 마이크 스트림 새로 획득
               _context4.next = 16;
               return navigator.mediaDevices.getUserMedia(constraints);
             case 16:
@@ -33700,67 +33787,62 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                 // 5초마다 로그 출력 (디버깅용)
                 if (now - lastLog > 5000) {
                   lastLog = now;
+                  console.log("[".concat(_this4.name, "] \uC624\uB514\uC624 \uCC98\uB9AC \uC911... \uC2E0\uD638 \uAC15\uB3C4: ").concat(signalStrength.toFixed(5)));
                 }
                 try {
-                  // 모든 오디오 입력을 디코딩 시도하지 않고, 좀 더 엄격한 필터링 적용
-                  // 신호 강도가 특정 임계값을 넘을 때만 디코딩 시도
-                  if (signalStrength < 0.001) {
-                    return; // 신호가 너무 약하면 처리하지 않음
-                  }
-
                   // ggwave 인스턴스 확인
-                  if (!_this5.instance || typeof _this5.instance !== 'number' || !_this5.ggwave) {
-                    console.error("[".concat(_this5.name, "] ggwave \uC778\uC2A4\uD134\uC2A4\uAC00 \uC720\uD6A8\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."));
+                  if (!_this4.instance || typeof _this4.instance !== 'number' || !_this4.ggwave) {
+                    console.error("[".concat(_this4.name, "] ggwave \uC778\uC2A4\uD134\uC2A4\uAC00 \uC720\uD6A8\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."));
                     return;
                   }
 
                   // 디코딩 시도
                   try {
                     // Float32Array를 Int8Array로 변환
-                    var result = _this5.ggwave.decode(_this5.instance, _this5.convertTypedArray(new Float32Array(sourceBuf), Int8Array));
+                    var result = _this4.ggwave.decode(_this4.instance, _this4.convertTypedArray(new Float32Array(sourceBuf), Int8Array));
 
                     // 결과 출력
                     if (result && result.byteLength > 0) {
                       // 문자열로 변환
                       var text = new TextDecoder("utf-8").decode(result);
-                      console.log("[".concat(_this5.name, "] \uCCAD\uD06C \uC218\uC2E0: ").concat(result.byteLength, "\uBC14\uC774\uD2B8, \"").concat(text, "\""));
+                      console.log("[".concat(_this4.name, "] \uCCAD\uD06C \uC218\uC2E0: ").concat(result.byteLength, "\uBC14\uC774\uD2B8, \"").concat(text, "\""));
 
                       // 청크를 수신 버퍼에 추가
-                      _this5.receivedChunks.push(text);
+                      _this4.receivedChunks.push(text);
 
                       // 수신된 청크들을 결합하여 완전한 메시지가 있는지 확인
-                      var combinedMessage = _this5.receivedChunks.join('');
+                      var combinedMessage = _this4.receivedChunks.join('');
 
                       // 마커로 둘러싸인 메시지 검색
-                      var markerStart = combinedMessage.indexOf(_this5.MESSAGE_MARKER);
-                      var markerEnd = combinedMessage.indexOf(_this5.MESSAGE_MARKER, markerStart + _this5.MESSAGE_MARKER.length);
+                      var markerStart = combinedMessage.indexOf(_this4.MESSAGE_MARKER);
+                      var markerEnd = combinedMessage.indexOf(_this4.MESSAGE_MARKER, markerStart + _this4.MESSAGE_MARKER.length);
 
                       // 시작과 끝 마커가 모두 발견되면 완전한 메시지가 있음
                       if (markerStart !== -1 && markerEnd !== -1) {
                         // 마커 사이의 메시지 추출
-                        var completeMessage = combinedMessage.substring(markerStart + _this5.MESSAGE_MARKER.length, markerEnd);
-                        console.log("[".concat(_this5.name, "] \uC644\uC804\uD55C \uBA54\uC2DC\uC9C0 \uC218\uC2E0: ").concat(completeMessage.length, "\uC790"));
-                        _this5.log("\uC644\uC804\uD55C \uBA54\uC2DC\uC9C0 \uC218\uC2E0\uB428 (".concat(completeMessage.length, "\uC790)"), 'response');
+                        var completeMessage = combinedMessage.substring(markerStart + _this4.MESSAGE_MARKER.length, markerEnd);
+                        console.log("[".concat(_this4.name, "] \uC644\uC804\uD55C \uBA54\uC2DC\uC9C0 \uC218\uC2E0: ").concat(completeMessage.length, "\uC790"));
+                        _this4.log("\uC644\uC804\uD55C \uBA54\uC2DC\uC9C0 \uC218\uC2E0\uB428 (".concat(completeMessage.length, "\uC790)"), 'response');
 
                         // 메시지 이벤트 발생
-                        _this5.emitter.emit('message_received', completeMessage);
+                        _this4.emitter.emit('message_received', completeMessage);
 
                         // 메시지 핸들러가 있으면 호출
-                        if (_this5.messageHandler) {
-                          _this5.messageHandler(completeMessage);
+                        if (_this4.messageHandler) {
+                          _this4.messageHandler(completeMessage);
                         }
 
                         // 처리된 메시지는 제거하고 나머지 데이터는 유지
-                        var remainingMessage = combinedMessage.substring(markerEnd + _this5.MESSAGE_MARKER.length);
-                        _this5.receivedChunks = remainingMessage ? [remainingMessage] : [];
-                        console.log("[".concat(_this5.name, "] \uBC84\uD37C \uC815\uB9AC\uB428, \uB0A8\uC740 \uB370\uC774\uD130: ").concat(remainingMessage.length, "\uC790"));
+                        var remainingMessage = combinedMessage.substring(markerEnd + _this4.MESSAGE_MARKER.length);
+                        _this4.receivedChunks = remainingMessage ? [remainingMessage] : [];
+                        console.log("[".concat(_this4.name, "] \uBC84\uD37C \uC815\uB9AC\uB428, \uB0A8\uC740 \uB370\uC774\uD130: ").concat(remainingMessage.length, "\uC790"));
                       }
                     }
                   } catch (decodeErr) {
-                    console.error("[".concat(_this5.name, "] ggwave.decode \uC624\uB958:"), decodeErr);
+                    console.error("[".concat(_this4.name, "] ggwave.decode \uC624\uB958:"), decodeErr);
                   }
                 } catch (err) {
-                  console.error("[".concat(_this5.name, "] \uB514\uCF54\uB529 \uC911 \uC624\uB958:"), err);
+                  console.error("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uC911 \uC624\uB958:"), err);
                 }
               };
 
@@ -33795,29 +33877,41 @@ var AudioMessageTransport = /*#__PURE__*/function () {
   }, {
     key: "stopListening",
     value: function stopListening() {
+      var _this5 = this;
       if (!this.isRecording) {
         this.log('녹음 중이 아닙니다.', 'info');
-        return;
+        return Promise.resolve();
       }
       try {
         this.log('메시지 수신 대기 중지...', 'info');
 
         // 리소스 정리
         if (this.recorder) {
+          console.log("[".concat(this.name, "] \uC2A4\uD06C\uB9BD\uD2B8 \uD504\uB85C\uC138\uC11C \uB178\uB4DC \uC5F0\uACB0 \uD574\uC81C"));
           this.recorder.disconnect();
+          this.recorder.onaudioprocess = null; // 이벤트 핸들러 명시적 제거
           this.recorder = null;
         }
         if (this.mediaStream) {
-          this.mediaStream.getTracks().forEach(function (track) {
-            return track.stop();
+          console.log("[".concat(this.name, "] \uBAA8\uB4E0 \uB9C8\uC774\uD06C \uD2B8\uB799 \uC911\uC9C0 \uBC0F \uD574\uC81C"));
+          // 모든 트랙에 대해 명시적으로 중지
+          var tracks = this.mediaStream.getTracks();
+          tracks.forEach(function (track) {
+            console.log("[".concat(_this5.name, "] \uB9C8\uC774\uD06C \uD2B8\uB799 \uC911\uC9C0: ").concat(track.kind, " (").concat(track.label, ")"));
+            track.stop();
+            // 선택적: 트랙 활성화 상태 로깅
+            console.log("[".concat(_this5.name, "] \uD2B8\uB799 \uD65C\uC131\uD654 \uC0C1\uD0DC: ").concat(track.enabled));
           });
           this.mediaStream = null;
         }
         this.isRecording = false;
+        console.log("[".concat(this.name, "] \uB9C8\uC774\uD06C \uB179\uC74C \uC911\uC9C0 \uC644\uB8CC"));
+        return Promise.resolve();
       } catch (error) {
         var errorMessage = error instanceof Error ? error.message : String(error);
         this.log("\uB179\uC74C \uC911\uC9C0 \uC2E4\uD328: ".concat(errorMessage), 'error');
-        console.error('녹음 중지 실패:', error);
+        console.error("[".concat(this.name, "] \uB179\uC74C \uC911\uC9C0 \uC2E4\uD328:"), error);
+        return Promise.reject(error);
       }
     }
 
@@ -33883,63 +33977,101 @@ var AudioMessageTransport = /*#__PURE__*/function () {
   }, {
     key: "play",
     value: (function () {
-      var _play = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7(waveform) {
+      var _play = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee8(waveform) {
         var _this6 = this;
         var success, wasRecording, errorMessage, gainNode, compressor, source, _errorMessage;
-        return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-          while (1) switch (_context7.prev = _context7.next) {
+        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+          while (1) switch (_context8.prev = _context8.next) {
             case 0:
               if (this.context) {
-                _context7.next = 7;
+                _context8.next = 7;
                 break;
               }
               console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uCD08\uAE30\uD654\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4."));
-              _context7.next = 4;
+              _context8.next = 4;
               return this.initialize();
             case 4:
-              success = _context7.sent;
+              success = _context8.sent;
               if (success) {
-                _context7.next = 7;
+                _context8.next = 7;
                 break;
               }
               throw new Error('오디오 컨텍스트 초기화 실패');
             case 7:
               // 녹음 상태 저장
               wasRecording = this.isRecording; // 출력 전 녹음 일시 중지 (피드백 방지)
-              if (wasRecording) {
-                console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCD9C\uB825\uC744 \uC704\uD574 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC77C\uC2DC \uC911\uC9C0"));
-                this.stopListening();
-              }
-              if (!(this.context.state !== 'running')) {
-                _context7.next = 23;
+              if (!wasRecording) {
+                _context8.next = 12;
                 break;
               }
-              _context7.prev = 10;
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCD9C\uB825\uC744 \uC704\uD574 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC644\uC804 \uC911\uC9C0"));
+              _context8.next = 12;
+              return this.stopListening();
+            case 12:
+              if (!(this.context.state !== 'running')) {
+                _context8.next = 35;
+                break;
+              }
+              _context8.prev = 13;
               console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC0C1\uD0DC\uAC00 ").concat(this.context.state, "\uC785\uB2C8\uB2E4. \uC7AC\uAC1C \uC2DC\uB3C4."));
-              _context7.next = 14;
+              _context8.next = 17;
               return this.context.resume();
-            case 14:
-              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uC7AC\uAC1C\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC0C1\uD0DC:"), this.context.state);
-              _context7.next = 23;
-              break;
             case 17:
-              _context7.prev = 17;
-              _context7.t0 = _context7["catch"](10);
-              errorMessage = _context7.t0 instanceof Error ? _context7.t0.message : String(_context7.t0);
-              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC7AC\uAC1C \uC2E4\uD328:"), _context7.t0);
+              console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uC7AC\uAC1C\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC0C1\uD0DC:"), this.context.state);
+              _context8.next = 35;
+              break;
+            case 20:
+              _context8.prev = 20;
+              _context8.t0 = _context8["catch"](13);
+              errorMessage = _context8.t0 instanceof Error ? _context8.t0.message : String(_context8.t0);
+              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC7AC\uAC1C \uC2E4\uD328:"), _context8.t0);
               this.log('오디오 컨텍스트를 재개할 수 없습니다', 'error');
-              throw _context7.t0;
-            case 23:
+
+              // 오류 발생 시에도 녹음 상태 복원 시도
+              if (!(wasRecording && !this.isRecording)) {
+                _context8.next = 34;
+                break;
+              }
+              _context8.prev = 26;
+              _context8.next = 29;
+              return this.startListening();
+            case 29:
+              _context8.next = 34;
+              break;
+            case 31:
+              _context8.prev = 31;
+              _context8.t1 = _context8["catch"](26);
+              console.error("[".concat(this.name, "] \uC624\uB958 \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328:"), _context8.t1);
+            case 34:
+              throw _context8.t0;
+            case 35:
               if (!(!waveform || waveform.length === 0)) {
-                _context7.next = 27;
+                _context8.next = 48;
                 break;
               }
               console.error("[".concat(this.name, "] \uC7AC\uC0DD\uD560 \uD30C\uD615\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."));
               this.log('재생할 오디오 데이터가 없습니다', 'error');
-              return _context7.abrupt("return");
-            case 27:
+
+              // 조건 누락 시에도 녹음 상태 복원
+              if (!(wasRecording && !this.isRecording)) {
+                _context8.next = 47;
+                break;
+              }
+              _context8.prev = 39;
+              _context8.next = 42;
+              return this.startListening();
+            case 42:
+              _context8.next = 47;
+              break;
+            case 44:
+              _context8.prev = 44;
+              _context8.t2 = _context8["catch"](39);
+              console.error("[".concat(this.name, "] \uC624\uB958 \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328:"), _context8.t2);
+            case 47:
+              return _context8.abrupt("return");
+            case 48:
               console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC900\uBE44, \uD30C\uD615 \uAE38\uC774:"), waveform.length);
-              _context7.prev = 28;
+              _context8.prev = 49;
               // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
               gainNode = this.context.createGain();
               gainNode.gain.value = 2.0; // 기본 볼륨 증가 (1.0 -> 2.0)
@@ -33967,41 +34099,88 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               this.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC911... (".concat(waveform.length, " \uC0D8\uD50C)"), 'request');
 
               // 전송이 완료될 때까지 기다림 (인코딩된 오디오 길이 + 여유 시간)
-              return _context7.abrupt("return", new Promise(function (resolve) {
+              return _context8.abrupt("return", new Promise(function (resolve) {
                 var waitTime = Math.min(waveform.length + 1000, 10000); // 밀리초 단위 (여유 시간 증가, 최대 10초)
                 console.log("[".concat(_this6.name, "] ").concat(waitTime, "ms \uD6C4 \uC7AC\uC0DD \uC644\uB8CC \uC608\uC815"));
-                setTimeout(function () {
-                  _this6.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC", 'request');
-                  console.log("[".concat(_this6.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
+                setTimeout(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+                  var _success2;
+                  return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+                    while (1) switch (_context7.prev = _context7.next) {
+                      case 0:
+                        _this6.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC", 'request');
+                        console.log("[".concat(_this6.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
 
-                  // 이전에 녹음 중이었다면 녹음 재개
-                  if (wasRecording) {
-                    console.log("[".concat(_this6.name, "] \uC624\uB514\uC624 \uCD9C\uB825 \uC644\uB8CC \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C"));
-                    setTimeout(function () {
-                      _this6.startListening().then(function (success) {
-                        if (success) {
-                          console.log("[".concat(_this6.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC131\uACF5"));
+                        // 이전에 녹음 중이었다면 녹음 재개
+                        if (!wasRecording) {
+                          _context7.next = 18;
+                          break;
+                        }
+                        console.log("[".concat(_this6.name, "] \uC624\uB514\uC624 \uCD9C\uB825 \uC644\uB8CC \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C"));
+                        _this6.log('메시지 전송 완료 - 마이크 감지 재개 준비 중', 'info');
+                        // 약간의 딜레이를 두고 재개 (1000ms로 증가 - 오디오 출력 끝과 새 마이크 감지 시작 사이 충분한 간격)
+                        _context7.next = 7;
+                        return new Promise(function (resolve) {
+                          return setTimeout(resolve, 1000);
+                        });
+                      case 7:
+                        _context7.prev = 7;
+                        _context7.next = 10;
+                        return _this6.startListening();
+                      case 10:
+                        _success2 = _context7.sent;
+                        if (_success2) {
+                          console.log("[".concat(_this6.name, "] \uC0C8 \uB9C8\uC774\uD06C \uC2A4\uD2B8\uB9BC\uC73C\uB85C \uAC10\uC9C0 \uC7AC\uAC1C \uC131\uACF5"));
+                          _this6.log('마이크 감지 재개됨', 'info');
                         } else {
                           console.error("[".concat(_this6.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328"));
+                          _this6.log('마이크 감지 재개 실패', 'error');
                         }
-                      });
-                    }, 200); // 약간의 딜레이를 두고 재개 (200ms)
-                  }
-                  resolve();
-                }, waitTime);
+                        _context7.next = 18;
+                        break;
+                      case 14:
+                        _context7.prev = 14;
+                        _context7.t0 = _context7["catch"](7);
+                        console.error("[".concat(_this6.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC911 \uC624\uB958 \uBC1C\uC0DD:"), _context7.t0);
+                        _this6.log('마이크 감지 재개 중 오류 발생', 'error');
+                      case 18:
+                        resolve();
+                      case 19:
+                      case "end":
+                        return _context7.stop();
+                    }
+                  }, _callee7, null, [[7, 14]]);
+                })), waitTime);
               }));
-            case 48:
-              _context7.prev = 48;
-              _context7.t1 = _context7["catch"](28);
-              _errorMessage = _context7.t1 instanceof Error ? _context7.t1.message : String(_context7.t1);
-              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328:"), _context7.t1);
+            case 69:
+              _context8.prev = 69;
+              _context8.t3 = _context8["catch"](49);
+              _errorMessage = _context8.t3 instanceof Error ? _context8.t3.message : String(_context8.t3);
+              console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328:"), _context8.t3);
               this.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328: ".concat(_errorMessage), 'error');
-              throw _context7.t1;
-            case 54:
+
+              // 오류 발생 시에도 녹음 상태 복원 시도
+              if (!(wasRecording && !this.isRecording)) {
+                _context8.next = 84;
+                break;
+              }
+              _context8.prev = 75;
+              console.log("[".concat(this.name, "] \uC624\uB958 \uBC1C\uC0DD \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2DC\uB3C4"));
+              _context8.next = 79;
+              return this.startListening();
+            case 79:
+              _context8.next = 84;
+              break;
+            case 81:
+              _context8.prev = 81;
+              _context8.t4 = _context8["catch"](75);
+              console.error("[".concat(this.name, "] \uC624\uB958 \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328:"), _context8.t4);
+            case 84:
+              throw _context8.t3;
+            case 85:
             case "end":
-              return _context7.stop();
+              return _context8.stop();
           }
-        }, _callee7, this, [[10, 17], [28, 48]]);
+        }, _callee8, this, [[13, 20], [26, 31], [39, 44], [49, 69], [75, 81]]);
       }));
       function play(_x5) {
         return _play.apply(this, arguments);

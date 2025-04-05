@@ -291,6 +291,9 @@ export class SalHost extends EventEmitter implements ISalHost {
       return;
     }
 
+    // delay 1.5 sec for stable interaction
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     const headers: SalMessageHeaders = {
       ...requestHeaders,
       host: this.cfg.host,

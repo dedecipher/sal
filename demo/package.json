@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "build": "webpack",
-    "serve": "webpack && http-server -p 8080 ."
+    "serve": "webpack && http-server -p 8080 .",
+    "serve2": "webpack && http-server -p 8081 ."
   },
   "dependencies": {
     "@solana/web3.js": "^1.78.5",
@@ -13,7 +14,8 @@
     "bs58": "^5.0.0",
     "buffer": "^6.0.3",
     "process": "^0.11.10",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "vercel": "^41.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.3",
@@ -25,4 +27,4 @@
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
   }
-} 
+}
