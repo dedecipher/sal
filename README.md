@@ -1,5 +1,7 @@
 # GibberLink
 
+<img src="https://avatars.githubusercontent.com/u/206302525?s=200&v=4"/>
+
 GibberLink is a platform for audio-based message encoding and communication, designed to enable efficient communication between AI agents.
 
 ## Project Structure
