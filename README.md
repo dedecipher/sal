@@ -1,8 +1,8 @@
-# GibberLink
+# SSAL
 
 <img src="https://avatars.githubusercontent.com/u/206302525?s=200&v=4"/>
 
-GibberLink is a platform for audio-based message encoding and communication, designed to enable efficient communication between AI agents.
+SSAL provides a secure framework for AI agent, leveraging Solana's native features to  communicate securely for value transfer.
 
 ## Project Structure
 
