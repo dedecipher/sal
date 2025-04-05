@@ -4,7 +4,8 @@ import {
   SalMessageHeaders,
   SalRequest,
   SalResponse,
-  SalMethod
+  SalMethod,
+  ISalClient
 } from '../types';
 import { EventEmitter } from 'events';
 import { AudioCodec, AudioEvent } from './codec';
@@ -14,7 +15,7 @@ import * as nacl from 'tweetnacl';
 /**
  * SalClient는 음성 기반 통신을 통해 SalHost와 통신하는 클라이언트입니다.
  */
-export class SalClient extends EventEmitter {
+export class SalClient extends EventEmitter implements ISalClient {
   private cfg: ClientConfig;
   private isConnected: boolean = false;
   private currentHost: string | null = null;

@@ -58,5 +58,22 @@ export interface SalResponse {
   }
 }
 
+export interface ISalClient {
+  connect: (host: string, phoneNumber?: string) => ISalClient;
+  send: (message: string) => Promise<void>;
+  onSuccess: (callback: () => void) => ISalClient;
+  onFailure: (callback: (error: Error) => void) => ISalClient;
+  close: () => Promise<void>;
+}
+
+export interface ISalHost {
+  register: (handlers: {
+    messageHandler?: MessageHandler;
+    txHandler?: TransactionHandler;
+  }) => ISalHost;
+  run: () => Promise<void>;
+  stop: () => Promise<void>;
+}
+
 export type MessageHandler = (message: string, sender: string) => Promise<void> | void;
 export type TransactionHandler = (transaction: any) => Promise<string> | string;

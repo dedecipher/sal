@@ -6,7 +6,8 @@ import {
   SalRequest,
   SalResponse,
   SalMessageHeaders,
-  SalMethod
+  SalMethod,
+  ISalHost
 } from '../types';
 import { EventEmitter } from 'events';
 import { AudioCodec, AudioEvent } from './codec';
@@ -17,7 +18,7 @@ import { Keypair } from '@solana/web3.js';
 /**
  * SalHost는 음성 기반 통신을 통해 클라이언트와 통신하는 호스트를 구현합니다.
  */
-export class SalHost extends EventEmitter {
+export class SalHost extends EventEmitter implements ISalHost {
   private cfg: HostConfig;
   private messageHandler: MessageHandler | null = null;
   private txHandler: TransactionHandler | null = null;
