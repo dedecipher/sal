@@ -200,9 +200,9 @@ startHostBtn.addEventListener('click', async () => {
     
     // 호스트 구성
     const hostConfig = {
-      cluster: 'testnet',
+      cluster: 'https://api.testnet.solana.com',
       phoneNumber: '123-456-7890',
-      host: hostAddressInput.value || 'audio-host',
+      host: hostAddressInput.value || 'http://localhost:8899',
       keyPair: hostKeypair
     };
     
@@ -379,7 +379,7 @@ connectClientBtn.addEventListener('click', async () => {
     
     // 클라이언트 구성
     const clientConfig = {
-      cluster: 'testnet',
+      cluster: 'https://api.testnet.solana.com',
       keyPair: clientKeypair
     };
     

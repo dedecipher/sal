@@ -265,16 +265,17 @@ export class SalClient extends EventEmitter implements ISalClient {
    */
   private generateNonce(): string {
     // 랜덤한 16바이트 버퍼 생성
-    const buffer = new Uint8Array(16);
+    // const buffer = new Uint8Array(16);
 
-    // 각 바이트에 랜덤값 할당 (브라우저 dependent 코드 제거)
-    for (let i = 0; i < buffer.length; i++) {
-      buffer[i] = Math.floor(Math.random() * 256);
-    }
+    // // 각 바이트에 랜덤값 할당 (브라우저 dependent 코드 제거)
+    // for (let i = 0; i < buffer.length; i++) {
+    //   buffer[i] = Math.floor(Math.random() * 256);
+    // }
 
-    return Array.from(buffer)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    // return Array.from(buffer)
+    //   .map(b => b.toString(16).padStart(2, '0'))
+    //   .join('');
+    return "1";
   }
 
   /**

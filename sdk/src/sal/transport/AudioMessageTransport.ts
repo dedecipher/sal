@@ -29,6 +29,13 @@ export class AudioMessageTransport implements MessageTransport {
   private initialized: boolean = false;
   private logDiv: HTMLElement | null = null;
   
+  // 수신된 청크를 저장하는 버퍼
+  private receivedChunks: string[] = [];
+  // 메시지 구분자
+  private readonly MESSAGE_MARKER = '|@|';
+  // 청크 크기 (바이트)
+  private readonly CHUNK_SIZE = 120;
+  
   /**
    * AudioMessageTransport 생성자
    * @param config 설정 객체
@@ -185,7 +192,7 @@ export class AudioMessageTransport implements MessageTransport {
   }
   
   /**
-   * 메시지 송신 메서드
+   * 메시지 송신 메서드 - 청킹 기능 추가
    * @param message 전송할 메시지
    * @returns 전송 완료 Promise
    */
@@ -220,6 +227,11 @@ export class AudioMessageTransport implements MessageTransport {
         throw new Error('빈 메시지는 전송할 수 없습니다');
       }
       
+      // 메시지 길이 제한 - 너무 긴 메시지는 오디오로 전송하기 어려움
+      if (messageStr.length > 5000) {
+        console.warn(`[${this.name}] 메시지가 매우 깁니다(${messageStr.length}자). 처리 시간이 오래 걸릴 수 있습니다.`);
+      }
+      
       // 유효한 문자열인지 확인 (일부 특수문자나 이진 데이터가 들어오면 문제 발생 가능)
       const validRegex = /^[\x20-\x7E\uAC00-\uD7A3\u3130-\u318F]+$/; // ASCII 가능 문자 및 한글
       if (!validRegex.test(messageStr)) {
@@ -228,11 +240,72 @@ export class AudioMessageTransport implements MessageTransport {
         messageStr = messageStr.replace(/[^\x20-\x7E\uAC00-\uD7A3\u3130-\u318F]/g, '?');
       }
       
-      console.log(`[${this.name}] 메시지 타입: ${typeof messageStr}, 값: "${messageStr}"`);
+      // 메시지에 시작/끝 마커 추가
+      const markedMessage = `${this.MESSAGE_MARKER}${messageStr}${this.MESSAGE_MARKER}`;
       
-      this.log(`메시지 전송 중: "${messageStr}" (${messageStr.length} 바이트)`, 'request');
-      console.log(`[${this.name}] 메시지 인코딩 시작: "${messageStr}"`);
+      // 메시지 크기 정보 표시 (마커 포함)
+      const messageBytesUTF8 = new TextEncoder().encode(markedMessage).length;
+      console.log(`[${this.name}] 마커 포함 메시지 크기: ${markedMessage.length}자 / ${messageBytesUTF8}바이트(UTF-8)`);
       
+      // 메시지를 청크로 분할
+      const messageBytes = new TextEncoder().encode(markedMessage);
+      const totalChunks = Math.ceil(messageBytes.length / this.CHUNK_SIZE);
+      
+      console.log(`[${this.name}] 메시지를 ${totalChunks}개 청크로 분할하여 전송합니다. (청크 크기: ${this.CHUNK_SIZE}바이트)`);
+      this.log(`메시지 전송 시작: 총 ${totalChunks}개 청크 (${messageBytesUTF8}바이트)`, 'request');
+      
+      // 각 청크 전송
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * this.CHUNK_SIZE;
+        const end = Math.min(start + this.CHUNK_SIZE, messageBytes.length);
+        const chunkBytes = messageBytes.slice(start, end);
+        const chunkStr = new TextDecoder().decode(chunkBytes);
+        
+        console.log(`[${this.name}] 청크 #${i+1}/${totalChunks} 전송 중: ${chunkBytes.length}바이트`);
+        this.log(`청크 ${i+1}/${totalChunks} 전송 중...`, 'request');
+        
+        // 각 청크 인코딩 및 전송
+        await this.sendChunk(chunkStr, i+1, totalChunks);
+        
+        // 청크 사이에 짧은 대기 (다음 청크가 있는 경우)
+        if (i < totalChunks - 1) {
+          await new Promise(resolve => setTimeout(resolve, 200)); // 청크 간 대기 시간 (200ms)
+        }
+      }
+      
+      this.log(`모든 청크 전송 완료 (${totalChunks}개)`, 'request');
+      console.log(`[${this.name}] 모든 청크 전송 완료`);
+      
+      // 이전에 녹음 중이었다면 녹음 재개
+      if (wasRecording) {
+        console.log(`[${this.name}] 메시지 출력 완료 후 마이크 감지 재개`);
+        setTimeout(() => {
+          this.startListening().then(success => {
+            if (success) {
+              console.log(`[${this.name}] 마이크 감지 재개 성공`);
+            } else {
+              console.error(`[${this.name}] 마이크 감지 재개 실패`);
+            }
+          });
+        }, 300); // 약간의 딜레이를 두고 재개 (300ms)
+      }
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.log(`메시지 전송 실패: ${errorMessage}`, 'error');
+      console.error(`[${this.name}] 메시지 전송 실패:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * 단일 청크 전송 (내부 메서드)
+   * @param chunk 전송할 청크 문자열
+   * @param chunkNumber 현재 청크 번호
+   * @param totalChunks 총 청크 개수
+   */
+  private async sendChunk(chunk: string, chunkNumber: number, totalChunks: number): Promise<void> {
+    try {
       // ggwave 인스턴스 검증
       if (!this.ggwave) {
         throw new Error('ggwave가 초기화되지 않았습니다.');
@@ -242,117 +315,86 @@ export class AudioMessageTransport implements MessageTransport {
         throw new Error('ggwave 인스턴스가 유효하지 않습니다. 재초기화가 필요합니다.');
       }
       
-      // 프로토콜 확인 및 선택
+      // 프로토콜 확인 및 선택 (빠른 프로토콜 사용)
       let protocol: number;
-      if (this.ggwave.ProtocolId && this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_NORMAL !== undefined) {
-        protocol = this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_NORMAL;
-      } else if (this.ggwave.ProtocolId && this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST !== undefined) {
+      if (this.ggwave.ProtocolId && this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST !== undefined) {
         protocol = this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST;
       } else {
         // 프로토콜을 찾을 수 없으면 기본값 사용
-        protocol = 1; // GGWAVE_PROTOCOL_AUDIBLE_NORMAL 일반적으로 1
-        console.log(`[${this.name}] 프로토콜 ID를 찾을 수 없어 기본값 사용:`, protocol);
+        protocol = 2; // GGWAVE_PROTOCOL_AUDIBLE_FAST는 보통 2
       }
       
-      const volume = 50; // 볼륨 증가 (0-100)
+      // 볼륨 설정
+      const volume = 80; // 볼륨 증가 (0-100)
       
-      console.log(`[${this.name}] 선택된 프로토콜: ${protocol}, 볼륨: ${volume}`);
+      console.log(`[${this.name}] 청크 #${chunkNumber} 인코딩 시작 (${chunk.length}자)`);
       
-      // 안전하게 인코딩 시도 (try/catch 내부에서)
-      try {
-        // 최종 타입 확인
-        if (typeof messageStr !== 'string') {
-          throw new Error(`messageStr은 문자열이어야 합니다. 현재 타입: ${typeof messageStr}`);
-        }
-        
-        console.log(`[${this.name}] 인코딩 직전 확인 - messageStr=[${messageStr}], 타입=${typeof messageStr}, 길이=${messageStr.length}`);
-        
-        // ggwave로 메시지 인코딩
-        const waveform = this.ggwave.encode(
-          this.instance,
-          messageStr,
-          protocol,
-          volume
-        );
-      
-        if (!waveform || waveform.length === 0) {
-          throw new Error('오디오 인코딩 실패: 빈 파형이 반환되었습니다.');
-        }
-        
-        console.log(`[${this.name}] 인코딩 완료, 파형 길이: ${waveform.length} 샘플`);
-        
-        // Float32Array로 변환하여 오디오 버퍼 생성
-        if (!this.context) {
-          throw new Error('오디오 컨텍스트가 초기화되지 않았습니다.');
-        }
-        
-        const buf = this.convertTypedArray(waveform, Float32Array);
-        if (!buf) {
-          throw new Error('파형 변환 실패');
-        }
-        
-        const buffer = this.context.createBuffer(1, buf.length, this.context.sampleRate);
-        buffer.getChannelData(0).set(buf);
-        
-        // 예상 재생 시간 (초)
-        const duration = buffer.duration;
-        console.log(`[${this.name}] 오디오 버퍼 생성됨, 길이: ${duration.toFixed(2)}초`);
-        
-        // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
-        const gainNode = this.context.createGain();
-        gainNode.gain.value = 2.0; // 기본 볼륨 증가 (1.0 -> 2.0)
-        
-        // 오디오 소스 생성 및 출력
-        const source = this.context.createBufferSource();
-        source.buffer = buffer;
-        
-        // 노드 연결: source -> gain -> destination
-        source.connect(gainNode);
-        gainNode.connect(this.context.destination);
-        
-        // 재생 시작
-        source.start(0);
-        console.log(`[${this.name}] 오디오 재생 시작`);
-        
-        this.log(`오디오 재생 중... (${waveform.length} 샘플)`, 'request');
-        
-        // 전송이 완료될 때까지 기다림 (인코딩된 오디오 길이 + 여유 시간)
-        return new Promise<void>(resolve => {
-          const waitTime = Math.min(waveform.length + 1000, 10000); // 밀리초 단위 (여유 시간 증가, 최대 10초)
-          console.log(`[${this.name}] ${waitTime}ms 후 재생 완료 예정`);
-          
-          setTimeout(() => {
-            this.log(`오디오 재생 완료`, 'request');
-            console.log(`[${this.name}] 오디오 재생 완료`);
-            
-            // 이전에 녹음 중이었다면 녹음 재개
-            if (wasRecording) {
-              console.log(`[${this.name}] 메시지 출력 완료 후 마이크 감지 재개`);
-              setTimeout(() => {
-                this.startListening().then(success => {
-                  if (success) {
-                    console.log(`[${this.name}] 마이크 감지 재개 성공`);
-                  } else {
-                    console.error(`[${this.name}] 마이크 감지 재개 실패`);
-                  }
-                });
-              }, 100); // 약간의 딜레이를 두고 재개 (100ms)
-            }
-            
-            resolve();
-          }, waitTime);
-        });
-      } catch (encodeError) {
-        const errorMessage = encodeError instanceof Error ? encodeError.message : String(encodeError);
-        console.error(`[${this.name}] 인코딩 오류 발생:`, encodeError);
-        this.log(`인코딩 오류: ${errorMessage}`, 'error');
-        throw new Error(`오디오 인코딩 실패: ${errorMessage}`);
+      // ggwave로 청크 인코딩
+      const waveform = this.ggwave.encode(
+        this.instance,
+        chunk,
+        protocol,
+        volume
+      );
+    
+      if (!waveform || waveform.length === 0) {
+        throw new Error('오디오 인코딩 실패: 빈 파형이 반환되었습니다.');
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.log(`메시지 전송 실패: ${errorMessage}`, 'error');
-      console.error(`[${this.name}] 메시지 전송 실패:`, error);
-      throw error;
+      
+      console.log(`[${this.name}] 청크 #${chunkNumber} 인코딩 완료, 파형 길이: ${waveform.length} 샘플`);
+      
+      // Float32Array로 변환하여 오디오 버퍼 생성
+      if (!this.context) {
+        throw new Error('오디오 컨텍스트가 초기화되지 않았습니다.');
+      }
+      
+      const buf = this.convertTypedArray(waveform, Float32Array);
+      if (!buf) {
+        throw new Error('파형 변환 실패');
+      }
+      
+      const buffer = this.context.createBuffer(1, buf.length, this.context.sampleRate);
+      buffer.getChannelData(0).set(buf);
+      
+      // 예상 재생 시간 (초)
+      const duration = buffer.duration;
+      console.log(`[${this.name}] 청크 #${chunkNumber} 오디오 버퍼 생성됨, 길이: ${duration.toFixed(2)}초`);
+      
+      // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
+      const gainNode = this.context.createGain();
+      gainNode.gain.value = 2.5; // 볼륨 증가
+      
+      // 오디오 소스 생성 및 출력
+      const source = this.context.createBufferSource();
+      source.buffer = buffer;
+      
+      // 노드 연결: source -> gain -> destination
+      source.connect(gainNode);
+      gainNode.connect(this.context.destination);
+      
+      // 재생 시작
+      source.start(0);
+      console.log(`[${this.name}] 청크 #${chunkNumber} 오디오 재생 시작`);
+      
+      // 전송이 완료될 때까지 기다림 (인코딩된 오디오 길이 + 여유 시간)
+      return new Promise<void>(resolve => {
+        // 예상 재생 시간 + 추가 여유 시간 (초)
+        const bufferDuration = duration * 1000; // 밀리초로 변환
+        const extraTime = Math.max(300, duration * 1000 * 0.2); // 여유 시간 (최소 300ms, 또는 재생 시간의 20%)
+        const waitTime = bufferDuration + extraTime;
+        
+        console.log(`[${this.name}] 청크 #${chunkNumber} ${waitTime.toFixed(0)}ms 후 재생 완료 예정`);
+        
+        setTimeout(() => {
+          console.log(`[${this.name}] 청크 #${chunkNumber} 오디오 재생 완료`);
+          resolve();
+        }, waitTime);
+      });
+    } catch (encodeError) {
+      const errorMessage = encodeError instanceof Error ? encodeError.message : String(encodeError);
+      console.error(`[${this.name}] 청크 #${chunkNumber} 인코딩 오류 발생:`, encodeError);
+      this.log(`청크 #${chunkNumber} 인코딩 오류: ${errorMessage}`, 'error');
+      throw new Error(`청크 #${chunkNumber} 오디오 인코딩 실패: ${errorMessage}`);
     }
   }
   
@@ -380,6 +422,9 @@ export class AudioMessageTransport implements MessageTransport {
       this.log('이미 녹음 중입니다.', 'info');
       return true;
     }
+    
+    // 청크 버퍼 초기화
+    this.receivedChunks = [];
     
     try {
       this.log('메시지 수신 대기 중...', 'info');
@@ -432,8 +477,6 @@ export class AudioMessageTransport implements MessageTransport {
         
         // 5초마다 로그 출력 (디버깅용)
         if (now - lastLog > 5000) {
-          // console.log(`[${this.name}] 오디오 처리 중... (${processCount}회 처리됨)`);
-          // console.log(`[${this.name}] 신호 강도:`, signalStrength.toFixed(6));
           lastLog = now;
         }
         
@@ -444,20 +487,15 @@ export class AudioMessageTransport implements MessageTransport {
             return; // 신호가 너무 약하면 처리하지 않음
           }
           
-          // 강한 신호가 감지되면 로그
-          if (signalStrength > 0.01) {
-            console.log(`[${this.name}] 강한 신호 감지: ${signalStrength.toFixed(6)}, 디코딩 시도`);
-          }
-          
           // ggwave 인스턴스 확인
           if (!this.instance || typeof this.instance !== 'number' || !this.ggwave) {
             console.error(`[${this.name}] ggwave 인스턴스가 유효하지 않습니다.`);
             return;
           }
           
-          // 디코딩 시도 - audioUtils.ts의 구현 방식을 따라 수정
+          // 디코딩 시도
           try {
-            // Float32Array를 Int8Array로 변환 (audioUtils.ts 방식으로)
+            // Float32Array를 Int8Array로 변환
             const result = this.ggwave.decode(
               this.instance,
               this.convertTypedArray(new Float32Array(sourceBuf), Int8Array)
@@ -465,75 +503,45 @@ export class AudioMessageTransport implements MessageTransport {
             
             // 결과 출력
             if (result && result.byteLength > 0) {
-              console.log(`[${this.name}] 디코딩 결과: byteLength=${result.byteLength}`);
-              
               // 문자열로 변환
               const text = new TextDecoder("utf-8").decode(result);
-              console.log(`[${this.name}] 🎵 디코딩 성공! 메시지: "${text}"`);
-              console.log(`[${this.name}] 📊 디코딩 정보: 결과크기=${result.byteLength}바이트, 메시지길이=${text.length}자`);
               
-              // 디버깅용 - 바이너리 데이터 출력
-              const bytes = Array.from(new Uint8Array(result))
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join(' ');
-              console.log(`[${this.name}] 📊 원시 바이트: ${bytes}`);
+              console.log(`[${this.name}] 청크 수신: ${result.byteLength}바이트, "${text}"`);
               
-              // JSON 메시지인지 확인하고 안전하게 처리
-              const isJsonMsg = text.trim().startsWith('{') && (text.trim().endsWith('}') || text.includes('"method":'));
+              // 청크를 수신 버퍼에 추가
+              this.receivedChunks.push(text);
               
-              if (isJsonMsg) {
-                try {
-                  // JSON 문자열 정리 - 끝이 잘렸을 수 있음
-                  let jsonText = text.trim();
-                  
-                  // 중간에 잘린 경우 처리 (끝 부분이 없는 경우)
-                  if (!jsonText.endsWith('}')) {
-                    console.warn(`[${this.name}] 불완전한 JSON이 감지됨: ${jsonText}`);
-                    this.log(`불완전한 JSON 감지됨, 처리 시도 중...`, 'info');
-                    
-                    // 가능한 경우 끝 중괄호 추가
-                    if (jsonText.includes('{"method":') || jsonText.includes('{"headers":')) {
-                      // 중괄호 갯수 확인
-                      const openCount = (jsonText.match(/{/g) || []).length;
-                      const closeCount = (jsonText.match(/}/g) || []).length;
-                      const missing = openCount - closeCount;
-                      
-                      if (missing > 0) {
-                        // 빠진 만큼 닫는 중괄호 추가
-                        jsonText += '}'.repeat(missing);
-                        console.log(`[${this.name}] 누락된 중괄호 ${missing}개 추가: ${jsonText}`);
-                      }
-                    }
-                  }
-                  
-                  // JSON 파싱 시도
-                  const jsonObj = JSON.parse(jsonText);
-                  
-                  // 성공적으로 파싱된 경우 이벤트 발생
-                  this.log(`JSON 메시지 수신 성공!`, 'response');
-                  console.log(`[${this.name}] 📊 파싱된 JSON:`, jsonObj);
-                  this.emitter.emit('message_received', jsonText);
-                } catch (jsonErr) {
-                  // JSON 파싱 실패
-                  const errMsg = jsonErr instanceof Error ? jsonErr.message : String(jsonErr);
-                  console.error(`[${this.name}] JSON 파싱 오류:`, errMsg);
-                  this.log(`JSON 파싱 오류: ${errMsg}`, 'error');
-                  
-                  // 전송 성공 했지만 형식이 맞지 않으면 원본 텍스트 그대로 전달
-                  if (text.trim().length > 0) {
-                    this.log(`원본 텍스트 전달: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}`, 'info');
-                    this.emitter.emit('message_received', text);
-                  }
+              // 수신된 청크들을 결합하여 완전한 메시지가 있는지 확인
+              const combinedMessage = this.receivedChunks.join('');
+              
+              // 마커로 둘러싸인 메시지 검색
+              const markerStart = combinedMessage.indexOf(this.MESSAGE_MARKER);
+              const markerEnd = combinedMessage.indexOf(this.MESSAGE_MARKER, markerStart + this.MESSAGE_MARKER.length);
+              
+              // 시작과 끝 마커가 모두 발견되면 완전한 메시지가 있음
+              if (markerStart !== -1 && markerEnd !== -1) {
+                // 마커 사이의 메시지 추출
+                const completeMessage = combinedMessage.substring(
+                  markerStart + this.MESSAGE_MARKER.length, 
+                  markerEnd
+                );
+                
+                console.log(`[${this.name}] 완전한 메시지 수신: ${completeMessage.length}자`);
+                this.log(`완전한 메시지 수신됨 (${completeMessage.length}자)`, 'response');
+                
+                // 메시지 이벤트 발생
+                this.emitter.emit('message_received', completeMessage);
+                
+                // 메시지 핸들러가 있으면 호출
+                if (this.messageHandler) {
+                  this.messageHandler(completeMessage);
                 }
-              } else {
-                // 일반 텍스트 메시지
-                this.log(`디코딩된 메시지: ${text}`, 'response');
-                this.emitter.emit('message_received', text);
-              }
-            } else {
-              // 결과가 없을 때는 디버그 로그만
-              if (signalStrength > 0.05) {
-                console.log(`[${this.name}] 디코딩 시도 결과: 신호 감지되었으나 디코딩 실패`);
+                
+                // 처리된 메시지는 제거하고 나머지 데이터는 유지
+                const remainingMessage = combinedMessage.substring(markerEnd + this.MESSAGE_MARKER.length);
+                this.receivedChunks = remainingMessage ? [remainingMessage] : [];
+                
+                console.log(`[${this.name}] 버퍼 정리됨, 남은 데이터: ${remainingMessage.length}자`);
               }
             }
           } catch (decodeErr) {
