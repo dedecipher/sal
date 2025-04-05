@@ -4,23 +4,16 @@
 
 import { Keypair } from "@solana/web3.js";
 
-export enum Modality {
-  VOICE = 'voice',
-  TCP = 'tcp'
-}
-
 export interface HostConfig {
   cluster: string;       // Required: Solana cluster
   phoneNumber: string;   // Required: Phone number
   host: string;          // Required: Host address
-  keyPair: Keypair;    // Required: Solana private key
-  modality?: Modality;   // Optional: Communication modality (default: VOICE)
+  keyPair: Keypair;      // Required: Solana private key
 }
 
 export interface ClientConfig {
   cluster: string;       // Required: Solana cluster
-  keyPair: Keypair;    // Required: Solana private key
-  modality?: Modality;   // Optional: Communication modality (default: VOICE)
+  keyPair: Keypair;      // Required: Solana private key
 }
 
 export interface SalMessageHeaders {
@@ -73,6 +66,18 @@ export interface ISalHost {
   }) => ISalHost;
   run: () => Promise<void>;
   stop: () => Promise<void>;
+}
+
+/**
+ * I/O 인터페이스 - 메시지 통신에 사용되는 입출력 인터페이스
+ */
+export interface IMessageTransport {
+  sendMessage(message: string): Promise<void>;
+  onMessage(handler: (message: string) => void): void;
+  startListening(): Promise<boolean>;
+  stopListening(): void;
+  connect(): Promise<void>;
+  disconnect(): Promise<void>;
 }
 
 export type MessageHandler = (message: string, sender: string) => Promise<void> | void;

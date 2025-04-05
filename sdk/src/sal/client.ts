@@ -1,25 +1,25 @@
 import {
   ClientConfig,
-  Modality,
   SalMessageHeaders,
   SalRequest,
   SalResponse,
   SalMethod,
-  ISalClient
+  ISalClient,
+  IMessageTransport
 } from '../types';
 import { EventEmitter } from 'events';
-import { AudioCodec, AudioEvent } from './codec';
 import bs58 from 'bs58';
 import { Keypair } from '@solana/web3.js';
 import * as nacl from 'tweetnacl';
+
 /**
- * SalClient는 음성 기반 통신을 통해 SalHost와 통신하는 클라이언트입니다.
+ * SalClient는 SalHost와 통신하는 클라이언트입니다.
  */
 export class SalClient extends EventEmitter implements ISalClient {
   private cfg: ClientConfig;
   private isConnected: boolean = false;
   private currentHost: string | null = null;
-  private audioCodec: AudioCodec | null = null;
+  private messageTransport: IMessageTransport | null = null;
   private pendingRequests: Map<string, { resolve: (value: any) => void, reject: (reason?: any) => void }> = new Map();
   private keypair: Keypair;
 
@@ -27,7 +27,7 @@ export class SalClient extends EventEmitter implements ISalClient {
   private onSuccessCallback: (() => void) | null = null;
   private onFailureCallback: ((error: Error) => void) | null = null;
 
-  constructor(config: ClientConfig) {
+  constructor(config: ClientConfig, messageTransport: IMessageTransport) {
     super();
     
     // 필수 설정 확인
@@ -35,13 +35,16 @@ export class SalClient extends EventEmitter implements ISalClient {
       throw new Error('필수 설정 매개변수가 누락되었습니다.');
     }
     
-    this.cfg = {
-      ...config,
-      modality: Modality.VOICE // VOICE 모드만 지원
-    };
+    this.cfg = { ...config };
     
     // 키페어 생성
     this.keypair = config.keyPair;
+    
+    // 메시지 전송 인터페이스 설정
+    this.messageTransport = messageTransport;
+    
+    // 메시지 핸들러 등록
+    this.messageTransport.onMessage(this.handleIncomingMessage.bind(this));
   }
   
   /**
@@ -49,9 +52,6 @@ export class SalClient extends EventEmitter implements ISalClient {
    */
   public connect(host: string, phoneNumber?: string): SalClient {
     this.currentHost = host;
-    
-    // 오디오 수신 시작
-    this.initAudioCodec();
     
     // 연결 프로세스 시작
     this.performConnection(host, phoneNumber);
@@ -98,10 +98,8 @@ export class SalClient extends EventEmitter implements ISalClient {
       return;
     }
     
-    if (this.audioCodec) {
-      this.audioCodec.stopListening();
-      this.audioCodec.dispose();
-      this.audioCodec = null;
+    if (this.messageTransport) {
+      await this.messageTransport.disconnect();
     }
     
     this.isConnected = false;
@@ -111,40 +109,17 @@ export class SalClient extends EventEmitter implements ISalClient {
   }
   
   /**
-   * 오디오 코덱을 초기화합니다.
+   * 수신 메시지를 처리합니다.
    */
-  private async initAudioCodec(): Promise<void> {
-    // 이미 초기화되어 있으면 리턴
-    if (this.audioCodec) {
-      return;
-    }
-    
-    // 새 인스턴스 생성
-    this.audioCodec = new AudioCodec('CLIENT');
-    
-    // 메시지 핸들러 등록
-    this.audioCodec.onMessage(this.handleAudioMessage.bind(this));
-    
-    // 오디오 수신 시작
-    await this.audioCodec.startListening();
-  }
-  
-  /**
-   * 오디오 메시지를 처리합니다.
-   */
-  private handleAudioMessage(event: AudioEvent): void {
+  private handleIncomingMessage(messageStr: string): void {
     try {
-      if (event.source === 'self') {
-        return; // 자신이 보낸 메시지는 무시
-      }
-      
       // JSON 파싱 시도
-      const response = JSON.parse(event.message) as SalResponse;
+      const response = JSON.parse(messageStr) as SalResponse;
       
       // 응답 처리
       this.handleResponse(response);
     } catch (error) {
-      console.error('오디오 메시지 처리 오류:', error);
+      console.error('메시지 처리 오류:', error);
     }
   }
   
@@ -154,6 +129,11 @@ export class SalClient extends EventEmitter implements ISalClient {
   private async performConnection(host: string, phoneNumber?: string): Promise<void> {
     try {
       console.log(`${host}에 연결 중...`);
+      
+      // 전송 계층 연결
+      if (this.messageTransport) {
+        await this.messageTransport.connect();
+      }
       
       // GM 메시지 헤더 생성
       const headers: SalMessageHeaders = {
@@ -218,11 +198,8 @@ export class SalClient extends EventEmitter implements ISalClient {
     headers: SalMessageHeaders,
     body: any
   ): Promise<SalResponse> {
-    if (!this.audioCodec) {
-      await this.initAudioCodec();
-      if (!this.audioCodec) {
-        throw new Error('오디오 코덱을 초기화할 수 없습니다.');
-      }
+    if (!this.messageTransport) {
+      throw new Error('메시지 전송 인터페이스가 설정되지 않았습니다.');
     }
     
     // 요청 생성
@@ -252,8 +229,8 @@ export class SalClient extends EventEmitter implements ISalClient {
         reject
       });
       
-      // 오디오로 전송
-      this.audioCodec!.sendMessage(requestJson, true)
+      // 메시지 전송
+      this.messageTransport!.sendMessage(requestJson)
         .catch(error => {
           clearTimeout(timeoutId);
           this.pendingRequests.delete(headers.nonce);
@@ -284,8 +261,14 @@ export class SalClient extends EventEmitter implements ISalClient {
    * 랜덤 nonce를 생성합니다.
    */
   private generateNonce(): string {
+    // 랜덤한 16바이트 버퍼 생성
     const buffer = new Uint8Array(16);
-    window.crypto.getRandomValues(buffer);
+    
+    // 각 바이트에 랜덤값 할당 (브라우저 dependent 코드 제거)
+    for (let i = 0; i < buffer.length; i++) {
+      buffer[i] = Math.floor(Math.random() * 256);
+    }
+    
     return Array.from(buffer)
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');

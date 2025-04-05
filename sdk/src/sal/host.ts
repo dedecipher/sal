@@ -2,33 +2,32 @@ import {
   HostConfig,
   MessageHandler,
   TransactionHandler,
-  Modality,
   SalRequest,
   SalResponse,
   SalMessageHeaders,
   SalMethod,
-  ISalHost
+  ISalHost,
+  IMessageTransport
 } from '../types';
 import { EventEmitter } from 'events';
-import { AudioCodec, AudioEvent } from './codec';
 import * as nacl from 'tweetnacl';
 import bs58 from 'bs58';
 import { Keypair } from '@solana/web3.js';
 
 /**
- * SalHost는 음성 기반 통신을 통해 클라이언트와 통신하는 호스트를 구현합니다.
+ * SalHost는 클라이언트와 통신하는 호스트를 구현합니다.
  */
 export class SalHost extends EventEmitter implements ISalHost {
   private cfg: HostConfig;
   private messageHandler: MessageHandler | null = null;
   private txHandler: TransactionHandler | null = null;
-  private audioCodec: AudioCodec | null = null;
+  private messageTransport: IMessageTransport | null = null;
   private clients: Map<string, { publicKey: string }> = new Map();
   private isRunning: boolean = false;
   private seenNonces: Set<string> = new Set(); // 재전송 공격 방지
   private keypair: Keypair;
 
-  constructor(config: HostConfig) {
+  constructor(config: HostConfig, messageTransport: IMessageTransport) {
     super();
     
     // 필수 설정 확인
@@ -36,32 +35,16 @@ export class SalHost extends EventEmitter implements ISalHost {
       throw new Error('필수 설정 매개변수가 누락되었습니다.');
     }
     
-    this.cfg = {
-      ...config,
-      modality: Modality.VOICE // VOICE 모드만 지원
-    };
+    this.cfg = { ...config };
     
     // 키페어 생성
     this.keypair = config.keyPair;
-  }
-  
-  /**
-   * 호스트를 초기화합니다.
-   */
-  public async init(): Promise<void> {
-    try {
-      console.log(`${this.cfg.host}에 대한 SAL 호스트 초기화`);
-      
-      // 오디오 코덱 초기화
-      this.audioCodec = new AudioCodec('HOST');
-      
-      // 초기화 이벤트 발생
-      this.emit('initialized');
-    } catch (error) {
-      console.error('SAL 호스트 초기화 실패:', error);
-      this.emit('error', error);
-      throw error;
-    }
+    
+    // 메시지 전송 인터페이스 설정
+    this.messageTransport = messageTransport;
+    
+    // 메시지 핸들러 등록
+    this.messageTransport.onMessage(this.handleIncomingMessage.bind(this));
   }
   
   /**
@@ -92,17 +75,14 @@ export class SalHost extends EventEmitter implements ISalHost {
     }
     
     try {
-      if (!this.audioCodec) {
-        throw new Error('오디오 코덱이 초기화되지 않았습니다.');
+      if (!this.messageTransport) {
+        throw new Error('메시지 전송 인터페이스가 설정되지 않았습니다.');
       }
       
-      // 오디오 메시지 리스너 설정
-      this.audioCodec.onMessage(this.handleAudioMessage.bind(this));
-      
-      // 오디오 수신 시작
-      const success = await this.audioCodec.startListening();
+      // 메시지 수신 시작
+      const success = await this.messageTransport.startListening();
       if (!success) {
-        throw new Error('오디오 수신을 시작할 수 없습니다.');
+        throw new Error('메시지 수신을 시작할 수 없습니다.');
       }
       
       this.isRunning = true;
@@ -123,10 +103,8 @@ export class SalHost extends EventEmitter implements ISalHost {
       return;
     }
     
-    if (this.audioCodec) {
-      this.audioCodec.stopListening();
-      this.audioCodec.dispose();
-      this.audioCodec = null;
+    if (this.messageTransport) {
+      this.messageTransport.stopListening();
     }
     
     this.isRunning = false;
@@ -135,21 +113,17 @@ export class SalHost extends EventEmitter implements ISalHost {
   }
   
   /**
-   * 오디오 메시지를 처리합니다.
+   * 메시지를 처리합니다.
    */
-  private handleAudioMessage(event: AudioEvent): void {
+  private handleIncomingMessage(messageStr: string): void {
     try {
-      if (event.source === 'self') {
-        return; // 자신이 보낸 메시지는 무시
-      }
-      
       // JSON 파싱 시도
-      const request = JSON.parse(event.message) as SalRequest;
+      const request = JSON.parse(messageStr) as SalRequest;
       
       // 요청 처리
-      this.processIncomingRequest(request, 'audio-source');
+      this.processIncomingRequest(request, 'message-source');
     } catch (error) {
-      console.error('오디오 메시지 처리 오류:', error);
+      console.error('메시지 처리 오류:', error);
     }
   }
   
@@ -271,8 +245,8 @@ export class SalHost extends EventEmitter implements ISalHost {
     destination: string,
     status: 'ok' | 'error' = 'ok'
   ): Promise<void> {
-    if (!this.audioCodec) {
-      console.error('오디오 코덱이 초기화되지 않았습니다.');
+    if (!this.messageTransport) {
+      console.error('메시지 전송 인터페이스가 설정되지 않았습니다.');
       return;
     }
     
@@ -295,8 +269,8 @@ export class SalHost extends EventEmitter implements ISalHost {
     // 응답을 JSON 문자열로 변환
     const responseJson = JSON.stringify(response);
     
-    // 오디오로 전송
-    await this.audioCodec.sendMessage(responseJson, true);
+    // 메시지 전송
+    await this.messageTransport.sendMessage(responseJson);
   }
   
   /**
