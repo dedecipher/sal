@@ -32238,8 +32238,11 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
               return this.sendRequest(_types__WEBPACK_IMPORTED_MODULE_0__.SalMethod.GM, headers, body);
             case 9:
               response = _context3.sent;
+              console.log("\uC5F0\uACB0 \uC751\uB2F5: ".concat(JSON.stringify(response)));
+
+              // 응답 확인
               if (!(response.status === 'ok')) {
-                _context3.next = 16;
+                _context3.next = 17;
                 break;
               }
               this.isConnected = true;
@@ -32247,25 +32250,25 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
               if (this.onSuccessCallback) {
                 this.onSuccessCallback();
               }
-              _context3.next = 17;
+              _context3.next = 18;
               break;
-            case 16:
-              throw new Error("\uC5F0\uACB0 \uAC70\uBD80\uB428: ".concat(JSON.stringify(response.msg.body)));
             case 17:
-              _context3.next = 23;
+              throw new Error("\uC5F0\uACB0 \uAC70\uBD80\uB428: ".concat(JSON.stringify(response.msg.body)));
+            case 18:
+              _context3.next = 24;
               break;
-            case 19:
-              _context3.prev = 19;
+            case 20:
+              _context3.prev = 20;
               _context3.t0 = _context3["catch"](0);
               if (this.onFailureCallback) {
                 this.onFailureCallback(_context3.t0 instanceof Error ? _context3.t0 : new Error(String(_context3.t0)));
               }
               this.emit('error', _context3.t0);
-            case 23:
+            case 24:
             case "end":
               return _context3.stop();
           }
-        }, _callee3, this, [[0, 19]]);
+        }, _callee3, this, [[0, 20]]);
       }));
       function performConnection(_x2, _x3) {
         return _performConnection.apply(this, arguments);
@@ -32336,7 +32339,7 @@ var SalClient = /*#__PURE__*/function (_EventEmitter) {
                 var timeoutId = setTimeout(function () {
                   _this2.pendingRequests["delete"](headers.nonce);
                   reject(new Error('응답 타임아웃'));
-                }, 20000);
+                }, 1000000);
 
                 // 요청 등록
                 _this2.pendingRequests.set(headers.nonce, {
@@ -32807,7 +32810,7 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
     key: "processIncomingRequest",
     value: (function () {
       var _processIncomingRequest = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4(request, source) {
-        var nonce, isValid;
+        var isValid;
         return _regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
@@ -32820,57 +32823,53 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
               return _context4.abrupt("return");
             case 4:
               // nonce 확인 (재전송 공격 방지)
-              nonce = request.msg.headers.nonce;
-              if (!this.seenNonces.has(nonce)) {
-                _context4.next = 8;
-                break;
-              }
-              this.emit('error', new Error('이미 처리된 nonce'));
-              return _context4.abrupt("return");
-            case 8:
-              this.seenNonces.add(nonce);
-
+              // const nonce = request.msg.headers.nonce;
+              // if (this.seenNonces.has(nonce)) {
+              //   this.emit('error', new Error('이미 처리된 nonce'));
+              //   return;
+              // }
+              // this.seenNonces.add(nonce);
               // 서명 확인
               isValid = this.verifySignature(request.msg.headers.publicKey, JSON.stringify(request.msg), request.sig);
               if (isValid) {
-                _context4.next = 13;
+                _context4.next = 8;
                 break;
               }
               this.emit('error', new Error('잘못된 메시지 서명'));
               return _context4.abrupt("return");
-            case 13:
+            case 8:
               _context4.t0 = request.method;
-              _context4.next = _context4.t0 === _types__WEBPACK_IMPORTED_MODULE_0__.SalMethod.GM ? 16 : _context4.t0 === _types__WEBPACK_IMPORTED_MODULE_0__.SalMethod.MSG ? 19 : _context4.t0 === _types__WEBPACK_IMPORTED_MODULE_0__.SalMethod.TX ? 22 : 25;
+              _context4.next = _context4.t0 === _types__WEBPACK_IMPORTED_MODULE_0__.SalMethod.GM ? 11 : _context4.t0 === _types__WEBPACK_IMPORTED_MODULE_0__.SalMethod.MSG ? 14 : _context4.t0 === _types__WEBPACK_IMPORTED_MODULE_0__.SalMethod.TX ? 17 : 20;
               break;
-            case 16:
-              _context4.next = 18;
+            case 11:
+              _context4.next = 13;
               return this.handleGM(request.msg.headers, request.msg.body, source);
-            case 18:
-              return _context4.abrupt("break", 26);
-            case 19:
-              _context4.next = 21;
+            case 13:
+              return _context4.abrupt("break", 21);
+            case 14:
+              _context4.next = 16;
               return this.handleMessage(request.msg.headers, request.msg.body, source);
-            case 21:
-              return _context4.abrupt("break", 26);
-            case 22:
-              _context4.next = 24;
+            case 16:
+              return _context4.abrupt("break", 21);
+            case 17:
+              _context4.next = 19;
               return this.handleTransaction(request.msg.headers, request.msg.body, source);
-            case 24:
-              return _context4.abrupt("break", 26);
-            case 25:
+            case 19:
+              return _context4.abrupt("break", 21);
+            case 20:
               this.emit('error', new Error("\uC54C \uC218 \uC5C6\uB294 \uBA54\uC11C\uB4DC: ".concat(request.method)));
-            case 26:
-              _context4.next = 31;
+            case 21:
+              _context4.next = 26;
               break;
-            case 28:
-              _context4.prev = 28;
+            case 23:
+              _context4.prev = 23;
               _context4.t1 = _context4["catch"](0);
               this.emit('error', _context4.t1);
-            case 31:
+            case 26:
             case "end":
               return _context4.stop();
           }
-        }, _callee4, this, [[0, 28]]);
+        }, _callee4, this, [[0, 23]]);
       }));
       function processIncomingRequest(_x2, _x3) {
         return _processIncomingRequest.apply(this, arguments);

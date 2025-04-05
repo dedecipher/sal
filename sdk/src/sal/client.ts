@@ -160,6 +160,7 @@ export class SalClient extends EventEmitter implements ISalClient {
 
       // GM 메시지 전송
       const response = await this.sendRequest(SalMethod.GM, headers, body);
+      console.log(`연결 응답: ${JSON.stringify(response)}`);
 
       // 응답 확인
       if (response.status === 'ok') {
@@ -223,7 +224,7 @@ export class SalClient extends EventEmitter implements ISalClient {
       const timeoutId = setTimeout(() => {
         this.pendingRequests.delete(headers.nonce);
         reject(new Error('응답 타임아웃'));
-      }, 20000);
+      }, 1_000_000);
       
       // 요청 등록
       this.pendingRequests.set(headers.nonce, {
