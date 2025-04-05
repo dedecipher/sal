@@ -18,7 +18,7 @@ export default function ModeSelector({ onModeChange, currentMode }: ModeSelector
   };
 
   return (
-    <div className="relative z-[1000]">
+    <div className="relative z-[1000] flex items-center">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
@@ -32,6 +32,13 @@ export default function ModeSelector({ onModeChange, currentMode }: ModeSelector
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
+      </button>
+
+      <button
+        onClick={() => window.open('https://ssal.opennumbers.xyz/', '_blank')}
+        className="ml-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+      >
+        SSAL DevTools
       </button>
       
       {isOpen && (
