@@ -8,16 +8,14 @@ GibberLink is a platform for audio-based message encoding and communication, des
 
 This project is set up as a monorepo with the following components:
 
-- `packages/gibberlink-sdk`: The core SDK that handles audio-based message encoding using GL MODE
-- `hackathon_demo`: A Next.js application that demonstrates the SDK's capabilities
+- `sdk`: The core SDK that handles audio-based message encoding
+- `demo`: A Next.js application that demonstrates the SDK's capabilities
 
 ## Key Features
 
 - Audio-based message encoding and decoding
-- GL MODE for efficient communication
-- Solana blockchain integration (placeholder)
+- Solana blockchain payment integration
 - Real-time audio visualization
-- Integration with 11labs Voice AI
 
 ## Getting Started
 
@@ -25,46 +23,123 @@ This project is set up as a monorepo with the following components:
 
 ```bash
 # Install SDK dependencies
-cd packages/gibberlink-sdk
+cd sdk
 yarn install
 
 # Build the SDK
 yarn build
 
 # Install frontend demo dependencies
-cd ../../hackathon_demo
+cd demo
 yarn install
 ```
 
 ### Running the Demo
 
 ```bash
-cd hackathon_demo
-yarn dev
+cd demo
+yarn serve
 ```
 
 Then open http://localhost:3003 in your browser.
 
+### Running the Token Transfer Test (Client -> Server)
+
+```bash
+cd sdk
+npx ts-node tests/transfer.test.ts
+```
+
 ## SDK Usage
 
-The GibberLink SDK can be imported and used in any JavaScript/TypeScript project:
+The dDecipher SDK supports two distinct roles:
+
+1. **Client Role** - For applications that need to connect to a host and send/receive messages
+2. **Host Role** - For applications that accept connections from clients and process messages
+
+### Client Example
 
 ```typescript
-import { GibberLink } from 'gibberlink-sdk';
+import { SalClient } from "ddecipher-sdk";
+import { AudioMessageTransport } from "ddecipher-sdk";
+import { Keypair } from "@solana/web3.js";
 
-// Create a new GibberLink instance
-const gibberlink = new GibberLink({ autoInit: true });
+// Create keypair for secure communication
+const keypair = Keypair.generate();
 
-// Listen for messages
-gibberlink.onMessage((message) => {
-  console.log(`Received message: ${message.message}`);
-});
+// Create message transport
+const transport = new AudioMessageTransport();
 
-// Start listening for audio messages
-await gibberlink.startListening();
+// Create a new client instance
+const client = new SalClient(
+  {
+    cluster: "https://api.devnet.solana.com",
+    keyPair: keypair,
+  },
+  transport
+);
+
+// Connect to a host
+client
+  .connect("host-identifier")
+  .onSuccess(() => {
+    console.log("Connected successfully");
+  })
+  .onFailure((error) => {
+    console.error("Connection failed:", error);
+  });
+
+// Start listening for incoming messages
+await transport.startListening();
 
 // Send a message
-await gibberlink.sendMessage('Hello, world!');
+await client.send("Hello, world!");
+
+// Close the connection when done
+await client.close();
+```
+
+### Host Example
+
+```typescript
+import { SalHost } from "ddecipher-sdk";
+import { AudioMessageTransport } from "ddecipher-sdk";
+import { Keypair } from "@solana/web3.js";
+
+// Create keypair for secure communication
+const keypair = Keypair.generate();
+
+// Create message transport
+const transport = new AudioMessageTransport();
+
+// Create a new host instance
+const host = new SalHost(
+  {
+    cluster: "https://api.devnet.solana.com",
+    phoneNumber: "+1234567890",
+    host: "my-host-id",
+    keyPair: keypair,
+  },
+  transport
+);
+
+// Register message and transaction handlers
+host.register({
+  messageHandler: async (message, sender) => {
+    console.log(`Received message from ${sender}: ${message}`);
+    // Process the message here
+  },
+  txHandler: async (transaction) => {
+    // Process transactions if needed
+    return "transaction-id";
+  },
+});
+
+// Start the host
+await host.run();
+
+// Stop the host when done
+await host.stop();
 ```
 
 ## License
