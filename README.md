@@ -54,8 +54,8 @@ npx ts-node tests/transfer.test.ts
 
 The dDecipher SDK supports two distinct roles:
 
-1. **Client Role** - For applications that need to connect to a host and send/receive messages
-2. **Host Role** - For applications that accept connections from clients and process messages
+1. **Client Role** - For applications that need to connect to a host and send/receive messages (e.g. Personal Assistant, etc.)
+2. **Host Role** - For applications that accept connections from clients and process messages (e.g. Hotel, Restaurant, etc.)
 
 ### Client Example
 
