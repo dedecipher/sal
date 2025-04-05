@@ -172,12 +172,12 @@ export class SalHost extends EventEmitter implements ISalHost {
       }
 
       // nonce 확인 (재전송 공격 방지)
-      const nonce = request.msg.headers.nonce;
-      if (this.seenNonces.has(nonce)) {
-        this.emit('error', new Error('이미 처리된 nonce'));
-        return;
-      }
-      this.seenNonces.add(nonce);
+      // const nonce = request.msg.headers.nonce;
+      // if (this.seenNonces.has(nonce)) {
+      //   this.emit('error', new Error('이미 처리된 nonce'));
+      //   return;
+      // }
+      // this.seenNonces.add(nonce);
 
       // 서명 확인
       const isValid = this.verifySignature(
