@@ -4261,7 +4261,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     value: (function () {
       var _sendMessage = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(message) {
         var _this3 = this;
-        var success, messageStr, validRegex, protocol, volume, waveform, buf, buffer, duration, gainNode, source, errorMessage, _errorMessage;
+        var success, wasRecording, messageStr, validRegex, protocol, volume, waveform, buf, buffer, duration, gainNode, source, errorMessage, _errorMessage;
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
@@ -4279,21 +4279,27 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               }
               throw new Error('AudioMessageTransport 초기화에 실패했습니다.');
             case 6:
-              _context2.prev = 6;
+              // 녹음 상태 저장
+              wasRecording = this.isRecording; // 출력 전 녹음 일시 중지 (피드백 방지)
+              if (wasRecording) {
+                console.log("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uCD9C\uB825\uC744 \uC704\uD574 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC77C\uC2DC \uC911\uC9C0"));
+                this.stopListening();
+              }
+              _context2.prev = 8;
               if (!(message === undefined || message === null)) {
-                _context2.next = 9;
+                _context2.next = 11;
                 break;
               }
               throw new Error('메시지가 null 또는 undefined입니다');
-            case 9:
+            case 11:
               // 문자열로 변환 확보 및 엄격한 검증
               messageStr = String(message); // 문자열 길이 검증
               if (!(messageStr.length === 0)) {
-                _context2.next = 12;
+                _context2.next = 14;
                 break;
               }
               throw new Error('빈 메시지는 전송할 수 없습니다');
-            case 12:
+            case 14:
               // 유효한 문자열인지 확인 (일부 특수문자나 이진 데이터가 들어오면 문제 발생 가능)
               validRegex = /^[\x20-\x7E\uAC00-\uD7A3\u3130-\u318F]+$/; // ASCII 가능 문자 및 한글
               if (!validRegex.test(messageStr)) {
@@ -4307,17 +4313,17 @@ var AudioMessageTransport = /*#__PURE__*/function () {
 
               // ggwave 인스턴스 검증
               if (this.ggwave) {
-                _context2.next = 19;
-                break;
-              }
-              throw new Error('ggwave가 초기화되지 않았습니다.');
-            case 19:
-              if (!(!this.instance || this.instance === 0)) {
                 _context2.next = 21;
                 break;
               }
-              throw new Error('ggwave 인스턴스가 유효하지 않습니다. 재초기화가 필요합니다.');
+              throw new Error('ggwave가 초기화되지 않았습니다.');
             case 21:
+              if (!(!this.instance || this.instance === 0)) {
+                _context2.next = 23;
+                break;
+              }
+              throw new Error('ggwave 인스턴스가 유효하지 않습니다. 재초기화가 필요합니다.');
+            case 23:
               if (this.ggwave.ProtocolId && this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_NORMAL !== undefined) {
                 protocol = this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_NORMAL;
               } else if (this.ggwave.ProtocolId && this.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST !== undefined) {
@@ -4331,39 +4337,39 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               console.log("[".concat(this.name, "] \uC120\uD0DD\uB41C \uD504\uB85C\uD1A0\uCF5C: ").concat(protocol, ", \uBCFC\uB968: ").concat(volume));
 
               // 안전하게 인코딩 시도 (try/catch 내부에서)
-              _context2.prev = 24;
+              _context2.prev = 26;
               if (!(typeof messageStr !== 'string')) {
-                _context2.next = 27;
+                _context2.next = 29;
                 break;
               }
               throw new Error("messageStr\uC740 \uBB38\uC790\uC5F4\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4. \uD604\uC7AC \uD0C0\uC785: ".concat(_typeof(messageStr)));
-            case 27:
+            case 29:
               console.log("[".concat(this.name, "] \uC778\uCF54\uB529 \uC9C1\uC804 \uD655\uC778 - messageStr=[").concat(messageStr, "], \uD0C0\uC785=").concat(_typeof(messageStr), ", \uAE38\uC774=").concat(messageStr.length));
 
               // ggwave로 메시지 인코딩
               waveform = this.ggwave.encode(this.instance, messageStr, protocol, volume);
               if (!(!waveform || waveform.length === 0)) {
-                _context2.next = 31;
+                _context2.next = 33;
                 break;
               }
               throw new Error('오디오 인코딩 실패: 빈 파형이 반환되었습니다.');
-            case 31:
+            case 33:
               console.log("[".concat(this.name, "] \uC778\uCF54\uB529 \uC644\uB8CC, \uD30C\uD615 \uAE38\uC774: ").concat(waveform.length, " \uC0D8\uD50C"));
 
               // Float32Array로 변환하여 오디오 버퍼 생성
               if (this.context) {
-                _context2.next = 34;
+                _context2.next = 36;
                 break;
               }
               throw new Error('오디오 컨텍스트가 초기화되지 않았습니다.');
-            case 34:
+            case 36:
               buf = this.convertTypedArray(waveform, Float32Array);
               if (buf) {
-                _context2.next = 37;
+                _context2.next = 39;
                 break;
               }
               throw new Error('파형 변환 실패');
-            case 37:
+            case 39:
               buffer = this.context.createBuffer(1, buf.length, this.context.sampleRate);
               buffer.getChannelData(0).set(buf);
 
@@ -4395,31 +4401,45 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                 setTimeout(function () {
                   _this3.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC", 'request');
                   console.log("[".concat(_this3.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
+
+                  // 이전에 녹음 중이었다면 녹음 재개
+                  if (wasRecording) {
+                    console.log("[".concat(_this3.name, "] \uBA54\uC2DC\uC9C0 \uCD9C\uB825 \uC644\uB8CC \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C"));
+                    setTimeout(function () {
+                      _this3.startListening().then(function (success) {
+                        if (success) {
+                          console.log("[".concat(_this3.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC131\uACF5"));
+                        } else {
+                          console.error("[".concat(_this3.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328"));
+                        }
+                      });
+                    }, 100); // 약간의 딜레이를 두고 재개 (100ms)
+                  }
                   resolve();
                 }, waitTime);
               }));
-            case 53:
-              _context2.prev = 53;
-              _context2.t0 = _context2["catch"](24);
+            case 55:
+              _context2.prev = 55;
+              _context2.t0 = _context2["catch"](26);
               errorMessage = _context2.t0 instanceof Error ? _context2.t0.message : String(_context2.t0);
               console.error("[".concat(this.name, "] \uC778\uCF54\uB529 \uC624\uB958 \uBC1C\uC0DD:"), _context2.t0);
               this.log("\uC778\uCF54\uB529 \uC624\uB958: ".concat(errorMessage), 'error');
               throw new Error("\uC624\uB514\uC624 \uC778\uCF54\uB529 \uC2E4\uD328: ".concat(errorMessage));
-            case 59:
-              _context2.next = 67;
-              break;
             case 61:
-              _context2.prev = 61;
-              _context2.t1 = _context2["catch"](6);
+              _context2.next = 69;
+              break;
+            case 63:
+              _context2.prev = 63;
+              _context2.t1 = _context2["catch"](8);
               _errorMessage = _context2.t1 instanceof Error ? _context2.t1.message : String(_context2.t1);
               this.log("\uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328: ".concat(_errorMessage), 'error');
               console.error("[".concat(this.name, "] \uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC2E4\uD328:"), _context2.t1);
               throw _context2.t1;
-            case 67:
+            case 69:
             case "end":
               return _context2.stop();
           }
-        }, _callee2, this, [[6, 61], [24, 53]]);
+        }, _callee2, this, [[8, 63], [26, 55]]);
       }));
       function sendMessage(_x) {
         return _sendMessage.apply(this, arguments);
@@ -4518,53 +4538,10 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                 // 입력 버퍼에서 채널 데이터 가져오기
                 var sourceBuf = e.inputBuffer.getChannelData(0);
 
-                // 타입 변환 도우미 함수 (로컬 정의)
-                var localConvertTypedArray = function localConvertTypedArray(src, type) {
-                  try {
-                    var buffer = new ArrayBuffer(src.byteLength);
-                    new Float32Array(buffer).set(src);
-                    return new type(buffer);
-                  } catch (error) {
-                    console.error("[".concat(_this4.name, "] \uD0C0\uC785 \uBCC0\uD658 \uC624\uB958:"), error);
-
-                    // 대체 변환 방법 시도
-                    try {
-                      var temp = Array.from(src);
-                      var result = new Int8Array(temp.length);
-                      for (var i = 0; i < temp.length; i++) {
-                        result[i] = Math.floor(temp[i] * 32767);
-                      }
-                      return result;
-                    } catch (fallbackError) {
-                      console.error("[".concat(_this4.name, "] \uB300\uCCB4 \uD0C0\uC785 \uBCC0\uD658 \uC2E4\uD328:"), fallbackError);
-                      return null;
-                    }
-                  }
-                };
-
                 // 오디오 신호 강도 계산
                 var signalStrength = Math.sqrt(sourceBuf.reduce(function (sum, val) {
                   return sum + val * val;
                 }, 0) / sourceBuf.length);
-
-                // 입력이 감지되었을 때 즉시 로그 (신호 강도가 임계값 이상)
-                // if (signalStrength > 0.001) {
-                //   console.log(`⚡ 마이크 입력 감지: 강도=${signalStrength.toFixed(6)}, 버퍼크기=${sourceBuf.length}`);
-                // }
-
-                // ggwave가 제대로 초기화되었는지 확인
-                if (!_this4.initialized) {
-                  console.log("[".concat(_this4.name, "] \uCD08\uAE30\uD654\uB418\uC9C0 \uC54A\uC74C. \uC624\uB514\uC624 \uCC98\uB9AC \uBD88\uAC00"));
-                  return;
-                }
-                if (!_this4.ggwave) {
-                  console.log("[".concat(_this4.name, "] ggwave \uAC1D\uCCB4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC624\uB514\uC624 \uCC98\uB9AC \uBD88\uAC00"));
-                  return;
-                }
-                if (!_this4.instance || _this4.instance === 0) {
-                  console.log("[".concat(_this4.name, "] ggwave \uC778\uC2A4\uD134\uC2A4\uAC00 \uC720\uD6A8\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."));
-                  return;
-                }
                 processCount++;
                 var now = Date.now();
 
@@ -4574,164 +4551,73 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                   console.log("[".concat(_this4.name, "] \uC2E0\uD638 \uAC15\uB3C4:"), signalStrength.toFixed(6));
                   lastLog = now;
                 }
-
-                // 신호 강도가 너무 낮으면 처리하지 않음 (CPU 자원 절약)
-                if (signalStrength < 0.001) {
-                  if (now - lastLog > 5000) {
-                    console.log("[".concat(_this4.name, "] \uC2E0\uD638 \uAC15\uB3C4\uAC00 \uB108\uBB34 \uB0AE\uC2B5\uB2C8\uB2E4. \uCC98\uB9AC \uAC74\uB108\uB700"));
-                  }
-                  return;
-                }
-
-                // ggwave 인코딩 신호 패턴 감지 (기본적인 휴리스틱)
-                var isEncodedSignal = false;
-
-                // 1. 신호 패턴 분석 (간단한 방법)
-                var audioSamples = Array.from(sourceBuf);
-                var crossings = 0;
-                var lastSign = Math.sign(audioSamples[0]);
-
-                // 제로 크로싱 카운트 (주파수 관련 측정)
-                for (var i = 1; i < audioSamples.length; i++) {
-                  var sign = Math.sign(audioSamples[i]);
-                  if (sign !== lastSign && sign !== 0) {
-                    crossings++;
-                    lastSign = sign;
-                  }
-                }
-
-                // ggwave는 일반적으로 특정 범위의 주파수를 사용
-                // 크로싱 수가 특정 범위 내에 있으면 인코딩된 신호일 가능성이 높음
-                var crossingRate = crossings / audioSamples.length;
-
-                // 스펙트럼 패턴 분석 (추가 정보 제공)
-                var peakFreq = 0;
-                var energyConcentration = 0;
-
-                // 신호 강도가 유의미하면 스펙트럼 분석
-                if (signalStrength > 0.003) {
-                  // 신호의 주파수 특성 검사 (간단한 방법)
-                  var maxVal = 0;
-                  var maxIdx = 0;
-                  var energySum = 0;
-                  var highFreqEnergy = 0;
-
-                  // 신호의 최대값과 에너지 분포 확인
-                  for (var _i2 = 0; _i2 < audioSamples.length; _i2++) {
-                    var val = Math.abs(audioSamples[_i2]);
-                    energySum += val * val;
-                    if (val > maxVal) {
-                      maxVal = val;
-                      maxIdx = _i2;
-                    }
-
-                    // 고주파 에너지 계산 (간략화된 방법)
-                    if (_i2 > audioSamples.length / 2) {
-                      highFreqEnergy += val * val;
-                    }
-                  }
-
-                  // 고주파 에너지 비율 (ggwave는 일반적으로 높은 주파수 사용)
-                  energyConcentration = highFreqEnergy / energySum;
-
-                  // 피크 주파수 추정 (매우 간략화된 방법)
-                  if (maxIdx > 0 && maxIdx < audioSamples.length - 1) {
-                    var periodSample = maxIdx;
-                    if (periodSample > 0 && _this4.context) {
-                      peakFreq = _this4.context.sampleRate / periodSample;
-                    }
-                  }
-                }
-
-                // 신호 감지 조건 검사 (크로싱 비율, 신호 강도, 에너지 분포)
-                if (crossingRate > 0.05 && crossingRate < 0.5 && signalStrength > 0.005) {
-                  isEncodedSignal = true;
-                  console.log("[".concat(_this4.name, "] \uD83D\uDCE1 ggwave \uC778\uCF54\uB529\uB41C \uC2E0\uD638 \uAC10\uC9C0! \uD06C\uB85C\uC2F1=").concat(crossingRate.toFixed(4), ", \uAC15\uB3C4=").concat(signalStrength.toFixed(6), ", \uC5D0\uB108\uC9C0\uC9D1\uC911\uB3C4=").concat(energyConcentration.toFixed(4)));
-
-                  // 특성 정보 출력 (디버깅용)
-                  var buffer = new Uint8Array(10);
-                  for (var _i3 = 0; _i3 < Math.min(10, audioSamples.length); _i3++) {
-                    buffer[_i3] = Math.abs(Math.floor(audioSamples[_i3] * 255));
-                  }
-                  // console.log(`[${this.name}] 신호 샘플:`, Array.from(buffer).join(','), `피크주파수: ~${Math.round(peakFreq)}Hz`);
-                } else if (now - lastLog > 5000) {
-                  console.log("[".concat(_this4.name, "] \uC77C\uBC18 \uC624\uB514\uC624 \uC2E0\uD638: \uD06C\uB85C\uC2F1=").concat(crossingRate.toFixed(4), ", \uAC15\uB3C4=").concat(signalStrength.toFixed(6)));
-                }
-
-                // 인코딩된 신호가 아니라고 판단되면 처리하지 않음
-                if (!isEncodedSignal) {
-                  return;
-                }
                 try {
-                  // Int16Array로 변환 (원래 버퍼로부터 직접 변환)
-                  var samples = localConvertTypedArray(new Float32Array(sourceBuf), Int8Array);
-
-                  // 샘플이 유효한지 확인
-                  if (!samples || samples.length === 0) {
-                    console.error("[".concat(_this4.name, "] \uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 \uC0D8\uD50C \uB370\uC774\uD130"));
-                    return;
+                  // 모든 오디오 입력을 디코딩 시도하지 않고, 좀 더 엄격한 필터링 적용
+                  // 신호 강도가 특정 임계값을 넘을 때만 디코딩 시도
+                  if (signalStrength < 0.005) {
+                    // 임계값 상향 조정
+                    return; // 신호가 너무 약하면 처리하지 않음
                   }
 
-                  // 타입 확인 및 로깅 (5초마다)
-                  if (now - lastLog > 5000) {
-                    console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uC804 \uC0D8\uD50C \uD0C0\uC785:"), samples.constructor.name, "\uAE38\uC774:", samples.length, "\uCC98\uC74C \uBA87 \uAC1C \uAC12:", Array.from(samples.slice(0, 5)));
+                  // 신호 패턴 분석 - 간단한 제로 크로싱 검사
+                  var crossings = 0;
+                  var lastSign = Math.sign(sourceBuf[0]);
+                  for (var i = 1; i < Math.min(1000, sourceBuf.length); i++) {
+                    // 샘플 일부만 검사
+                    var sign = Math.sign(sourceBuf[i]);
+                    if (sign !== lastSign && sign !== 0) {
+                      crossings++;
+                      lastSign = sign;
+                    }
                   }
-                  try {
-                    // ggwave로 디코딩 시도
-                    var result;
+                  var crossingRate = crossings / Math.min(1000, sourceBuf.length);
 
-                    // 데이터 유효성 검증 및 로깅
-                    if (!_this4.instance || typeof _this4.instance !== 'number') {
-                      console.error("[".concat(_this4.name, "] \uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 ggwave \uC778\uC2A4\uD134\uC2A4:"), _this4.instance);
+                  // 유효한 신호로 판단될 때만 디코딩 시도
+                  if (signalStrength > 0.01 && crossingRate > 0.03 && crossingRate < 0.5) {
+                    // 강한 신호일 때만 로그 출력 (불필요한 로그 줄이기)
+                    console.log("[".concat(_this4.name, "] \uD83D\uDCA1 \uC720\uD6A8\uD55C \uC2E0\uD638 \uAC10\uC9C0: \uAC15\uB3C4=").concat(signalStrength.toFixed(3), ", \uD06C\uB85C\uC2F1=").concat(crossingRate.toFixed(2)));
+
+                    // Int8Array로 변환 - 값 범위 조정 중요
+                    // ggwave는 일반적으로 -128 ~ 127 범위의 Int8Array 값을 기대함
+                    var samples = new Int8Array(sourceBuf.length);
+                    for (var _i2 = 0; _i2 < sourceBuf.length; _i2++) {
+                      // Float32Array(-1.0~1.0)를 Int8Array(-128~127)로 변환
+                      samples[_i2] = Math.max(-128, Math.min(127, Math.floor(sourceBuf[_i2] * 127)));
+                    }
+
+                    // 디코딩 시도
+                    if (!_this4.instance || typeof _this4.instance !== 'number' || !_this4.ggwave) {
+                      console.error("[".concat(_this4.name, "] ggwave \uC778\uC2A4\uD134\uC2A4\uAC00 \uC720\uD6A8\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."));
                       return;
                     }
-                    if (!samples || !(samples instanceof Int8Array)) {
-                      // 타입 검사를 안전하게 처리
-                      console.error("[".concat(_this4.name, "] \uC0D8\uD50C \uD0C0\uC785 \uC624\uB958:"), samples ? samples.constructor.name : 'null');
-                      return;
-                    }
 
-                    // 이제 디코딩 시도
-                    result = _this4.ggwave.decode(_this4.instance, samples);
+                    // 디코딩 시도
+                    try {
+                      var result = _this4.ggwave.decode(_this4.instance, samples);
 
-                    // 디버깅을 위해 result 검사
-                    if (result) {
-                      console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uACB0\uACFC: byteLength=").concat(result.byteLength, ", \uD0C0\uC785=").concat(result.constructor.name));
+                      // 결과가 있을 때만 로그 출력
+                      if (result && result.byteLength > 0) {
+                        console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uACB0\uACFC: byteLength=").concat(result.byteLength));
 
-                      // 디코딩된 바이너리 데이터를 JSON.stringify하여 출력
-                      try {
-                        var dataArray = Array.from(new Uint8Array(result));
-                        console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uB370\uC774\uD130(Array): ").concat(JSON.stringify(dataArray)));
+                        // 문자열로 변환
+                        var text = new TextDecoder("utf-8").decode(result);
+                        console.log("[".concat(_this4.name, "] \uD83C\uDFB5 \uB514\uCF54\uB529 \uC131\uACF5! \uBA54\uC2DC\uC9C0: \"").concat(text, "\""));
+                        console.log("[".concat(_this4.name, "] \uD83D\uDCCA \uB514\uCF54\uB529 \uC815\uBCF4: \uACB0\uACFC\uD06C\uAE30=").concat(result.byteLength, "\uBC14\uC774\uD2B8, \uBA54\uC2DC\uC9C0\uAE38\uC774=").concat(text.length, "\uC790"));
 
-                        // 텍스트로 변환하여 출력
-                        var textResult = new TextDecoder("utf-8").decode(result);
-                        console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uB370\uC774\uD130(String): \"").concat(textResult, "\""));
+                        // 디버깅용 - 바이너리 데이터 출력
+                        var bytes = Array.from(new Uint8Array(result)).map(function (b) {
+                          return b.toString(16).padStart(2, '0');
+                        }).join(' ');
+                        console.log("[".concat(_this4.name, "] \uD83D\uDCCA \uC6D0\uC2DC \uBC14\uC774\uD2B8: ").concat(bytes));
 
-                        // 메시지 처리
-                        if (result.byteLength > 0) {
-                          console.log("[".concat(_this4.name, "] \uD83C\uDFB5 \uB514\uCF54\uB529 \uC131\uACF5! \uBA54\uC2DC\uC9C0: \"").concat(textResult, "\""));
-                          console.log("[".concat(_this4.name, "] \uD83D\uDCCA \uB514\uCF54\uB529 \uC815\uBCF4: \uACB0\uACFC\uD06C\uAE30=").concat(result.byteLength, "\uBC14\uC774\uD2B8, \uBA54\uC2DC\uC9C0\uAE38\uC774=").concat(textResult.length, "\uC790, \uC0D8\uD50C\uC218=").concat(samples.length));
-
-                          // 시간 측정
-                          var decodingTime = Date.now() - now;
-                          console.log("[".concat(_this4.name, "] \u23F1\uFE0F \uB514\uCF54\uB529 \uC18C\uC694\uC2DC\uAC04: ").concat(decodingTime, "ms"));
-
-                          // 로그 출력 및 이벤트 발생
-                          _this4.log("\uB514\uCF54\uB529\uB41C \uBA54\uC2DC\uC9C0: ".concat(textResult), 'response');
-                          _this4.emitter.emit('message_received', textResult);
-
-                          // 타임스탬프 업데이트 (다음 로그 출력까지 대기)
-                          lastLog = Date.now() + 1000; // 1초간 추가 로그 억제
-                        }
-                      } catch (stringifyError) {
-                        console.error("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uB370\uC774\uD130 \uCD9C\uB825 \uC2E4\uD328:"), stringifyError);
+                        // 성공적인 디코딩 시 이벤트 발생
+                        _this4.log("\uB514\uCF54\uB529\uB41C \uBA54\uC2DC\uC9C0: ".concat(text), 'response');
+                        _this4.emitter.emit('message_received', text);
                       }
-                    } else {
-                      console.log("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uACB0\uACFC \uC5C6\uC74C"));
-                      return;
+                    } catch (decodeErr) {
+                      // 디코딩 오류는 로그 수준 낮추기
+                      console.warn("[".concat(_this4.name, "] ggwave.decode \uC624\uB958:"), decodeErr);
                     }
-                  } catch (decodeErr) {
-                    console.error("[".concat(_this4.name, "] ggwave.decode \uC624\uB958:"), decodeErr);
                   }
                 } catch (err) {
                   console.error("[".concat(_this4.name, "] \uB514\uCF54\uB529 \uC911 \uC624\uB958:"), err);
@@ -4859,7 +4745,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     value: (function () {
       var _play = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(waveform) {
         var _this5 = this;
-        var success, errorMessage, gainNode, compressor, source, _errorMessage2;
+        var success, wasRecording, errorMessage, gainNode, compressor, source, _errorMessage2;
         return _regeneratorRuntime().wrap(function _callee6$(_context6) {
           while (1) switch (_context6.prev = _context6.next) {
             case 0:
@@ -4878,36 +4764,42 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               }
               throw new Error('오디오 컨텍스트 초기화 실패');
             case 7:
+              // 녹음 상태 저장
+              wasRecording = this.isRecording; // 출력 전 녹음 일시 중지 (피드백 방지)
+              if (wasRecording) {
+                console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCD9C\uB825\uC744 \uC704\uD574 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC77C\uC2DC \uC911\uC9C0"));
+                this.stopListening();
+              }
               if (!(this.context.state !== 'running')) {
-                _context6.next = 21;
+                _context6.next = 23;
                 break;
               }
-              _context6.prev = 8;
+              _context6.prev = 10;
               console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC0C1\uD0DC\uAC00 ").concat(this.context.state, "\uC785\uB2C8\uB2E4. \uC7AC\uAC1C \uC2DC\uB3C4."));
-              _context6.next = 12;
+              _context6.next = 14;
               return this.context.resume();
-            case 12:
+            case 14:
               console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8\uAC00 \uC7AC\uAC1C\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC0C1\uD0DC:"), this.context.state);
-              _context6.next = 21;
+              _context6.next = 23;
               break;
-            case 15:
-              _context6.prev = 15;
-              _context6.t0 = _context6["catch"](8);
+            case 17:
+              _context6.prev = 17;
+              _context6.t0 = _context6["catch"](10);
               errorMessage = _context6.t0 instanceof Error ? _context6.t0.message : String(_context6.t0);
               console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uCEE8\uD14D\uC2A4\uD2B8 \uC7AC\uAC1C \uC2E4\uD328:"), _context6.t0);
               this.log('오디오 컨텍스트를 재개할 수 없습니다', 'error');
               throw _context6.t0;
-            case 21:
+            case 23:
               if (!(!waveform || waveform.length === 0)) {
-                _context6.next = 25;
+                _context6.next = 27;
                 break;
               }
               console.error("[".concat(this.name, "] \uC7AC\uC0DD\uD560 \uD30C\uD615\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."));
               this.log('재생할 오디오 데이터가 없습니다', 'error');
               return _context6.abrupt("return");
-            case 25:
+            case 27:
               console.log("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC900\uBE44, \uD30C\uD615 \uAE38\uC774:"), waveform.length);
-              _context6.prev = 26;
+              _context6.prev = 28;
               // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
               gainNode = this.context.createGain();
               gainNode.gain.value = 2.0; // 기본 볼륨 증가 (1.0 -> 2.0)
@@ -4941,21 +4833,35 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                 setTimeout(function () {
                   _this5.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC", 'request');
                   console.log("[".concat(_this5.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC644\uB8CC"));
+
+                  // 이전에 녹음 중이었다면 녹음 재개
+                  if (wasRecording) {
+                    console.log("[".concat(_this5.name, "] \uC624\uB514\uC624 \uCD9C\uB825 \uC644\uB8CC \uD6C4 \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C"));
+                    setTimeout(function () {
+                      _this5.startListening().then(function (success) {
+                        if (success) {
+                          console.log("[".concat(_this5.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC131\uACF5"));
+                        } else {
+                          console.error("[".concat(_this5.name, "] \uB9C8\uC774\uD06C \uAC10\uC9C0 \uC7AC\uAC1C \uC2E4\uD328"));
+                        }
+                      });
+                    }, 200); // 약간의 딜레이를 두고 재개 (200ms)
+                  }
                   resolve();
                 }, waitTime);
               }));
-            case 46:
-              _context6.prev = 46;
-              _context6.t1 = _context6["catch"](26);
+            case 48:
+              _context6.prev = 48;
+              _context6.t1 = _context6["catch"](28);
               _errorMessage2 = _context6.t1 instanceof Error ? _context6.t1.message : String(_context6.t1);
               console.error("[".concat(this.name, "] \uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328:"), _context6.t1);
               this.log("\uC624\uB514\uC624 \uC7AC\uC0DD \uC2E4\uD328: ".concat(_errorMessage2), 'error');
               throw _context6.t1;
-            case 52:
+            case 54:
             case "end":
               return _context6.stop();
           }
-        }, _callee6, this, [[8, 15], [26, 46]]);
+        }, _callee6, this, [[10, 17], [28, 48]]);
       }));
       function play(_x2) {
         return _play.apply(this, arguments);
@@ -35221,6 +35127,7 @@ var host;
 var client;
 var isHostRunning = false;
 var isClientConnected = false;
+var selfTestTransport; // 자체 테스트용 트랜스포트
 
 // DOM 요소
 var hostStatusEl = document.querySelector('#host-status span');
@@ -35233,6 +35140,7 @@ var sendMessageBtn = document.getElementById('send-message');
 var sendTxBtn = document.getElementById('send-transaction');
 var hostAddressInput = document.getElementById('host-address');
 var messageInput = document.getElementById('message');
+var runSelfTestBtn = document.getElementById('run-self-test'); // 자체 테스트 버튼
 
 // 테스트용 키페어 생성
 var hostKeypair = _solana_web3_js__WEBPACK_IMPORTED_MODULE_2__.Keypair.generate();
@@ -35279,6 +35187,9 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   }
+
+  // 자체 테스트 트랜스포트 초기화
+  initializeSelfTest();
 });
 
 // 호스트 시작 이벤트 핸들러
@@ -35816,6 +35727,215 @@ function addLogEntry(logId, message) {
   entry.textContent = "[".concat(new Date().toLocaleTimeString(), "] ").concat(message);
   logDiv.appendChild(entry);
   logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+// 자체 테스트 기능 초기화
+function initializeSelfTest() {
+  var selfTestLogDiv = document.getElementById('self-test-log');
+
+  // 로그 출력 함수
+  function logToSelfTest(message) {
+    var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
+    console.log("[Self-Test] ".concat(message));
+    if (!selfTestLogDiv) {
+      console.error("[Self-Test] \uB85C\uADF8 \uD328\uB110\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
+      return;
+    }
+    var entry = document.createElement('div');
+    entry.className = "log-entry ".concat(type);
+    entry.textContent = "[".concat(new Date().toLocaleTimeString(), "] ").concat(message);
+    selfTestLogDiv.appendChild(entry);
+    selfTestLogDiv.scrollTop = selfTestLogDiv.scrollHeight;
+  }
+
+  // 자체 테스트 버튼 이벤트 리스너
+  if (runSelfTestBtn) {
+    runSelfTestBtn.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
+      var testMessage;
+      return _regeneratorRuntime().wrap(function _callee15$(_context15) {
+        while (1) switch (_context15.prev = _context15.next) {
+          case 0:
+            _context15.prev = 0;
+            logToSelfTest('자체 테스트 시작...', 'info');
+
+            // 이미 초기화된 트랜스포트가 있으면 재사용, 아니면 새로 생성
+            if (!selfTestTransport) {
+              logToSelfTest('AudioMessageTransport 초기화 중...', 'info');
+              selfTestTransport = new _sdk_src_sal_transport__WEBPACK_IMPORTED_MODULE_7__.AudioMessageTransport({
+                name: 'Self-Test',
+                logElement: 'self-test-log'
+              });
+
+              // 메시지 수신 핸들러 설정
+              selfTestTransport.onMessage(function (message) {
+                logToSelfTest("\u2705 \uD14C\uC2A4\uD2B8 \uBA54\uC2DC\uC9C0 \uC218\uC2E0\uB428: \"".concat(message, "\""), 'response');
+                logToSelfTest('자체 테스트 성공적으로 완료!', 'info');
+              });
+            }
+
+            // 트랜스포트 초기화
+            _context15.next = 5;
+            return selfTestTransport.initialize();
+          case 5:
+            logToSelfTest('AudioMessageTransport 초기화됨', 'info');
+
+            // 두 가지 테스트 방식 실행
+
+            // 1. 표준 방식: 메시지 수신 후 전송 (실제 마이크/스피커 사용)
+            logToSelfTest('1️⃣ 표준 방식 테스트 시작 (마이크/스피커 사용)...', 'info');
+            logToSelfTest('메시지 수신 대기 시작...', 'info');
+            _context15.next = 10;
+            return selfTestTransport.startListening();
+          case 10:
+            // 짧은 지연 후에 메시지 전송 (마이크가 활성화될 시간 제공)
+            logToSelfTest('2초 후 테스트 메시지 전송 예정...', 'info');
+            _context15.next = 13;
+            return new Promise(function (resolve) {
+              return setTimeout(resolve, 2000);
+            });
+          case 13:
+            // "Hello" 메시지 전송
+            testMessage = "Hello";
+            logToSelfTest("\uD14C\uC2A4\uD2B8 \uBA54\uC2DC\uC9C0 \uC804\uC1A1 \uC911: \"".concat(testMessage, "\""), 'request');
+            _context15.next = 17;
+            return selfTestTransport.sendMessage(testMessage);
+          case 17:
+            _context15.next = 19;
+            return new Promise(function (resolve) {
+              return setTimeout(resolve, 5000);
+            });
+          case 19:
+            selfTestTransport.stopListening();
+            logToSelfTest('메시지 수신 중지됨', 'info');
+
+            // 2. 직접 에코 테스트 (인코딩 -> 디코딩 직접 호출)
+            logToSelfTest('2️⃣ 직접 에코 테스트 시작 (인코딩/디코딩 직접 호출)...', 'info');
+            _context15.next = 24;
+            return runDirectEchoTest(selfTestTransport);
+          case 24:
+            logToSelfTest('모든 테스트 완료', 'info');
+            _context15.next = 31;
+            break;
+          case 27:
+            _context15.prev = 27;
+            _context15.t0 = _context15["catch"](0);
+            logToSelfTest("\uC624\uB958 \uBC1C\uC0DD: ".concat(_context15.t0.message), 'error');
+            console.error('자체 테스트 오류:', _context15.t0);
+          case 31:
+          case "end":
+            return _context15.stop();
+        }
+      }, _callee15, null, [[0, 27]]);
+    })));
+  } else {
+    console.error('자체 테스트 버튼을 찾을 수 없습니다.');
+  }
+}
+
+// 에코 테스트 기능 (직접 인코딩, 바로 디코딩)
+function runDirectEchoTest(_x7) {
+  return _runDirectEchoTest.apply(this, arguments);
+}
+function _runDirectEchoTest() {
+  _runDirectEchoTest = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee16(transport) {
+    var selfTestLogDiv, logToSelfTest, testMessage, protocol, volume, waveform, audioSamples, i, samples, _i, context, buffer, source, result, decodedText;
+    return _regeneratorRuntime().wrap(function _callee16$(_context16) {
+      while (1) switch (_context16.prev = _context16.next) {
+        case 0:
+          logToSelfTest = function _logToSelfTest(message) {
+            var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
+            console.log("[Echo-Test] ".concat(message));
+            if (!selfTestLogDiv) {
+              console.error("[Echo-Test] \uB85C\uADF8 \uD328\uB110\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
+              return;
+            }
+            var entry = document.createElement('div');
+            entry.className = "log-entry ".concat(type);
+            entry.textContent = "[".concat(new Date().toLocaleTimeString(), "] ").concat(message);
+            selfTestLogDiv.appendChild(entry);
+            selfTestLogDiv.scrollTop = selfTestLogDiv.scrollHeight;
+          };
+          selfTestLogDiv = document.getElementById('self-test-log'); // 로그 출력 함수
+          _context16.prev = 2;
+          if (!(!transport || !transport.ggwave || !transport.instance)) {
+            _context16.next = 6;
+            break;
+          }
+          logToSelfTest('트랜스포트가 초기화되지 않았습니다.', 'error');
+          return _context16.abrupt("return", false);
+        case 6:
+          testMessage = "Hello";
+          logToSelfTest("\uC5D0\uCF54 \uD14C\uC2A4\uD2B8 \uC2DC\uC791 - \uBA54\uC2DC\uC9C0: \"".concat(testMessage, "\""), 'info');
+
+          // 1. 메시지 인코딩
+          logToSelfTest('메시지 인코딩 중...', 'info');
+          protocol = transport.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST || 2;
+          volume = 50;
+          waveform = transport.ggwave.encode(transport.instance, testMessage, protocol, volume);
+          if (!(!waveform || waveform.length === 0)) {
+            _context16.next = 15;
+            break;
+          }
+          logToSelfTest('인코딩 실패: 빈 파형', 'error');
+          return _context16.abrupt("return", false);
+        case 15:
+          logToSelfTest("\uC778\uCF54\uB529 \uC131\uACF5: ".concat(waveform.length, " \uC0D8\uD50C \uC0DD\uC131\uB428"), 'info');
+
+          // 2. Float32Array로 변환
+          audioSamples = new Float32Array(waveform.length);
+          for (i = 0; i < waveform.length; i++) {
+            audioSamples[i] = waveform[i];
+          }
+
+          // 3. 인코딩된 오디오 데이터를 Int8Array로 변환 (디코딩용)
+          samples = new Int8Array(audioSamples.length);
+          for (_i = 0; _i < audioSamples.length; _i++) {
+            // Float32Array(-1.0~1.0)를 Int8Array(-128~127)로 변환
+            samples[_i] = Math.max(-128, Math.min(127, Math.floor(audioSamples[_i] * 127)));
+          }
+
+          // 4. 오디오 데이터 재생
+          logToSelfTest('인코딩된 오디오 재생 중...', 'info');
+          context = new (window.AudioContext || window.webkitAudioContext)();
+          buffer = context.createBuffer(1, audioSamples.length, context.sampleRate);
+          buffer.getChannelData(0).set(audioSamples);
+          source = context.createBufferSource();
+          source.buffer = buffer;
+          source.connect(context.destination);
+          source.start();
+
+          // 5. 바로 디코딩 시도
+          logToSelfTest('인코딩된 데이터 직접 디코딩 시도...', 'request');
+          try {
+            result = transport.ggwave.decode(transport.instance, samples);
+            if (result && result.byteLength > 0) {
+              decodedText = new TextDecoder("utf-8").decode(result);
+              logToSelfTest("\uD83C\uDF89 \uB514\uCF54\uB529 \uC131\uACF5! \uACB0\uACFC: \"".concat(decodedText, "\""), 'response');
+              if (decodedText === testMessage) {
+                logToSelfTest('✅ 에코 테스트 성공: 인코딩-디코딩 루프 확인됨', 'info');
+              } else {
+                logToSelfTest("\u26A0\uFE0F \uC5D0\uCF54 \uD14C\uC2A4\uD2B8 \uBD80\uBD84 \uC131\uACF5: \uB514\uCF54\uB529\uB41C \uBA54\uC2DC\uC9C0\uAC00 \uB2E4\uB984 (\uC6D0\uBCF8: \"".concat(testMessage, "\", \uACB0\uACFC: \"").concat(decodedText, "\")"), 'warning');
+              }
+            } else {
+              logToSelfTest('디코딩 실패: 빈 결과', 'error');
+            }
+          } catch (decodeErr) {
+            logToSelfTest("\uB514\uCF54\uB529 \uC624\uB958: ".concat(decodeErr.message), 'error');
+          }
+          return _context16.abrupt("return", true);
+        case 33:
+          _context16.prev = 33;
+          _context16.t0 = _context16["catch"](2);
+          logToSelfTest("\uC5D0\uCF54 \uD14C\uC2A4\uD2B8 \uC624\uB958: ".concat(_context16.t0.message), 'error');
+          console.error('에코 테스트 오류:', _context16.t0);
+          return _context16.abrupt("return", false);
+        case 38:
+        case "end":
+          return _context16.stop();
+      }
+    }, _callee16, null, [[2, 33]]);
+  }));
+  return _runDirectEchoTest.apply(this, arguments);
 }
 })();
 

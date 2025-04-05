@@ -226,6 +226,15 @@ export class AudioMessageTransport implements MessageTransport {
       }
     }
     
+    // 녹음 상태 저장
+    const wasRecording = this.isRecording;
+    
+    // 출력 전 녹음 일시 중지 (피드백 방지)
+    if (wasRecording) {
+      console.log(`[${this.name}] 메시지 출력을 위해 마이크 감지 일시 중지`);
+      this.stopListening();
+    }
+    
     try {
       // 메시지 유효성 검사 (엄격하게)
       if (message === undefined || message === null) {
@@ -344,6 +353,21 @@ export class AudioMessageTransport implements MessageTransport {
           setTimeout(() => {
             this.log(`오디오 재생 완료`, 'request');
             console.log(`[${this.name}] 오디오 재생 완료`);
+            
+            // 이전에 녹음 중이었다면 녹음 재개
+            if (wasRecording) {
+              console.log(`[${this.name}] 메시지 출력 완료 후 마이크 감지 재개`);
+              setTimeout(() => {
+                this.startListening().then(success => {
+                  if (success) {
+                    console.log(`[${this.name}] 마이크 감지 재개 성공`);
+                  } else {
+                    console.error(`[${this.name}] 마이크 감지 재개 실패`);
+                  }
+                });
+              }, 100); // 약간의 딜레이를 두고 재개 (100ms)
+            }
+            
             resolve();
           }, waitTime);
         });
@@ -429,56 +453,8 @@ export class AudioMessageTransport implements MessageTransport {
         // 입력 버퍼에서 채널 데이터 가져오기
         const sourceBuf = e.inputBuffer.getChannelData(0);
         
-        // 타입 변환 도우미 함수 (로컬 정의)
-        const localConvertTypedArray = (
-          src: Float32Array, 
-          type: { new(buffer: ArrayBuffer): Int8Array }
-        ): Int8Array | null => {
-          try {
-            const buffer = new ArrayBuffer(src.byteLength);
-            new Float32Array(buffer).set(src);
-            return new type(buffer);
-          } catch (error) {
-            console.error(`[${this.name}] 타입 변환 오류:`, error);
-            
-            // 대체 변환 방법 시도
-            try {
-              const temp = Array.from(src);
-              const result = new Int8Array(temp.length);
-              for (let i = 0; i < temp.length; i++) {
-                result[i] = Math.floor(temp[i] * 32767);
-              }
-              return result;
-            } catch (fallbackError) {
-              console.error(`[${this.name}] 대체 타입 변환 실패:`, fallbackError);
-              return null;
-            }
-          }
-        };
-        
         // 오디오 신호 강도 계산
         const signalStrength = Math.sqrt(sourceBuf.reduce((sum, val) => sum + val * val, 0) / sourceBuf.length);
-        
-        // 입력이 감지되었을 때 즉시 로그 (신호 강도가 임계값 이상)
-        // if (signalStrength > 0.001) {
-        //   console.log(`⚡ 마이크 입력 감지: 강도=${signalStrength.toFixed(6)}, 버퍼크기=${sourceBuf.length}`);
-        // }
-        
-        // ggwave가 제대로 초기화되었는지 확인
-        if (!this.initialized) {
-          console.log(`[${this.name}] 초기화되지 않음. 오디오 처리 불가`);
-          return;
-        }
-        
-        if (!this.ggwave) {
-          console.log(`[${this.name}] ggwave 객체가 없습니다. 오디오 처리 불가`);
-          return;
-        }
-        
-        if (!this.instance || this.instance === 0) {
-          console.log(`[${this.name}] ggwave 인스턴스가 유효하지 않습니다.`);
-          return;
-        }
         
         processCount++;
         const now = Date.now();
@@ -490,171 +466,73 @@ export class AudioMessageTransport implements MessageTransport {
           lastLog = now;
         }
         
-        // 신호 강도가 너무 낮으면 처리하지 않음 (CPU 자원 절약)
-        if (signalStrength < 0.001) {
-          if (now - lastLog > 5000) {
-            console.log(`[${this.name}] 신호 강도가 너무 낮습니다. 처리 건너뜀`);
-          }
-          return;
-        }
-        
-        // ggwave 인코딩 신호 패턴 감지 (기본적인 휴리스틱)
-        let isEncodedSignal = false;
-        
-        // 1. 신호 패턴 분석 (간단한 방법)
-        const audioSamples = Array.from(sourceBuf);
-        let crossings = 0;
-        let lastSign = Math.sign(audioSamples[0]);
-        
-        // 제로 크로싱 카운트 (주파수 관련 측정)
-        for (let i = 1; i < audioSamples.length; i++) {
-          const sign = Math.sign(audioSamples[i]);
-          if (sign !== lastSign && sign !== 0) {
-            crossings++;
-            lastSign = sign;
-          }
-        }
-        
-        // ggwave는 일반적으로 특정 범위의 주파수를 사용
-        // 크로싱 수가 특정 범위 내에 있으면 인코딩된 신호일 가능성이 높음
-        const crossingRate = crossings / audioSamples.length;
-        
-        // 스펙트럼 패턴 분석 (추가 정보 제공)
-        let peakFreq = 0;
-        let energyConcentration = 0;
-        
-        // 신호 강도가 유의미하면 스펙트럼 분석
-        if (signalStrength > 0.003) {
-          // 신호의 주파수 특성 검사 (간단한 방법)
-          let maxVal = 0;
-          let maxIdx = 0;
-          let energySum = 0;
-          let highFreqEnergy = 0;
-          
-          // 신호의 최대값과 에너지 분포 확인
-          for (let i = 0; i < audioSamples.length; i++) {
-            const val = Math.abs(audioSamples[i]);
-            energySum += val * val;
-            
-            if (val > maxVal) {
-              maxVal = val;
-              maxIdx = i;
-            }
-            
-            // 고주파 에너지 계산 (간략화된 방법)
-            if (i > audioSamples.length / 2) {
-              highFreqEnergy += val * val;
-            }
-          }
-          
-          // 고주파 에너지 비율 (ggwave는 일반적으로 높은 주파수 사용)
-          energyConcentration = highFreqEnergy / energySum;
-          
-          // 피크 주파수 추정 (매우 간략화된 방법)
-          if (maxIdx > 0 && maxIdx < audioSamples.length - 1) {
-            const periodSample = maxIdx;
-            if (periodSample > 0 && this.context) {
-              peakFreq = this.context.sampleRate / periodSample;
-            }
-          }
-        }
-        
-        // 신호 감지 조건 검사 (크로싱 비율, 신호 강도, 에너지 분포)
-        if (crossingRate > 0.05 && crossingRate < 0.5 && signalStrength > 0.005) {
-          isEncodedSignal = true;
-          console.log(`[${this.name}] 📡 ggwave 인코딩된 신호 감지! 크로싱=${crossingRate.toFixed(4)}, 강도=${signalStrength.toFixed(6)}, 에너지집중도=${energyConcentration.toFixed(4)}`);
-          
-          // 특성 정보 출력 (디버깅용)
-          const buffer = new Uint8Array(10);
-          for (let i = 0; i < Math.min(10, audioSamples.length); i++) {
-            buffer[i] = Math.abs(Math.floor(audioSamples[i] * 255));
-          }
-          // console.log(`[${this.name}] 신호 샘플:`, Array.from(buffer).join(','), `피크주파수: ~${Math.round(peakFreq)}Hz`);
-        } else if (now - lastLog > 5000) {
-          console.log(`[${this.name}] 일반 오디오 신호: 크로싱=${crossingRate.toFixed(4)}, 강도=${signalStrength.toFixed(6)}`);
-        }
-        
-        // 인코딩된 신호가 아니라고 판단되면 처리하지 않음
-        if (!isEncodedSignal) {
-          return;
-        }
-        
         try {
-          // Int16Array로 변환 (원래 버퍼로부터 직접 변환)
-          const samples = localConvertTypedArray(new Float32Array(sourceBuf), Int8Array);
-          
-          // 샘플이 유효한지 확인
-          if (!samples || samples.length === 0) {
-            console.error(`[${this.name}] 유효하지 않은 샘플 데이터`);
-            return;
+          // 모든 오디오 입력을 디코딩 시도하지 않고, 좀 더 엄격한 필터링 적용
+          // 신호 강도가 특정 임계값을 넘을 때만 디코딩 시도
+          if (signalStrength < 0.005) { // 임계값 상향 조정
+            return; // 신호가 너무 약하면 처리하지 않음
           }
           
-          // 타입 확인 및 로깅 (5초마다)
-          if (now - lastLog > 5000) {
-            console.log(`[${this.name}] 디코딩 전 샘플 타입:`, samples.constructor.name, 
-                       `길이:`, samples.length,
-                       `처음 몇 개 값:`, Array.from(samples.slice(0, 5)));
+          // 신호 패턴 분석 - 간단한 제로 크로싱 검사
+          let crossings = 0;
+          let lastSign = Math.sign(sourceBuf[0]);
+          
+          for (let i = 1; i < Math.min(1000, sourceBuf.length); i++) { // 샘플 일부만 검사
+            const sign = Math.sign(sourceBuf[i]);
+            if (sign !== lastSign && sign !== 0) {
+              crossings++;
+              lastSign = sign;
+            }
           }
           
-          try {
-            // ggwave로 디코딩 시도
-            let result: Uint8Array | null;
+          const crossingRate = crossings / Math.min(1000, sourceBuf.length);
+          
+          // 유효한 신호로 판단될 때만 디코딩 시도
+          if (signalStrength > 0.01 && crossingRate > 0.03 && crossingRate < 0.5) {
+            // 강한 신호일 때만 로그 출력 (불필요한 로그 줄이기)
+            console.log(`[${this.name}] 💡 유효한 신호 감지: 강도=${signalStrength.toFixed(3)}, 크로싱=${crossingRate.toFixed(2)}`);
             
-            // 데이터 유효성 검증 및 로깅
-            if (!this.instance || typeof this.instance !== 'number') {
-              console.error(`[${this.name}] 유효하지 않은 ggwave 인스턴스:`, this.instance);
+            // Int8Array로 변환 - 값 범위 조정 중요
+            // ggwave는 일반적으로 -128 ~ 127 범위의 Int8Array 값을 기대함
+            const samples = new Int8Array(sourceBuf.length);
+            for (let i = 0; i < sourceBuf.length; i++) {
+              // Float32Array(-1.0~1.0)를 Int8Array(-128~127)로 변환
+              samples[i] = Math.max(-128, Math.min(127, Math.floor(sourceBuf[i] * 127)));
+            }
+            
+            // 디코딩 시도
+            if (!this.instance || typeof this.instance !== 'number' || !this.ggwave) {
+              console.error(`[${this.name}] ggwave 인스턴스가 유효하지 않습니다.`);
               return;
             }
             
-            if (!samples || !(samples instanceof Int8Array)) {
-              // 타입 검사를 안전하게 처리
-              console.error(`[${this.name}] 샘플 타입 오류:`, samples 
-                ? (samples as unknown as { constructor: { name: string } }).constructor.name 
-                : 'null');
-              return;
-            }
-            
-            // 이제 디코딩 시도
-            result = this.ggwave.decode(this.instance, samples);
-            
-            // 디버깅을 위해 result 검사
-            if (result) {
-              console.log(`[${this.name}] 디코딩 결과: byteLength=${result.byteLength}, 타입=${result.constructor.name}`);
+            // 디코딩 시도
+            try {
+              const result = this.ggwave.decode(this.instance, samples);
               
-              // 디코딩된 바이너리 데이터를 JSON.stringify하여 출력
-              try {
-                const dataArray = Array.from(new Uint8Array(result));
-                console.log(`[${this.name}] 디코딩 데이터(Array): ${JSON.stringify(dataArray)}`);
+              // 결과가 있을 때만 로그 출력
+              if (result && result.byteLength > 0) {
+                console.log(`[${this.name}] 디코딩 결과: byteLength=${result.byteLength}`);
                 
-                // 텍스트로 변환하여 출력
-                const textResult = new TextDecoder("utf-8").decode(result);
-                console.log(`[${this.name}] 디코딩 데이터(String): "${textResult}"`);
+                // 문자열로 변환
+                const text = new TextDecoder("utf-8").decode(result);
+                console.log(`[${this.name}] 🎵 디코딩 성공! 메시지: "${text}"`);
+                console.log(`[${this.name}] 📊 디코딩 정보: 결과크기=${result.byteLength}바이트, 메시지길이=${text.length}자`);
                 
-                // 메시지 처리
-                if (result.byteLength > 0) {
-                  console.log(`[${this.name}] 🎵 디코딩 성공! 메시지: "${textResult}"`);
-                  console.log(`[${this.name}] 📊 디코딩 정보: 결과크기=${result.byteLength}바이트, 메시지길이=${textResult.length}자, 샘플수=${samples.length}`);
-                  
-                  // 시간 측정
-                  const decodingTime = Date.now() - now;
-                  console.log(`[${this.name}] ⏱️ 디코딩 소요시간: ${decodingTime}ms`);
-                  
-                  // 로그 출력 및 이벤트 발생
-                  this.log(`디코딩된 메시지: ${textResult}`, 'response');
-                  this.emitter.emit('message_received', textResult);
-                  
-                  // 타임스탬프 업데이트 (다음 로그 출력까지 대기)
-                  lastLog = Date.now() + 1000; // 1초간 추가 로그 억제
-                }
-              } catch (stringifyError) {
-                console.error(`[${this.name}] 디코딩 데이터 출력 실패:`, stringifyError);
+                // 디버깅용 - 바이너리 데이터 출력
+                const bytes = Array.from(new Uint8Array(result))
+                  .map(b => b.toString(16).padStart(2, '0'))
+                  .join(' ');
+                console.log(`[${this.name}] 📊 원시 바이트: ${bytes}`);
+                
+                // 성공적인 디코딩 시 이벤트 발생
+                this.log(`디코딩된 메시지: ${text}`, 'response');
+                this.emitter.emit('message_received', text);
               }
-            } else {
-              console.log(`[${this.name}] 디코딩 결과 없음`);
-              return;
+            } catch (decodeErr) {
+              // 디코딩 오류는 로그 수준 낮추기
+              console.warn(`[${this.name}] ggwave.decode 오류:`, decodeErr);
             }
-          } catch (decodeErr) {
-            console.error(`[${this.name}] ggwave.decode 오류:`, decodeErr);
           }
         } catch (err) {
           console.error(`[${this.name}] 디코딩 중 오류:`, err);
@@ -739,6 +617,15 @@ export class AudioMessageTransport implements MessageTransport {
       }
     }
     
+    // 녹음 상태 저장
+    const wasRecording = this.isRecording;
+    
+    // 출력 전 녹음 일시 중지 (피드백 방지)
+    if (wasRecording) {
+      console.log(`[${this.name}] 오디오 출력을 위해 마이크 감지 일시 중지`);
+      this.stopListening();
+    }
+    
     if (this.context!.state !== 'running') {
       try {
         console.log(`[${this.name}] 오디오 컨텍스트 상태가 ${this.context!.state}입니다. 재개 시도.`);
@@ -796,6 +683,21 @@ export class AudioMessageTransport implements MessageTransport {
         setTimeout(() => {
           this.log(`오디오 재생 완료`, 'request');
           console.log(`[${this.name}] 오디오 재생 완료`);
+          
+          // 이전에 녹음 중이었다면 녹음 재개
+          if (wasRecording) {
+            console.log(`[${this.name}] 오디오 출력 완료 후 마이크 감지 재개`);
+            setTimeout(() => {
+              this.startListening().then(success => {
+                if (success) {
+                  console.log(`[${this.name}] 마이크 감지 재개 성공`);
+                } else {
+                  console.error(`[${this.name}] 마이크 감지 재개 실패`);
+                }
+              });
+            }, 200); // 약간의 딜레이를 두고 재개 (200ms)
+          }
+          
           resolve();
         }, waitTime);
       });

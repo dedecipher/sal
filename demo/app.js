@@ -122,6 +122,7 @@ let host;
 let client;
 let isHostRunning = false;
 let isClientConnected = false;
+let selfTestTransport; // 자체 테스트용 트랜스포트
 
 // DOM 요소
 const hostStatusEl = document.querySelector('#host-status span');
@@ -134,6 +135,7 @@ const sendMessageBtn = document.getElementById('send-message');
 const sendTxBtn = document.getElementById('send-transaction');
 const hostAddressInput = document.getElementById('host-address');
 const messageInput = document.getElementById('message');
+const runSelfTestBtn = document.getElementById('run-self-test'); // 자체 테스트 버튼
 
 // 테스트용 키페어 생성
 const hostKeypair = Keypair.generate();
@@ -182,6 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
   }
+
+  // 자체 테스트 트랜스포트 초기화
+  initializeSelfTest();
 });
 
 // 호스트 시작 이벤트 핸들러
@@ -560,4 +565,186 @@ function addLogEntry(logId, message, type = 'info') {
   entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
   logDiv.appendChild(entry);
   logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+// 자체 테스트 기능 초기화
+function initializeSelfTest() {
+  const selfTestLogDiv = document.getElementById('self-test-log');
+  
+  // 로그 출력 함수
+  function logToSelfTest(message, type = 'info') {
+    console.log(`[Self-Test] ${message}`);
+
+    if (!selfTestLogDiv) {
+      console.error(`[Self-Test] 로그 패널을 찾을 수 없습니다.`);
+      return;
+    }
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    selfTestLogDiv.appendChild(entry);
+    selfTestLogDiv.scrollTop = selfTestLogDiv.scrollHeight;
+  }
+
+  // 자체 테스트 버튼 이벤트 리스너
+  if (runSelfTestBtn) {
+    runSelfTestBtn.addEventListener('click', async () => {
+      try {
+        logToSelfTest('자체 테스트 시작...', 'info');
+        
+        // 이미 초기화된 트랜스포트가 있으면 재사용, 아니면 새로 생성
+        if (!selfTestTransport) {
+          logToSelfTest('AudioMessageTransport 초기화 중...', 'info');
+          selfTestTransport = new AudioMessageTransport({
+            name: 'Self-Test',
+            logElement: 'self-test-log'
+          });
+          
+          // 메시지 수신 핸들러 설정
+          selfTestTransport.onMessage((message) => {
+            logToSelfTest(`✅ 테스트 메시지 수신됨: "${message}"`, 'response');
+            logToSelfTest('자체 테스트 성공적으로 완료!', 'info');
+          });
+        }
+        
+        // 트랜스포트 초기화
+        await selfTestTransport.initialize();
+        logToSelfTest('AudioMessageTransport 초기화됨', 'info');
+        
+        // 두 가지 테스트 방식 실행
+        
+        // 1. 표준 방식: 메시지 수신 후 전송 (실제 마이크/스피커 사용)
+        logToSelfTest('1️⃣ 표준 방식 테스트 시작 (마이크/스피커 사용)...', 'info');
+        logToSelfTest('메시지 수신 대기 시작...', 'info');
+        await selfTestTransport.startListening();
+        
+        // 짧은 지연 후에 메시지 전송 (마이크가 활성화될 시간 제공)
+        logToSelfTest('2초 후 테스트 메시지 전송 예정...', 'info');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // "Hello" 메시지 전송
+        const testMessage = "Hello";
+        logToSelfTest(`테스트 메시지 전송 중: "${testMessage}"`, 'request');
+        await selfTestTransport.sendMessage(testMessage);
+        
+        // 잠시 대기 후 녹음 중지
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        selfTestTransport.stopListening();
+        logToSelfTest('메시지 수신 중지됨', 'info');
+        
+        // 2. 직접 에코 테스트 (인코딩 -> 디코딩 직접 호출)
+        logToSelfTest('2️⃣ 직접 에코 테스트 시작 (인코딩/디코딩 직접 호출)...', 'info');
+        await runDirectEchoTest(selfTestTransport);
+        
+        logToSelfTest('모든 테스트 완료', 'info');
+      } catch (error) {
+        logToSelfTest(`오류 발생: ${error.message}`, 'error');
+        console.error('자체 테스트 오류:', error);
+      }
+    });
+  } else {
+    console.error('자체 테스트 버튼을 찾을 수 없습니다.');
+  }
+}
+
+// 에코 테스트 기능 (직접 인코딩, 바로 디코딩)
+async function runDirectEchoTest(transport) {
+  const selfTestLogDiv = document.getElementById('self-test-log');
+  
+  // 로그 출력 함수
+  function logToSelfTest(message, type = 'info') {
+    console.log(`[Echo-Test] ${message}`);
+
+    if (!selfTestLogDiv) {
+      console.error(`[Echo-Test] 로그 패널을 찾을 수 없습니다.`);
+      return;
+    }
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    selfTestLogDiv.appendChild(entry);
+    selfTestLogDiv.scrollTop = selfTestLogDiv.scrollHeight;
+  }
+  
+  try {
+    if (!transport || !transport.ggwave || !transport.instance) {
+      logToSelfTest('트랜스포트가 초기화되지 않았습니다.', 'error');
+      return false;
+    }
+    
+    const testMessage = "Hello";
+    logToSelfTest(`에코 테스트 시작 - 메시지: "${testMessage}"`, 'info');
+    
+    // 1. 메시지 인코딩
+    logToSelfTest('메시지 인코딩 중...', 'info');
+    const protocol = transport.ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST || 2;
+    const volume = 50;
+    
+    const waveform = transport.ggwave.encode(
+      transport.instance,
+      testMessage,
+      protocol,
+      volume
+    );
+    
+    if (!waveform || waveform.length === 0) {
+      logToSelfTest('인코딩 실패: 빈 파형', 'error');
+      return false;
+    }
+    
+    logToSelfTest(`인코딩 성공: ${waveform.length} 샘플 생성됨`, 'info');
+    
+    // 2. Float32Array로 변환
+    const audioSamples = new Float32Array(waveform.length);
+    for (let i = 0; i < waveform.length; i++) {
+      audioSamples[i] = waveform[i];
+    }
+    
+    // 3. 인코딩된 오디오 데이터를 Int8Array로 변환 (디코딩용)
+    const samples = new Int8Array(audioSamples.length);
+    for (let i = 0; i < audioSamples.length; i++) {
+      // Float32Array(-1.0~1.0)를 Int8Array(-128~127)로 변환
+      samples[i] = Math.max(-128, Math.min(127, Math.floor(audioSamples[i] * 127)));
+    }
+    
+    // 4. 오디오 데이터 재생
+    logToSelfTest('인코딩된 오디오 재생 중...', 'info');
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    const buffer = context.createBuffer(1, audioSamples.length, context.sampleRate);
+    buffer.getChannelData(0).set(audioSamples);
+    
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(context.destination);
+    source.start();
+    
+    // 5. 바로 디코딩 시도
+    logToSelfTest('인코딩된 데이터 직접 디코딩 시도...', 'request');
+    try {
+      const result = transport.ggwave.decode(transport.instance, samples);
+      
+      if (result && result.byteLength > 0) {
+        const decodedText = new TextDecoder("utf-8").decode(result);
+        logToSelfTest(`🎉 디코딩 성공! 결과: "${decodedText}"`, 'response');
+        
+        if (decodedText === testMessage) {
+          logToSelfTest('✅ 에코 테스트 성공: 인코딩-디코딩 루프 확인됨', 'info');
+        } else {
+          logToSelfTest(`⚠️ 에코 테스트 부분 성공: 디코딩된 메시지가 다름 (원본: "${testMessage}", 결과: "${decodedText}")`, 'warning');
+        }
+      } else {
+        logToSelfTest('디코딩 실패: 빈 결과', 'error');
+      }
+    } catch (decodeErr) {
+      logToSelfTest(`디코딩 오류: ${decodeErr.message}`, 'error');
+    }
+    
+    return true;
+  } catch (error) {
+    logToSelfTest(`에코 테스트 오류: ${error.message}`, 'error');
+    console.error('에코 테스트 오류:', error);
+    return false;
+  }
 }
