@@ -12,7 +12,8 @@ import {
 import { EventEmitter } from 'events';
 import * as nacl from 'tweetnacl';
 import bs58 from 'bs58';
-import { Keypair, Connection, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
+import { Keypair, Connection, Transaction, sendAndConfirmTransaction, VersionedTransaction } from '@solana/web3.js';
+import { VersionedMessage } from '@solana/web3.js';
 
 /**
  * SalHost는 클라이언트와 통신하는 호스트를 구현합니다.
@@ -78,24 +79,36 @@ export class SalHost extends EventEmitter implements ISalHost {
    */
   private async defaultTxHandler(serializedTx: string): Promise<string> {
     try {
-      // 직렬화된 트랜잭션 디코딩
-      const transactionBuffer = Buffer.from(bs58.decode(serializedTx));
-      const transaction = Transaction.from(transactionBuffer);
+      // deserialize
+      const transaction = VersionedTransaction.deserialize(bs58.decode(serializedTx));
 
-      // 호스트의 서명 추가 - memo 명령어에 필요합니다
-      transaction.sign(this.keypair);
+      // sign
+      transaction.sign([this.keypair]);
 
-      // 트랜잭션 브로드캐스트
-      const signature = await sendAndConfirmTransaction(
-        this.connection,
-        transaction,
-        [this.keypair],
+      // broadcast
+      const txid = await this.connection.sendTransaction(transaction, {
+        maxRetries: 20,
+      });
+      console.log(`Transaction Submitted: ${txid}`);
+
+      // confirm
+      let latestBlockhash = await this.connection.getLatestBlockhash("confirmed");
+      const confirmation = await this.connection.confirmTransaction(
         {
-          commitment: 'confirmed'
-        }
+          signature: txid,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        },
+        "confirmed"
+      );
+      if (confirmation.value.err) {
+        throw new Error("🚨Transaction not confirmed.");
+      }
+      console.log(
+        `Transaction Successfully Confirmed! 🎉 View on SolScan: https://solscan.io/tx/${txid}`
       );
 
-      return signature;
+      return txid;
     } catch (error) {
       this.emit('error', new Error(`트랜잭션 처리 오류: ${error}`));
       throw error;

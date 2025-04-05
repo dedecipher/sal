@@ -16,7 +16,9 @@ import {
   Connection,
   TransactionInstruction,
   SystemProgram,
-  LAMPORTS_PER_SOL
+  LAMPORTS_PER_SOL,
+  TransactionMessage,
+  VersionedTransaction
 } from '@solana/web3.js';
 import * as nacl from 'tweetnacl';
 
@@ -57,6 +59,10 @@ export class SalClient extends EventEmitter implements ISalClient {
 
     // 메시지 핸들러 등록
     this.messageTransport.onMessage(this.handleIncomingMessage.bind(this));
+
+    if (config.testMode) {
+      this.isConnected = true;
+    }
   }
 
   /**
@@ -324,29 +330,31 @@ export class SalClient extends EventEmitter implements ISalClient {
       const senderPubkey = this.keypair.publicKey;
       const recipientPubkey = new PublicKey(recipient);
 
-      // SOL 전송 명령어 생성
-      const transaction = new Transaction().add(
-        // Add memo instruction first - this will be signed by the host
-        new TransactionInstruction({
-          keys: [{ pubkey: new PublicKey(recipient), isSigner: true, isWritable: true }],
-          data: Buffer.from(memo, "utf-8"), // Memo message
-          programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"), // Memo program
-        }),
-        // Add transfer instruction - this will be signed by the client
-        SystemProgram.transfer({
-          fromPubkey: senderPubkey,
-          toPubkey: recipientPubkey,
-          lamports: lamports
-        })
-      );
+      const memoInstruction = new TransactionInstruction({
+        keys: [{ pubkey: new PublicKey(recipient), isSigner: true, isWritable: true }],
+        data: Buffer.from(memo, "utf-8"), // Memo message
+        programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"), // Memo program
+      });
 
-      // 최근 블록해시 가져오기
+      const transferInstruction = SystemProgram.transfer({
+        fromPubkey: senderPubkey,
+        toPubkey: recipientPubkey,
+        lamports: lamports
+      });
+
       const { blockhash } = await this.connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = senderPubkey;
+
+      const messageV0 = new TransactionMessage({
+        payerKey: senderPubkey,
+        recentBlockhash: blockhash,
+        instructions: [memoInstruction, transferInstruction],
+      }).compileToV0Message();
+
+      const versionedTransaction = new VersionedTransaction(messageV0);
+      versionedTransaction.sign([this.keypair]);
 
       // 트랜잭션 직렬화
-      const serializedTransaction = bs58.encode(transaction.serialize());
+      const serializedTransaction = bs58.encode(versionedTransaction.serialize());
 
       return serializedTransaction;
     } catch (error) {

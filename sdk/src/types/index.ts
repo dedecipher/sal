@@ -26,6 +26,7 @@ export interface HostConfig {
 export interface ClientConfig {
   cluster: string;       // Required: Solana cluster
   keyPair: Keypair;      // Required: Solana private key
+  testMode?: boolean;     // Optional: Test mode
 }
 
 export interface SalMessageHeaders {
