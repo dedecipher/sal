@@ -14,6 +14,42 @@ export interface AudioEvent {
 // 오디오 이벤트 리스너 타입
 export type AudioEventListener = (event: AudioEvent) => void;
 
+// ggwave.js 스크립트를 동적으로 로드하는 함수
+function loadGGWaveScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== 'undefined' && (window as any).ggwave_factory) {
+      console.log('[CODEC] ggwave_factory가 이미 로드되어 있습니다.');
+      resolve();
+      return;
+    }
+
+    if (typeof window === 'undefined') {
+      console.warn('[CODEC] 브라우저 환경이 아닙니다. ggwave를 로드할 수 없습니다.');
+      resolve();
+      return;
+    }
+
+    console.log('[CODEC] ggwave.js 스크립트 로드 중...');
+    const script = document.createElement('script');
+    script.src = '/ggwave/ggwave.js';
+    script.async = true;
+    script.onload = () => {
+      console.log('[CODEC] ggwave.js 로드 완료');
+      resolve();
+    };
+    script.onerror = (error) => {
+      console.error('[CODEC] ggwave.js 로드 실패:', error);
+      reject(new Error('ggwave.js 로드 실패'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// 모듈 로드 시 자동으로 실행
+if (typeof window !== 'undefined') {
+  loadGGWaveScript().catch(err => console.error('[CODEC] ggwave 자동 로드 실패:', err));
+}
+
 // Helper function to convert array types
 function convertTypedArray(src: any, type: any): any {
   const buffer = new ArrayBuffer(src.byteLength);
@@ -48,6 +84,9 @@ export class AudioCodec extends EventEmitter {
       // ggwave 로딩
       if (!this.ggwave && typeof window !== 'undefined') {
         console.log('[CODEC] ggwave 로딩 중...');
+        
+        // ggwave.js 스크립트 로드 확인 및 로드
+        await loadGGWaveScript();
         
         if (!(window as any).ggwave_factory) {
           // 실제 구현에서는 스크립트 로딩 로직이 필요합니다
