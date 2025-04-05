@@ -5,7 +5,7 @@ import AudioMessenger from '@/components/AudioMessenger';
 import ModeSelector from '@/components/ModeSelector';
 
 export default function Home() {
-  const [currentMode, setCurrentMode] = useState<'HOST' | 'CLIENT' | null>(null);
+  const [currentMode, setCurrentMode] = useState<'HOST' | 'CLIENT'>('CLIENT');
 
   const handleModeChange = (mode: 'HOST' | 'CLIENT') => {
     setCurrentMode(mode);
@@ -15,9 +15,9 @@ export default function Home() {
     <main className="min-h-screen bg-black">
       <div className="container mx-auto py-8">
         <div className="flex justify-between items-center mb-8">
-          <ModeSelector onModeChange={handleModeChange} />
+          <ModeSelector onModeChange={handleModeChange} currentMode={currentMode} />
         </div>
-        {currentMode && <AudioMessenger mode={currentMode} />}
+        <AudioMessenger mode={currentMode} />
       </div>
     </main>
   );

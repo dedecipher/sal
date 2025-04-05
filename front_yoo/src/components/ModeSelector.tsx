@@ -4,11 +4,12 @@ type Mode = 'HOST' | 'CLIENT';
 
 interface ModeSelectorProps {
   onModeChange: (mode: Mode) => void;
+  currentMode: Mode;
 }
 
-export default function ModeSelector({ onModeChange }: ModeSelectorProps) {
+export default function ModeSelector({ onModeChange, currentMode }: ModeSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<Mode>('HOST');
+  const [selectedMode, setSelectedMode] = useState<Mode>(currentMode);
 
   const handleModeSelect = (mode: Mode) => {
     setSelectedMode(mode);
@@ -17,7 +18,7 @@ export default function ModeSelector({ onModeChange }: ModeSelectorProps) {
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-[1000]">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
