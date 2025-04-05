@@ -32785,11 +32785,6 @@ var SalHost = /*#__PURE__*/function (_EventEmitter) {
               this.emit('error', _context2.t0);
               throw _context2.t0;
             case 18:
-              _context2.next = 20;
-              return this.messageTransport.sendMessage(JSON.stringify({
-                "key": "gm"
-              }));
-            case 20:
             case "end":
               return _context2.stop();
           }
@@ -33586,7 +33581,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
     value: (function () {
       var _sendChunk = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3(chunk, chunkNumber, totalChunks) {
         var _this3 = this;
-        var protocol, volume, waveform, buf, buffer, duration, gainNode, compressor, source, errorMessage;
+        var protocol, volume, waveform, buf, buffer, duration, source, errorMessage;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
@@ -33611,7 +33606,7 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               }
 
               // 볼륨 설정
-              volume = 20; // 볼륨 감소 (50 -> 20)
+              volume = 10; // 볼륨 최소화 (15 -> 10)
               console.log("[".concat(this.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC778\uCF54\uB529 \uC2DC\uC791 (").concat(chunk.length, "\uC790)"));
 
               // ggwave로 청크 인코딩
@@ -33645,26 +33640,12 @@ var AudioMessageTransport = /*#__PURE__*/function () {
               duration = buffer.duration;
               console.log("[".concat(this.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC624\uB514\uC624 \uBC84\uD37C \uC0DD\uC131\uB428, \uAE38\uC774: ").concat(duration.toFixed(2), "\uCD08"));
 
-              // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
-              gainNode = this.context.createGain();
-              gainNode.gain.value = 1.0; // 볼륨 감소 (1.2 -> 1.0)
-
-              // 압축기 노드 추가 (다이나믹 레인지 압축으로 더 선명한 사운드)
-              compressor = this.context.createDynamicsCompressor();
-              compressor.threshold.value = -24; // 덜 공격적인 값
-              compressor.knee.value = 30; // 부드러운 압축
-              compressor.ratio.value = 4; // 압축률 추가 감소 (6 -> 4)
-              compressor.attack.value = 0.003;
-              compressor.release.value = 0.25;
-
-              // 오디오 소스 생성 및 출력
+              // 오디오 소스 생성 및 출력 - 직접 재생
               source = this.context.createBufferSource();
               source.buffer = buffer;
 
-              // 노드 연결: source -> gain -> compressor -> destination (하이 쉘프 필터 제거)
-              source.connect(gainNode);
-              gainNode.connect(compressor);
-              compressor.connect(this.context.destination);
+              // 직접 연결: source -> destination (게인 노드 제거)
+              source.connect(this.context.destination);
 
               // 재생 시작
               source.start(0);
@@ -33682,18 +33663,18 @@ var AudioMessageTransport = /*#__PURE__*/function () {
                   resolve();
                 }, waitTime);
               }));
-            case 39:
-              _context3.prev = 39;
+            case 29:
+              _context3.prev = 29;
               _context3.t0 = _context3["catch"](0);
               errorMessage = _context3.t0 instanceof Error ? _context3.t0.message : String(_context3.t0);
               console.error("[".concat(this.name, "] \uCCAD\uD06C #").concat(chunkNumber, " \uC778\uCF54\uB529 \uC624\uB958 \uBC1C\uC0DD:"), _context3.t0);
               this.log("\uCCAD\uD06C #".concat(chunkNumber, " \uC778\uCF54\uB529 \uC624\uB958: ").concat(errorMessage), 'error');
               throw new Error("\uCCAD\uD06C #".concat(chunkNumber, " \uC624\uB514\uC624 \uC778\uCF54\uB529 \uC2E4\uD328: ").concat(errorMessage));
-            case 45:
+            case 35:
             case "end":
               return _context3.stop();
           }
-        }, _callee3, this, [[0, 39]]);
+        }, _callee3, this, [[0, 29]]);
       }));
       function sendChunk(_x2, _x3, _x4) {
         return _sendChunk.apply(this, arguments);

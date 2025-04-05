@@ -345,7 +345,7 @@ export class AudioMessageTransport implements MessageTransport {
       }
       
       // 볼륨 설정
-      const volume = 20; // 볼륨 감소 (50 -> 20)
+      const volume = 10; // 볼륨 최소화 (15 -> 10)
       
       console.log(`[${this.name}] 청크 #${chunkNumber} 인코딩 시작 (${chunk.length}자)`);
       
@@ -380,26 +380,12 @@ export class AudioMessageTransport implements MessageTransport {
       const duration = buffer.duration;
       console.log(`[${this.name}] 청크 #${chunkNumber} 오디오 버퍼 생성됨, 길이: ${duration.toFixed(2)}초`);
       
-      // 게인 노드를 통해 볼륨 조정 (추가적인 증폭)
-      const gainNode = this.context.createGain();
-      gainNode.gain.value = 1.0; // 볼륨 감소 (1.2 -> 1.0)
-      
-      // 압축기 노드 추가 (다이나믹 레인지 압축으로 더 선명한 사운드)
-      const compressor = this.context.createDynamicsCompressor();
-      compressor.threshold.value = -24; // 덜 공격적인 값
-      compressor.knee.value = 30; // 부드러운 압축
-      compressor.ratio.value = 4; // 압축률 추가 감소 (6 -> 4)
-      compressor.attack.value = 0.003;
-      compressor.release.value = 0.25;
-      
-      // 오디오 소스 생성 및 출력
+      // 오디오 소스 생성 및 출력 - 직접 재생
       const source = this.context.createBufferSource();
       source.buffer = buffer;
       
-      // 노드 연결: source -> gain -> compressor -> destination (하이 쉘프 필터 제거)
-      source.connect(gainNode);
-      gainNode.connect(compressor);
-      compressor.connect(this.context.destination);
+      // 직접 연결: source -> destination (게인 노드 제거)
+      source.connect(this.context.destination);
       
       // 재생 시작
       source.start(0);
