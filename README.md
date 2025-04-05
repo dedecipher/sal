@@ -13,7 +13,7 @@ This repository is set up as a monorepo with the following components:
 
 ## SSAL SDK
 
-The SSAL-SDK is a collection of functions and protocols that agents use to securely communicate and perform transactions. It handles cryptographic operations like message encryption (capsulation) and decryption (decapsulation), data encoding/decoding, and transaction creation/signing. Key functions of the SSAL-SDK include following features
+The SSAL SDK is a collection of functions and protocols that agents use to securely communicate and perform transactions. It handles message capsulation/decapsulation, data encoding/decoding, and cryptographic operations like transaction creation/signing. Key functions of the SSAL SDK include following features
 
 - Audio-based message encoding and decoding
 - Solana blockchain payment integration
@@ -54,7 +54,7 @@ npx ts-node tests/transfer.test.ts
 
 ### SDK Usage
 
-The dDecipher SDK supports two distinct roles:
+The SSAL SDK supports two distinct roles:
 
 1. **Client Role** - For applications that need to connect to a host and send/receive messages (e.g. Personal Assistant, etc.)
 2. **Host Role** - For applications that accept connections from clients and process messages (e.g. Hotel, Restaurant, etc.)
