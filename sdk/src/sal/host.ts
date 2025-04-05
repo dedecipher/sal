@@ -12,7 +12,7 @@ import {
 import { EventEmitter } from 'events';
 import * as nacl from 'tweetnacl';
 import bs58 from 'bs58';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, Connection, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
 
 /**
  * SalHost는 클라이언트와 통신하는 호스트를 구현합니다.
@@ -26,27 +26,34 @@ export class SalHost extends EventEmitter implements ISalHost {
   private isRunning: boolean = false;
   private seenNonces: Set<string> = new Set(); // 재전송 공격 방지
   private keypair: Keypair;
+  private connection: Connection;
 
   constructor(config: HostConfig, messageTransport: IMessageTransport) {
     super();
-    
+
     // 필수 설정 확인
     if (!config.cluster || !config.phoneNumber || !config.host || !config.keyPair) {
       throw new Error('필수 설정 매개변수가 누락되었습니다.');
     }
-    
+
     this.cfg = { ...config };
-    
+
     // 키페어 생성
     this.keypair = config.keyPair;
-    
+
+    // Solana 연결 설정
+    this.connection = new Connection(config.cluster);
+
     // 메시지 전송 인터페이스 설정
     this.messageTransport = messageTransport;
-    
+
     // 메시지 핸들러 등록
     this.messageTransport.onMessage(this.handleIncomingMessage.bind(this));
+
+    // 기본 트랜잭션 핸들러 설정
+    this.txHandler = this.defaultTxHandler.bind(this);
   }
-  
+
   /**
    * 메시지 및 트랜잭션 핸들러를 등록합니다.
    */
@@ -57,14 +64,44 @@ export class SalHost extends EventEmitter implements ISalHost {
     if (handlers.messageHandler) {
       this.messageHandler = handlers.messageHandler;
     }
-    
+
     if (handlers.txHandler) {
       this.txHandler = handlers.txHandler;
     }
-    
+
     return this;
   }
-  
+
+  /**
+   * 기본 트랜잭션 핸들러
+   * 클라이언트가 보낸 Solana 트랜잭션을 직렬화하고, 서명을 추가한 후 네트워크에 브로드캐스트합니다.
+   */
+  private async defaultTxHandler(serializedTx: string): Promise<string> {
+    try {
+      // 직렬화된 트랜잭션 디코딩
+      const transactionBuffer = Buffer.from(bs58.decode(serializedTx));
+      const transaction = Transaction.from(transactionBuffer);
+
+      // 호스트의 서명 추가 - memo 명령어에 필요합니다
+      transaction.sign(this.keypair);
+
+      // 트랜잭션 브로드캐스트
+      const signature = await sendAndConfirmTransaction(
+        this.connection,
+        transaction,
+        [this.keypair],
+        {
+          commitment: 'confirmed'
+        }
+      );
+
+      return signature;
+    } catch (error) {
+      this.emit('error', new Error(`트랜잭션 처리 오류: ${error}`));
+      throw error;
+    }
+  }
+
   /**
    * 서버를 시작하고 수신 연결을 기다립니다.
    */
@@ -72,18 +109,18 @@ export class SalHost extends EventEmitter implements ISalHost {
     if (this.isRunning) {
       return;
     }
-    
+
     try {
       if (!this.messageTransport) {
         throw new Error('메시지 전송 인터페이스가 설정되지 않았습니다.');
       }
-      
+
       // 메시지 수신 시작
       const success = await this.messageTransport.startListening();
       if (!success) {
         throw new Error('메시지 수신을 시작할 수 없습니다.');
       }
-      
+
       this.isRunning = true;
       this.emit('running');
     } catch (error) {
@@ -91,7 +128,7 @@ export class SalHost extends EventEmitter implements ISalHost {
       throw error;
     }
   }
-  
+
   /**
    * 서버를 중지합니다.
    */
@@ -99,15 +136,15 @@ export class SalHost extends EventEmitter implements ISalHost {
     if (!this.isRunning) {
       return;
     }
-    
+
     if (this.messageTransport) {
       this.messageTransport.stopListening();
     }
-    
+
     this.isRunning = false;
     this.emit('stopped');
   }
-  
+
   /**
    * 메시지를 처리합니다.
    */
@@ -115,14 +152,14 @@ export class SalHost extends EventEmitter implements ISalHost {
     try {
       // JSON 파싱 시도
       const request = JSON.parse(messageStr) as SalRequest;
-      
+
       // 요청 처리
       this.processIncomingRequest(request, 'message-source');
     } catch (error) {
       this.emit('error', new Error(`메시지 처리 오류: ${error}`));
     }
   }
-  
+
   /**
    * 수신 요청을 처리합니다.
    */
@@ -133,7 +170,7 @@ export class SalHost extends EventEmitter implements ISalHost {
         this.emit('error', new Error('잘못된 SAL 메시지 형식'));
         return;
       }
-      
+
       // nonce 확인 (재전송 공격 방지)
       const nonce = request.msg.headers.nonce;
       if (this.seenNonces.has(nonce)) {
@@ -141,19 +178,19 @@ export class SalHost extends EventEmitter implements ISalHost {
         return;
       }
       this.seenNonces.add(nonce);
-      
+
       // 서명 확인
       const isValid = this.verifySignature(
         request.msg.headers.publicKey,
         JSON.stringify(request.msg),
         request.sig
       );
-      
+
       if (!isValid) {
         this.emit('error', new Error('잘못된 메시지 서명'));
         return;
       }
-      
+
       // 메서드에 따라 처리
       switch (request.method) {
         case SalMethod.GM:
@@ -172,7 +209,7 @@ export class SalHost extends EventEmitter implements ISalHost {
       this.emit('error', error);
     }
   }
-  
+
   /**
    * GM(인사) 메시지를 처리합니다.
    */
@@ -181,14 +218,14 @@ export class SalHost extends EventEmitter implements ISalHost {
     this.clients.set(source, {
       publicKey: headers.publicKey
     });
-    
+
     // 클라이언트 연결 이벤트 발생
     this.emit('client_connected', source);
-    
+
     // 확인 응답 전송
     await this.sendResponse(headers, "WELCOME", source, 'ok');
   }
-  
+
   /**
    * 일반 메시지를 처리합니다.
    */
@@ -196,9 +233,9 @@ export class SalHost extends EventEmitter implements ISalHost {
     if (this.messageHandler) {
       try {
         const messageStr = typeof message === 'string' ? message : JSON.stringify(message);
-        
+
         await this.messageHandler(messageStr, source);
-        
+
         // 확인 응답 전송
         await this.sendResponse(headers, { received: true }, source, 'ok');
       } catch (error) {
@@ -208,23 +245,19 @@ export class SalHost extends EventEmitter implements ISalHost {
       await this.sendResponse(headers, { error: 'No message handler' }, source, 'error');
     }
   }
-  
+
   /**
    * 트랜잭션을 처리합니다.
    */
   private async handleTransaction(headers: SalMessageHeaders, transaction: any, source: string): Promise<void> {
-    if (this.txHandler) {
-      try {
-        const result = await this.txHandler(transaction);
-        await this.sendResponse(headers, { signature: result }, source, 'ok');
-      } catch (error) {
-        await this.sendResponse(headers, { error: String(error) }, source, 'error');
-      }
-    } else {
-      await this.sendResponse(headers, { error: 'No transaction handler' }, source, 'error');
+    try {
+      const result = await this.txHandler!(transaction);
+      await this.sendResponse(headers, { signature: result }, source, 'ok');
+    } catch (error) {
+      await this.sendResponse(headers, { error: String(error) }, source, 'error');
     }
   }
-  
+
   /**
    * 클라이언트에 응답을 전송합니다.
    */
@@ -238,30 +271,30 @@ export class SalHost extends EventEmitter implements ISalHost {
       this.emit('error', new Error('메시지 전송 인터페이스가 설정되지 않았습니다.'));
       return;
     }
-    
+
     const headers: SalMessageHeaders = {
       ...requestHeaders,
       host: this.cfg.host,
       nonce: requestHeaders.nonce, // 요청의 nonce 재사용
       publicKey: this.keypair.publicKey.toString()
     };
-    
+
     const msg = { headers, body };
-    
+
     const response: SalResponse = {
       status,
       code: status === 'ok' ? 200 : 400,
       sig: this.sign(JSON.stringify(msg)),
       msg
     };
-    
+
     // 응답을 JSON 문자열로 변환
     const responseJson = JSON.stringify(response);
-    
+
     // 메시지 전송
     await this.messageTransport.sendMessage(responseJson);
   }
-  
+
   /**
    * 서명을 확인합니다.
    */
@@ -275,7 +308,7 @@ export class SalHost extends EventEmitter implements ISalHost {
       return false;
     }
   }
-  
+
   /**
    * 메시지에 서명합니다.
    */
