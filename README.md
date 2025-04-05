@@ -2,7 +2,7 @@
 
 <img src="https://avatars.githubusercontent.com/u/206302525?s=200&v=4"/>
 
-SSAL (Solana Secure Agents Layer) is a protocol and framework that enables secure autonomous agents on the Solana blockchain. It allows programs(agents) to manage wallets and sign transactions on behalf of users in a trust-minimized way. SSAL combines an on-chain Certificate Tree with a SSAL-SDK to ensure that only registered, staked agents can act, and their actions are cryptographically verified. In SSAL, agents must stake a dedicated asset (the Secure Token) to register, which incentivizes proper behavior and enables slashing (penalization) for misconduct. All token transactions (for example, using USDC) are handled with precise integer amounts (BigInt) to avoid any decimal precision issues.
+SSAL (Solana Secure Agents Layer) is a protocol and framework that enables secure autonomous agents on the Solana blockchain. It allows programs(agents) to manage wallets and sign transactions on behalf of users in a trust-minimized way. SSAL combines an on-chain Certificate Tree with a SSAL-SDK to ensure that only registered, staked agents can act, and their actions are cryptographically verified. In SSAL, agents must stake a dedicated asset to register, which incentivizes proper behavior and enables slashing (penalization) for misconduct. All token transactions (for example, using USDC) are handled with precise integer amounts (BigInt) to avoid any decimal precision issues.
 
 This repository is set up as a monorepo with the following components:
 
@@ -166,7 +166,7 @@ This system is analogous to certificate transparency logs in traditional Web PKI
 When a new AI agent wants to join SSAL’s trusted network (for example, a hotel booking agent wanting verifiable proof of its identity), it registers in the Certificate Tree through these steps:
 
 1. Proposal Submission:
-    - The agent submits a proposal containing contact info (name, domain, email, phone, IP) and its public key, alongside a certain amount of Secure Token locked as stake. This proposal is broadcast to the NCN validators.
+    - The agent submits a proposal containing contact info (name, domain, email, phone, IP) and its public key, alongside a certain amount of asset locked as stake. This proposal is broadcast to the NCN validators.
 2. Validator Challenge:
     - The NCN issues a nonce-based signature challenge. The agent must sign the nonce with the private key corresponding to the submitted public key, proving ownership. Optionally, validators may do additional checks like sending a verification code to the provided email or phone. The crucial check is cryptographic proof that the agent controls the key.
 3. Voting:
@@ -174,7 +174,7 @@ When a new AI agent wants to join SSAL’s trusted network (for example, a hotel
 4. Provisional Acceptance:
     - Once approved by quorum, the agent’s data is added to the in-memory Merkle tree of pending entries. The agent is considered “registered” for practical purposes, but final on-chain confirmation occurs at the next epoch snapshot. If the proposal is rejected, the agent’s stake may be slashed or partially refunded, depending on the reason for rejection.
 
-Requiring agents to lock up Secure Token for each registration provides effective Sybil resistance: creating many fake identities becomes economically unfeasible. Honest participants can eventually retrieve their stake upon deregistration, but attackers risk losing it to slashing if they attempt fraudulent registrations.
+Requiring agents to lock up asset for each registration provides effective Sybil resistance: creating many fake identities becomes economically unfeasible. Honest participants can eventually retrieve their stake upon deregistration, but attackers risk losing it to slashing if they attempt fraudulent registrations.
 
 ### Merkle Tree and Epoch Snapshots
 
@@ -198,15 +198,15 @@ Over time, agents may update their info or leave the SSAL network:
 ### Validator Incentives and Security
 
 The NCN validators are essential for maintaining the Certificate Tree’s integrity:
-- Staking and Rewards: Validators must also stake Secure Token to join the NCN, guaranteeing they have something to lose if they act dishonestly. They may earn rewards (like token distributions or a share of fees) for diligently verifying proposals and finalizing epoch snapshots.
+- Staking and Rewards: Validators must also stake asset to join the NCN, guaranteeing they have something to lose if they act dishonestly. They may earn rewards (like token distributions or a share of fees) for diligently verifying proposals and finalizing epoch snapshots.
 - Slashing: Validators who approve fraudulent entries, push incorrect Merkle roots, or otherwise misbehave can be slashed – losing part or all of their stake. This incentivizes them to follow the protocol rules and thoroughly validate agent submissions.
 - Majority Trust Assumption: A majority (>50%) of honest validators is assumed. While some blockchains use higher thresholds (e.g., two-thirds), SSAL’s design expects rational actors with significant stake at risk to behave correctly. In real deployments, thresholds can be tuned, or supermajority voting might be required for extra security.
 
-Because SSAL doesn’t introduce a brand-new token, it relies on an existing token (the “Secure Token”) for staking, ensuring the system is simple to adopt and not prone to speculative token fluctuations. This design mirrors standard Proof-of-Stake economics, applied specifically to agent identity validation and network security.
+Because SSAL doesn’t introduce a brand-new token, it relies on an existing token (e.g. SOL, JTO) for staking, ensuring the system is simple to adopt and not prone to speculative token fluctuations. This design mirrors standard Proof-of-Stake economics, applied specifically to agent identity validation and network security.
 
 ### Economic Model and Security Analysis
 
-- No New Token: By leveraging a stable or widely recognized asset for staking, SSAL reduces friction for participants. They can stake this “Secure Token” (e.g., SOL or another base asset) without having to acquire a specialized coin just for SSAL.
+- No New Token: By leveraging a stable or widely recognized asset for staking, SSAL reduces friction for participants.
 - Sybil-Resistance: Requiring a non-trivial stake per agent, plus exponentially increasing costs, makes mass identity creation prohibitively expensive. Malicious actors are further discouraged by the risk of slashing if caught submitting fake or duplicate registrations.
 - Layered Trust: Each agent’s trustworthiness depends on:
     1. Certificate Tree Registration (on-chain verified identity + staked collateral).
