@@ -160,7 +160,7 @@ export default function AudioMessenger({ mode }: AudioMessengerProps) {
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext();
     }
-    const firstClientMessage = demoScripts.hotelBooking.messages.find(msg => msg.sender === 'Client');
+    const firstClientMessage = demoScripts.hotelBooking.messages.find(msg => msg.sender === 'CLIENT');
     if (firstClientMessage) {
       setCurrentMessageIndex(demoScripts.hotelBooking.messages.indexOf(firstClientMessage));
       setCurrentMessage(firstClientMessage.text);
