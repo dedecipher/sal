@@ -1,0 +1,25 @@
+{
+  "name": "gibberlink-sdk",
+  "version": "0.1.0",
+  "description": "GibberLink SDK for audio-based message encoding",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "clean": "rimraf dist",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "events": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.4"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT"
+}
