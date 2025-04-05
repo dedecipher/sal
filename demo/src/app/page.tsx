@@ -7,52 +7,59 @@ import AudioVisualizer from '../components/AudioVisualizer';
 import { useWallet } from '../hooks/useWallet';
 
 export default function Home() {
-  const {
-    mode,
-    switchMode,
-    isInitialized,
-    messages,
-    sendMessage,
-    isSending,
-    error: sdkError,
-    initialize,
-    connectToHost,
-    isConnecting
-  } = useSalSdk();
-
   // Wallet connection
   const {
     walletState,
-    error: walletError,
     connect,
     disconnect
   } = useWallet();
 
-  // Panel logs
+  // 호스트와 클라이언트를 위한 별도의 상태와 로그 관리
+  // 상태
+  const [hostActive, setHostActive] = useState<boolean>(false);
+  const [clientConnected, setClientConnected] = useState<boolean>(false);
+  const [audioActivated, setAudioActivated] = useState<boolean>(true);
+  
+  // 로그
   const [hostLog, setHostLog] = useState<string[]>([]);
   const [clientLog, setClientLog] = useState<string[]>([]);
+  const [messages, setMessages] = useState<{ sender: 'host' | 'client'; text: string; timestamp: number }[]>([]);
   
-  // Form inputs
+  // 폼 입력
   const [hostAddress, setHostAddress] = useState<string>('demohost');
   const [messageText, setMessageText] = useState<string>('');
   
-  // Status
-  const [audioActivated, setAudioActivated] = useState<boolean>(false);
-  
-  // Panel states
-  const [hostActive, setHostActive] = useState<boolean>(false);
-  const [clientConnected, setClientConnected] = useState<boolean>(false);
-  
-  // Audio context and source for visualizer
+  // 오디오 컨텍스트 및 비주얼라이저 용 소스
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [audioSource, setAudioSource] = useState<MediaStreamAudioSourceNode | null>(null);
   
-  // Refs for logging panels
+  // 로깅 패널용 refs
   const hostLogRef = useRef<HTMLDivElement>(null);
   const clientLogRef = useRef<HTMLDivElement>(null);
   const messagesLogRef = useRef<HTMLDivElement>(null);
 
-  // Handle wallet connection
+  // 호스트 SDK 인스턴스
+  const {
+    isInitialized: isHostInitialized,
+    messages: hostMessages,
+    sendMessage: hostSendMessage,
+    isSending: isHostSending,
+    error: hostSdkError,
+    initialize: initializeHost,
+  } = useSalSdk();
+
+  // 클라이언트 SDK 인스턴스 (2번째 인스턴스 생성)
+  const {
+    messages: clientMessages,
+    sendMessage: clientSendMessage,
+    isSending: isClientSending,
+    error: clientSdkError,
+    initialize: initializeClient,
+    connectToHost,
+    isInitialized: isClientInitialized,
+  } = useSalSdk();
+
+  // Wallet 연결 처리
   const handleWalletConnect = () => {
     if (walletState.connected) {
       disconnect();
@@ -61,7 +68,7 @@ export default function Home() {
     }
   };
 
-  // Initialize audio
+  // 오디오 초기화
   const activateAudio = async () => {
     try {
       const newAudioContext = new AudioContext();
@@ -81,11 +88,10 @@ export default function Home() {
     }
   };
 
-  // Start host
+  // 호스트 시작
   const startHost = async () => {
     try {
-      switchMode('HOST');
-      await initialize();
+      await initializeHost('HOST');
       setHostActive(true);
       addHostLog('info', '호스트가 시작되었습니다.');
       addHostLog('info', '클라이언트 연결 대기 중...');
@@ -94,41 +100,57 @@ export default function Home() {
     }
   };
 
-  // Stop host
+  // 호스트 중지
   const stopHost = () => {
     setHostActive(false);
     addHostLog('info', '호스트가 중지되었습니다.');
   };
 
-  // Connect client to host
+  // 클라이언트 연결
   const connectClient = async () => {
     try {
-      switchMode('CLIENT');
-      await initialize();
+      await initializeClient('CLIENT');
       addClientLog('info', '클라이언트 초기화됨');
       
       addClientLog('request', `호스트 "${hostAddress}"에 연결 시도 중...`);
-      await connectToHost(hostAddress);
-      setClientConnected(true);
-      addClientLog('response', '호스트에 연결되었습니다!');
+      await connectToHost(hostAddress, '+12345678901', () => {
+        setClientConnected(true);
+        addClientLog('response', '호스트에 연결되었습니다!');
+      });
     } catch (err) {
       addClientLog('error', `호스트 연결 실패: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
-  // Disconnect client
+  // 클라이언트 연결 해제
   const disconnectClient = () => {
     setClientConnected(false);
     addClientLog('info', '호스트와 연결이 해제되었습니다.');
   };
 
-  // Send message
-  const handleSendMessage = async () => {
+  // 호스트로부터 메시지 전송
+  const handleHostSendMessage = async () => {
+    if (!messageText.trim()) return;
+    
+    try {
+      addHostLog('request', `메시지 전송: "${messageText}"`);
+      await hostSendMessage(messageText);
+      setMessages(prev => [...prev, { sender: 'host', text: messageText, timestamp: Date.now() }]);
+      setMessageText('');
+      addHostLog('response', '메시지 전송 성공!');
+    } catch (err) {
+      addHostLog('error', `메시지 전송 실패: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
+  // 클라이언트로부터 메시지 전송
+  const handleClientSendMessage = async () => {
     if (!messageText.trim()) return;
     
     try {
       addClientLog('request', `메시지 전송: "${messageText}"`);
-      await sendMessage(messageText);
+      await clientSendMessage(messageText);
+      setMessages(prev => [...prev, { sender: 'client', text: messageText, timestamp: Date.now() }]);
       setMessageText('');
       addClientLog('response', '메시지 전송 성공!');
     } catch (err) {
@@ -136,12 +158,12 @@ export default function Home() {
     }
   };
 
-  // Add log entry to host panel
+  // 호스트 로그 항목 추가
   const addHostLog = (type: 'info' | 'request' | 'response' | 'error', message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setHostLog(prev => [...prev, `[${timestamp}] [${type.toUpperCase()}] ${message}`]);
     
-    // Auto scroll
+    // 자동 스크롤
     setTimeout(() => {
       if (hostLogRef.current) {
         hostLogRef.current.scrollTop = hostLogRef.current.scrollHeight;
@@ -149,12 +171,12 @@ export default function Home() {
     }, 10);
   };
 
-  // Add log entry to client panel
+  // 클라이언트 로그 항목 추가
   const addClientLog = (type: 'info' | 'request' | 'response' | 'error', message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setClientLog(prev => [...prev, `[${timestamp}] [${type.toUpperCase()}] ${message}`]);
     
-    // Auto scroll
+    // 자동 스크롤
     setTimeout(() => {
       if (clientLogRef.current) {
         clientLogRef.current.scrollTop = clientLogRef.current.scrollHeight;
@@ -162,41 +184,70 @@ export default function Home() {
     }, 10);
   };
 
-  // Monitor messages to update logs
+  // 호스트 메시지 모니터링
   useEffect(() => {
-    if (messages.length > 0) {
-      const latestMessage = messages[messages.length - 1];
-      if (latestMessage.sender === 'me') {
-        addClientLog('info', `메시지 전송됨: "${latestMessage.text}"`);
-      } else {
+    if (hostMessages.length > 0) {
+      const latestMessage = hostMessages[hostMessages.length - 1];
+      
+      if (latestMessage.sender === 'other') {
         addHostLog('info', `메시지 수신됨: "${latestMessage.text}"`);
+        setMessages(prev => [...prev, { 
+          sender: 'client', 
+          text: latestMessage.text, 
+          timestamp: latestMessage.timestamp 
+        }]);
       }
       
-      // Auto scroll messages panel
+      // 메시지 패널 자동 스크롤
       setTimeout(() => {
         if (messagesLogRef.current) {
           messagesLogRef.current.scrollTop = messagesLogRef.current.scrollHeight;
         }
       }, 10);
     }
-  }, [messages]);
+  }, [hostMessages]);
 
-  // Update UI based on SDK state
+  // 클라이언트 메시지 모니터링
   useEffect(() => {
-    if (sdkError) {
-      if (mode === 'HOST') {
-        addHostLog('error', `오류: ${sdkError}`);
-      } else {
-        addClientLog('error', `오류: ${sdkError}`);
+    if (clientMessages.length > 0) {
+      const latestMessage = clientMessages[clientMessages.length - 1];
+      
+      if (latestMessage.sender === 'other') {
+        addClientLog('info', `메시지 수신됨: "${latestMessage.text}"`);
+        setMessages(prev => [...prev, { 
+          sender: 'host', 
+          text: latestMessage.text, 
+          timestamp: latestMessage.timestamp 
+        }]);
       }
+      
+      // 메시지 패널 자동 스크롤
+      setTimeout(() => {
+        if (messagesLogRef.current) {
+          messagesLogRef.current.scrollTop = messagesLogRef.current.scrollHeight;
+        }
+      }, 10);
     }
-  }, [sdkError, mode]);
+  }, [clientMessages]);
+
+  // SDK 오류 상태 모니터링
+  useEffect(() => {
+    if (hostSdkError) {
+      addHostLog('error', `호스트 오류: ${hostSdkError}`);
+    }
+  }, [hostSdkError]);
+
+  useEffect(() => {
+    if (clientSdkError) {
+      addClientLog('error', `클라이언트 오류: ${clientSdkError}`);
+    }
+  }, [clientSdkError]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       <Navbar 
-        mode={mode}
-        onModeChange={switchMode}
+        mode={'HOST & CLIENT'}
+        onModeChange={() => {}}
         onConnectWallet={handleWalletConnect}
         isWalletConnected={walletState.connected}
         walletAddress={walletState.publicKey?.toString()}
@@ -217,13 +268,13 @@ export default function Home() {
                 <div 
                   key={index} 
                   className={`mb-2 p-2 rounded ${
-                    msg.sender === 'me' 
+                    msg.sender === 'host' 
                       ? 'bg-purple-900/40 border-l-4 border-purple-500 ml-10' 
                       : 'bg-indigo-900/40 border-l-4 border-indigo-500 mr-10'
                   }`}
                 >
                   <div className="flex justify-between text-xs text-gray-400 mb-1">
-                    <span>{msg.sender === 'me' ? '보냄' : '받음'}</span>
+                    <span>{msg.sender === 'host' ? '호스트' : '클라이언트'}</span>
                     <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
                   </div>
                   <div className="break-words">{msg.text}</div>
@@ -233,44 +284,88 @@ export default function Home() {
           </div>
         </div>
         
-        {/* 메인 콘텐츠 */}
+        {/* 오디오 초기화 버튼 */}
+        {/* {!audioActivated && (
+          <div className="bg-gray-800 p-6 rounded-lg border border-purple-800 shadow-lg flex items-center justify-center">
+            <button 
+              onClick={activateAudio}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
+            >
+              🔊 오디오 활성화하기 (시작하려면 클릭하세요)
+            </button>
+          </div>
+        )} */}
+
+        {/* {audioActivated && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AudioVisualizer 
+              audioContext={audioContext}
+              audioSource={audioSource}
+            />
+          </div>
+        )} */}
+        
+        {/* 메인 컨텐츠 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* 왼쪽 패널: 오디오 시각화 & 호스트 컨트롤 */}
-          <div className="flex flex-col gap-4">
-            <div className="bg-gray-800 p-4 rounded-lg border border-purple-800 shadow-lg">
-              <h2 className="text-lg font-semibold mb-2 text-purple-300">Host</h2>
-              <div className="mb-4">
-                <div className="font-medium mb-2">
-                  상태: <span className={`${hostActive ? 'text-green-400' : 'text-red-400'}`}>
-                    {hostActive ? '활성' : '비활성'}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
+          {/* 왼쪽 패널: 호스트 컨트롤 */}
+          <div className="bg-gray-800 p-4 rounded-lg border border-purple-800 shadow-lg">
+            <h2 className="text-lg font-semibold mb-2 text-purple-300">Host</h2>
+            <div className="mb-4">
+              <div className="font-medium mb-2">
+                상태: <span className={`${hostActive ? 'text-green-400' : 'text-red-400'}`}>
+                  {hostActive ? '활성' : '비활성'}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <button 
+                  onClick={startHost}
+                  disabled={hostActive || !audioActivated}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    hostActive || !audioActivated
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700'
+                  }`}
+                >
+                  호스트 시작
+                </button>
+                <button 
+                  onClick={stopHost}
+                  disabled={!hostActive}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    !hostActive
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700'
+                  }`}
+                >
+                  호스트 중지
+                </button>
+              </div>
+
+              {hostActive && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">
+                    메시지 전송:
+                  </label>
+                  {/* <textarea 
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="호스트로 전송할 메시지를 입력하세요"
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent h-[80px] resize-none"
+                  /> */}
                   <button 
-                    onClick={startHost}
-                    disabled={hostActive || !audioActivated}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      hostActive || !audioActivated
+                    onClick={handleHostSendMessage}
+                    disabled={!hostActive || !messageText.trim() || isHostSending}
+                    className={`w-full mt-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                      !hostActive || !messageText.trim() || isHostSending
                         ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                         : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700'
                     }`}
                   >
-                    호스트 시작
-                  </button>
-                  <button 
-                    onClick={stopHost}
-                    disabled={!hostActive}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      !hostActive
-                        ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700'
-                    }`}
-                  >
-                    호스트 중지
+                    호스트로 전송 {isHostSending && '...'}
                   </button>
                 </div>
-              </div>
+              )}
               
               <div 
                 ref={hostLogRef}
@@ -280,24 +375,6 @@ export default function Home() {
                   <div key={index} className="mb-1">{log}</div>
                 ))}
               </div>
-
-            {!audioActivated ? (
-              <div className="bg-gray-800 p-6 rounded-lg border border-purple-800 shadow-lg flex items-center justify-center">
-                <button 
-                  onClick={activateAudio}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
-                >
-                  🔊 오디오 활성화하기
-                </button>
-              </div>
-            ) : (
-              <AudioVisualizer 
-                audioContext={audioContext}
-                audioSource={audioSource}
-              />
-            )}
-            
-            {/* 호스트 패널 */}
             </div>
           </div>
           
@@ -348,28 +425,30 @@ export default function Home() {
                 </button>
               </div>
               
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  메시지:
-                </label>
-                <textarea 
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="전송할 메시지를 입력하세요"
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent h-[100px] resize-none"
-                />
-                <button 
-                  onClick={handleSendMessage}
-                  disabled={!clientConnected || !messageText.trim()}
-                  className={`w-full mt-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                    !clientConnected || !messageText.trim()
-                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700'
-                  }`}
-                >
-                  메시지 전송 {isSending && '...'}
-                </button>
-              </div>
+              {clientConnected && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">
+                    메시지 전송:
+                  </label>
+                  <textarea 
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="클라이언트로 전송할 메시지를 입력하세요"
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent h-[80px] resize-none"
+                  />
+                  <button 
+                    onClick={handleClientSendMessage}
+                    disabled={!clientConnected || !messageText.trim() || isClientSending}
+                    className={`w-full mt-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                      !clientConnected || !messageText.trim() || isClientSending
+                        ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700'
+                    }`}
+                  >
+                    클라이언트로 전송 {isClientSending && '...'}
+                  </button>
+                </div>
+              )}
               
               <div 
                 ref={clientLogRef}
@@ -385,7 +464,9 @@ export default function Home() {
       </div>
       
       <div className="bg-gray-800 py-2 px-4 text-center text-xs text-gray-400">
-        SAL 오디오 메시지 트랜스포트 데모 v0.1.0 | 오디오 상태: {audioActivated ? '활성화됨' : '비활성화'} | SDK 상태: {isInitialized ? '초기화됨' : '초기화 필요'}
+        SAL 오디오 메시지 트랜스포트 데모 v0.1.0 | 오디오 상태: {audioActivated ? '활성화됨' : '비활성화'} | 
+        호스트 상태: {isHostInitialized ? '초기화됨' : '초기화 필요'} | 
+        클라이언트 상태: {isClientInitialized ? '초기화됨' : '초기화 필요'}
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { Message } from '../components/MessagePanel';
 import { Keypair } from '@solana/web3.js';
 
 // Define app mode type
-export type AppMode = 'HOST' | 'CLIENT';
+export type AppMode = 'HOST' | 'CLIENT' | 'HOST & CLIENT';
 
 // AudioContext 타입 정의
 interface AudioContextWindow extends Window {
@@ -45,12 +45,19 @@ export const useSalSdk = () => {
   const transportRef = useRef<AudioMessageTransport | null>(null);
 
   // Initialize SDK based on mode
-  const initialize = useCallback(async () => {
+  const initialize = useCallback(async (initMode?: AppMode) => {
     try {
+      // 모드 사용 우선순위: 함수에 전달된 모드 > 현재 상태 모드
+      const targetMode = initMode || mode;
       setError(null);
       
-      clientRef.current = null;
-      hostRef.current = null;
+      // 모드에 따라 초기화 대상 결정
+      const shouldInitHost = targetMode === 'HOST' || targetMode === 'HOST & CLIENT';
+      const shouldInitClient = targetMode === 'CLIENT' || targetMode === 'HOST & CLIENT';
+      
+      // 이미 초기화된 인스턴스에 따라 필요한 것만 초기화
+      if (!shouldInitHost) hostRef.current = null;
+      if (!shouldInitClient) clientRef.current = null;
       
       // Clean up previous audio resources
       if (audioSource) {
@@ -87,15 +94,15 @@ export const useSalSdk = () => {
       
       // Create transport
       const transport = new AudioMessageTransport({
-        name: mode === 'HOST' ? 'HostTransport' : 'ClientTransport',
+        name: targetMode === 'HOST' ? 'HostTransport' : 'ClientTransport',
         sampleRate: newAudioContext.sampleRate
       });
       
       // Store transport reference
       transportRef.current = transport;
     
-      // Initialize based on mode
-      if (mode === 'HOST') {
+      // Initialize HOST if needed
+      if (shouldInitHost) {
         // 호스트 모드 설정
         const hostConfig = {
           cluster: 'https://api.devnet.solana.com',
@@ -124,8 +131,10 @@ export const useSalSdk = () => {
         
         // 호스트 시작
         await hostRef.current.run();
-        setIsInitialized(true);
-      } else if (mode === 'CLIENT') {
+      }
+      
+      // Initialize CLIENT if needed
+      if (shouldInitClient) {
         // 클라이언트 모드 - Solana 클러스터 및 키페어 설정
         const clientConfig = {
           cluster: 'https://api.devnet.solana.com',
@@ -139,28 +148,26 @@ export const useSalSdk = () => {
         // 클라이언트 이벤트 핸들러 설정
         clientRef.current.onSuccess(() => {
           console.log('클라이언트 연결 성공');
-          setIsInitialized(true);
           setIsConnecting(false);
         }).onFailure((err) => {
           console.error('클라이언트 연결 실패:', err);
           setError(`연결 실패: ${err.message}`);
           setIsConnecting(false);
         });
-
-        // 클라이언트 모드에서는 자동으로 연결하지 않음
-        // 사용자가 connectToHost 함수를 호출해야 함
       }
+      
+      setIsInitialized(true);
     } catch (err) {
       console.error('SDK 초기화 오류:', err);
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsConnecting(false);
     }
-  }, [mode]);
+  }, [mode, audioContext, audioSource]);
 
   // 클라이언트에서 호스트에 연결하는 함수
-  const connectToHost = useCallback(async (hostName: string, phoneNumber: string = '+12345678901') => {
-    if (mode !== 'CLIENT' || !clientRef.current) {
-      setError('클라이언트 모드에서만 연결할 수 있습니다.');
+  const connectToHost = useCallback(async (hostName: string, phoneNumber: string = '+12345678901', cb: () => void) => {
+    if (!clientRef.current) {
+      setError('클라이언트가 초기화되지 않았습니다.');
       return;
     }
 
@@ -169,16 +176,20 @@ export const useSalSdk = () => {
       setError(null);
       
       // 호스트에 연결
-      await clientRef.current.connect(hostName, phoneNumber);
-      
-      // 여기서는 onSuccess 콜백에서 isInitialized를 설정하므로
-      // 여기서는 설정하지 않음
+      await clientRef.current.connect(hostName, phoneNumber)
+      .onSuccess(() => {
+        cb();
+      })
+      .onFailure((err) => {
+        setError(`연결 실패: ${err.message}`);
+        setIsConnecting(false);
+      });
     } catch (err) {
       console.error('호스트 연결 오류:', err);
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsConnecting(false);
     }
-  }, [mode]);
+  }, []);
 
   // Only setup cleanup function, no automatic initialization
   useEffect(() => {

@@ -66,7 +66,7 @@ export class AudioMessageTransport implements MessageTransport {
     console.log(`[${this.name}] ${message}`);
     
     if (!this.logDiv) {
-      console.error(`[${this.name}] 로그 패널을 찾을 수 없습니다.`);
+      // console.error(`[${this.name}] 로그 패널을 찾을 수 없습니다.`);
       return;
     }
     

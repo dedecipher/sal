@@ -293,8 +293,9 @@ export class SalHost extends EventEmitter implements ISalHost {
       return;
     }
 
-    // delay 1.5 sec for stable interaction
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // delay 2 sec for stable interaction
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    console.log('sendResponse delay 5 sec');
 
     const headers: SalMessageHeaders = {
       ...requestHeaders,
