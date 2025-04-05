@@ -1,0 +1,16 @@
+[build]
+  command = "mkdir -p netlify && node netlify/build-setup.js && yarn install && yarn build"
+  publish = ".next"
+  
+[build.environment]
+  NODE_VERSION = "18"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Redirect all routes to Next.js
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/nextjs-server"
+  status = 200 
