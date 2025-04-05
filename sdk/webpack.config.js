@@ -31,21 +31,42 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: 'public/ggwave/ggwave.wasm', to: '' },
+        { from: 'public/ggwave/ggwave.js', to: '' },
       ],
     }),
     // ggwave.js 인라인 포함을 위한 설정
     new webpack.BannerPlugin({
       banner: `
-// ggwave.js 인라인 포함 
+// ggwave 모듈 초기화
 (function(){
   if (typeof window !== "undefined" && !window.ggwave_factory) {
-    // wasm 파일 경로 설정
-    window.GGWAVE_WASM_URL = new URL("./ggwave.wasm", document.currentScript.src).href;
+    // WASM 파일 위치 설정
+    window.GGWAVE_WASM_URL = new URL("./ggwave.wasm", document.currentScript ? document.currentScript.src : window.location.href).href;
     
-    const ggwaveScript = document.createElement('script');
-    ggwaveScript.textContent = ${JSON.stringify(ggwaveJsContent)};
-    document.head.appendChild(ggwaveScript);
-    console.log("[SAL-SDK] ggwave.js 내장 버전이 로드되었습니다.");
+    // 모듈이 로드될때까지 대기
+    window.GGWAVE_READY = new Promise((resolve, reject) => {
+      // ggwave.js 로드
+      const script = document.createElement('script');
+      script.src = new URL("./ggwave.js", document.currentScript ? document.currentScript.src : window.location.href).href;
+      script.async = true;
+      
+      script.onload = () => {
+        if (window.ggwave_factory) {
+          console.log("[SAL-SDK] ggwave.js가 로드되었습니다.");
+          resolve();
+        } else {
+          console.error("[SAL-SDK] ggwave_factory를 찾을 수 없습니다.");
+          reject(new Error("ggwave_factory를 찾을 수 없습니다"));
+        }
+      };
+      
+      script.onerror = (err) => {
+        console.error("[SAL-SDK] ggwave.js 로드 실패:", err);
+        reject(new Error("ggwave.js 로드 실패"));
+      };
+      
+      document.head.appendChild(script);
+    });
   }
 })();`,
       raw: true,

@@ -14,37 +14,91 @@ export interface AudioEvent {
 // 오디오 이벤트 리스너 타입
 export type AudioEventListener = (event: AudioEvent) => void;
 
-// sdk/src/sal/codec.ts의 loadGGWaveScript 함수 부분 수정
+// GGWave 스크립트를 로드하는 함수
 function loadGGWaveScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (typeof window !== 'undefined' && (window as any).ggwave_factory) {
+    if (typeof window === 'undefined') {
+      console.warn('[CODEC] 브라우저 환경이 아닙니다. ggwave를 로드할 수 없습니다.');
+      reject(new Error('브라우저 환경이 아닙니다'));
+      return;
+    }
+
+    // 이미 로드되었거나 로드 중인 경우
+    if ((window as any).ggwave_factory) {
       console.log('[CODEC] ggwave_factory가 이미 로드되어 있습니다.');
       resolve();
       return;
     }
 
-    if (typeof window === 'undefined') {
-      console.warn('[CODEC] 브라우저 환경이 아닙니다. ggwave를 로드할 수 없습니다.');
-      resolve();
+    // 웹팩 설정에서 정의한 GGWAVE_READY Promise 사용
+    if ((window as any).GGWAVE_READY) {
+      console.log('[CODEC] ggwave 모듈 로드 대기 중...');
+      (window as any).GGWAVE_READY
+        .then(() => {
+          console.log('[CODEC] ggwave 모듈 로드 완료');
+          resolve();
+        })
+        .catch((err: Error) => {
+          console.error('[CODEC] ggwave 모듈 로드 실패:', err);
+          reject(err);
+        });
       return;
     }
 
-    // 내장 버전은 이미 로드되었으므로 추가 로드 필요 없음
-    console.log('[CODEC] 내장된 ggwave.js를 사용합니다.');
-    resolve();
+    // GGWAVE_READY가 없는 경우 수동으로 로드 시도
+    console.warn('[CODEC] GGWAVE_READY가 정의되지 않았습니다. 수동 로드를 시도합니다.');
+    try {
+      const scriptSrc = document.currentScript instanceof HTMLScriptElement 
+        ? document.currentScript.src 
+        : '';
+      const basePath = scriptSrc.substring(0, scriptSrc.lastIndexOf('/') + 1);
+      
+      // WASM 파일 경로 설정
+      (window as any).GGWAVE_WASM_URL = `${basePath}ggwave.wasm`;
+      
+      // ggwave.js 스크립트 로드
+      const script = document.createElement('script');
+      script.src = `${basePath}ggwave.js`;
+      script.async = true;
+      
+      script.onload = () => {
+        console.log('[CODEC] ggwave.js 로드 완료');
+        if ((window as any).ggwave_factory) {
+          resolve();
+        } else {
+          console.error('[CODEC] ggwave_factory 객체를 찾을 수 없습니다.');
+          reject(new Error('ggwave_factory 객체를 찾을 수 없습니다'));
+        }
+      };
+      
+      script.onerror = () => {
+        console.error('[CODEC] ggwave.js 로드 실패');
+        reject(new Error('ggwave.js 로드 실패'));
+      };
+      
+      document.head.appendChild(script);
+    } catch (err) {
+      console.error('[CODEC] 스크립트 로드 중 오류:', err);
+      reject(err);
+    }
   });
 }
 
-// 모듈 로드 시 자동으로 실행
-if (typeof window !== 'undefined') {
-  loadGGWaveScript().catch(err => console.error('[CODEC] ggwave 자동 로드 실패:', err));
-}
-
 // Helper function to convert array types
-function convertTypedArray(src: any, type: any): any {
-  const buffer = new ArrayBuffer(src.byteLength);
-  new src.constructor(buffer).set(src);
-  return new type(buffer);
+function convertTypedArray(src: Float32Array | Int8Array | Int16Array, type: { new(length: number): any; new(buffer: ArrayBuffer): any }): any {
+  if (!src || !src.buffer) {
+    console.error('[CODEC] 유효하지 않은 배열 변환 시도');
+    return new type(0);
+  }
+  
+  try {
+    const buffer = new ArrayBuffer(src.byteLength);
+    new (src.constructor as any)(buffer).set(src);
+    return new type(buffer);
+  } catch (err) {
+    console.error('[CODEC] 배열 변환 실패:', err);
+    return new type(0);
+  }
 }
 
 export class AudioCodec extends EventEmitter {
@@ -56,6 +110,8 @@ export class AudioCodec extends EventEmitter {
   private recorder: ScriptProcessorNode | null = null;
   private isRecording = false;
   private userId: string;
+  private isLoading = false;
+  private initPromise: Promise<boolean> | null = null;
 
   constructor(userId?: string) {
     super();
@@ -63,54 +119,111 @@ export class AudioCodec extends EventEmitter {
   }
 
   /**
+   * 오디오 이벤트 리스너를 등록합니다.
+   */
+  public onMessage(listener: AudioEventListener): void {
+    this.on('message', listener);
+  }
+
+  /**
    * 오디오 시스템을 초기화합니다.
    */
   public async init(): Promise<boolean> {
-    try {
-      if (!this.context) {
-        this.context = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 48000 });
-      }
-
-      // ggwave 로딩
-      if (!this.ggwave && typeof window !== 'undefined') {
-        console.log('[CODEC] ggwave 로딩 중...');
+    // 이미 초기화 중이라면 진행 중인 Promise 반환
+    if (this.isLoading && this.initPromise) {
+      return this.initPromise;
+    }
+    
+    // 이미 초기화되었다면 true 반환
+    if (this.context && this.ggwave && this.instance) {
+      return true;
+    }
+    
+    this.isLoading = true;
+    
+    this.initPromise = new Promise(async (resolve) => {
+      try {
+        console.log('[CODEC] 오디오 시스템 초기화 중...');
         
-        // ggwave.js 스크립트 로드 확인 및 로드
-        await loadGGWaveScript();
-        
-        if (!(window as any).ggwave_factory) {
-          // 실제 구현에서는 스크립트 로딩 로직이 필요합니다
-          // 여기서는 ggwave가 이미 로드되어 있다고 가정합니다
-          console.error('[CODEC] ggwave_factory를 찾을 수 없습니다.');
-          return false;
-        }
-        
-        // ggwave 인스턴스 초기화
-        this.ggwave = await (window as any).ggwave_factory();
-        
-        if (this.ggwave) {
-          const parameters = this.ggwave.getDefaultParameters();
-          
-          if (this.context) {
-            parameters.sampleRateInp = this.context.sampleRate;
-            parameters.sampleRateOut = this.context.sampleRate;
+        // AudioContext 초기화
+        if (!this.context) {
+          if (typeof window === 'undefined') {
+            console.error('[CODEC] 브라우저 환경이 아닙니다.');
+            this.isLoading = false;
+            resolve(false);
+            return;
           }
           
-          parameters.soundMarkerThreshold = 4;
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (!AudioContextClass) {
+            console.error('[CODEC] AudioContext를 지원하지 않는 브라우저입니다.');
+            this.isLoading = false;
+            resolve(false);
+            return;
+          }
           
-          this.instance = this.ggwave.init(parameters);
-          console.log('[CODEC] ggwave 초기화 완료', { instance: this.instance });
-        } else {
-          console.error('[CODEC] ggwave 초기화 실패');
-          return false;
+          this.context = new AudioContextClass({ sampleRate: 48000 });
+          
+          // AudioContext 상태가 suspended인 경우 사용자 인터랙션 필요
+          if (this.context.state === 'suspended') {
+            console.warn('[CODEC] AudioContext가 suspended 상태입니다. 사용자 인터랙션이 필요합니다.');
+          }
         }
-      }
 
-      return !!(this.context && this.ggwave && this.instance);
-    } catch (error) {
-      console.error('[CODEC] 오디오 초기화 실패:', error);
-      return false;
-    }
+        // ggwave 로딩
+        if (!this.ggwave && typeof window !== 'undefined') {
+          console.log('[CODEC] ggwave 로딩 중...');
+          
+          try {
+            // ggwave.js 스크립트 로드 확인 및 로드
+            await loadGGWaveScript();
+            
+            if (!(window as any).ggwave_factory) {
+              console.error('[CODEC] ggwave_factory를 찾을 수 없습니다.');
+              this.isLoading = false;
+              resolve(false);
+              return;
+            }
+            
+            // ggwave 인스턴스 초기화
+            this.ggwave = await (window as any).ggwave_factory();
+            
+            if (this.ggwave) {
+              const parameters = this.ggwave.getDefaultParameters();
+              
+              if (this.context) {
+                parameters.sampleRateInp = this.context.sampleRate;
+                parameters.sampleRateOut = this.context.sampleRate;
+              }
+              
+              parameters.soundMarkerThreshold = 4;
+              
+              this.instance = this.ggwave.init(parameters);
+              console.log('[CODEC] ggwave 초기화 완료', { instance: !!this.instance });
+            } else {
+              console.error('[CODEC] ggwave 초기화 실패');
+              this.isLoading = false;
+              resolve(false);
+              return;
+            }
+          } catch (err) {
+            console.error('[CODEC] ggwave 로딩 실패:', err);
+            this.isLoading = false;
+            resolve(false);
+            return;
+          }
+        }
+
+        this.isLoading = false;
+        resolve(!!(this.context && this.ggwave && this.instance));
+      } catch (error) {
+        console.error('[CODEC] 오디오 초기화 실패:', error);
+        this.isLoading = false;
+        resolve(false);
+      }
+    });
+    
+    return this.initPromise;
   }
 
   /**
@@ -130,19 +243,42 @@ export class AudioCodec extends EventEmitter {
         return false;
       }
       
-      // 마이크 액세스 요청
-      this.mediaStreamInstance = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
+      // AudioContext가 suspended 상태라면 resume 시도
+      if (this.context.state === 'suspended') {
+        try {
+          await this.context.resume();
+          console.log('[CODEC] AudioContext 재개됨');
+        } catch (err) {
+          console.warn('[CODEC] AudioContext 재개 실패:', err);
         }
-      });
+      }
+      
+      // 마이크 액세스 요청
+      try {
+        this.mediaStreamInstance = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        });
+      } catch (err) {
+        console.error('[CODEC] 마이크 액세스 실패:', err);
+        return false;
+      }
       
       this.mediaStream = this.context.createMediaStreamSource(this.mediaStreamInstance);
       
       // 오디오 프로세서 생성
-      this.recorder = this.context.createScriptProcessor(8192, 1, 1);
+      try {
+        // ScriptProcessorNode는 deprecated이지만 호환성을 위해 유지
+        // 나중에 AudioWorklet으로 마이그레이션 필요
+        this.recorder = this.context.createScriptProcessor(8192, 1, 1);
+      } catch (err) {
+        console.error('[CODEC] 오디오 프로세서 생성 실패:', err);
+        this.stopListening();
+        return false;
+      }
       
       // 오디오 데이터 처리
       this.recorder.onaudioprocess = (e: AudioProcessingEvent) => {
@@ -151,28 +287,39 @@ export class AudioCodec extends EventEmitter {
           return;
         }
         
-        const sourceBuf = e.inputBuffer.getChannelData(0);
-        const res = this.ggwave.decode(
-          this.instance,
-          convertTypedArray(new Float32Array(sourceBuf), Int8Array)
-        );
-
-        if (res && res.length > 0) {
-          const text = new TextDecoder("utf-8").decode(res);
+        try {
+          const sourceBuf = e.inputBuffer.getChannelData(0);
+          const int8Samples = convertTypedArray(new Float32Array(sourceBuf), Int8Array);
           
-          // 송신자 ID가 있는 경우 자신의 메시지 무시
-          if (text.startsWith(`${this.userId}$`)) {
-            console.log("[CODEC] 자신의 메시지 무시:", text);
+          if (!int8Samples || int8Samples.length === 0) {
             return;
           }
           
-          // ID 접두사 제거
-          const cleanMessage = text.includes('$') ? text.split('$').slice(1).join('$') : text;
-          
-          this.emit('message', {
-            message: cleanMessage,
-            source: 'external'
-          });
+          const res = this.ggwave.decode(this.instance, int8Samples);
+
+          if (res && res.length > 0) {
+            try {
+              const text = new TextDecoder("utf-8").decode(res);
+              
+              // 송신자 ID가 있는 경우 자신의 메시지 무시
+              if (text.startsWith(`${this.userId}$`)) {
+                console.log("[CODEC] 자신의 메시지 무시:", text);
+                return;
+              }
+              
+              // ID 접두사 제거
+              const cleanMessage = text.includes('$') ? text.split('$').slice(1).join('$') : text;
+              
+              this.emit('message', {
+                message: cleanMessage,
+                source: 'external'
+              });
+            } catch (decodeErr) {
+              console.error('[CODEC] 텍스트 디코딩 실패:', decodeErr);
+            }
+          }
+        } catch (processErr) {
+          console.error('[CODEC] 오디오 처리 실패:', processErr);
         }
       };
 
@@ -183,9 +330,11 @@ export class AudioCodec extends EventEmitter {
       }
 
       this.isRecording = true;
+      console.log('[CODEC] 오디오 수신 시작됨');
       return true;
     } catch (err) {
       console.error('[CODEC] 오디오 수신 시작 실패:', err);
+      this.stopListening(); // 리소스 정리
       return false;
     }
   }
@@ -196,22 +345,27 @@ export class AudioCodec extends EventEmitter {
   public stopListening(): void {
     if (!this.isRecording) return;
     
-    if (this.recorder) {
-      this.recorder.disconnect();
-      this.recorder = null;
+    try {
+      if (this.recorder) {
+        this.recorder.disconnect();
+        this.recorder = null;
+      }
+      
+      if (this.mediaStream) {
+        this.mediaStream.disconnect();
+        this.mediaStream = null;
+      }
+      
+      if (this.mediaStreamInstance) {
+        this.mediaStreamInstance.getTracks().forEach(track => track.stop());
+        this.mediaStreamInstance = null;
+      }
+      
+      this.isRecording = false;
+      console.log('[CODEC] 오디오 수신 중지됨');
+    } catch (err) {
+      console.error('[CODEC] 오디오 수신 중지 중 오류:', err);
     }
-    
-    if (this.mediaStream) {
-      this.mediaStream.disconnect();
-      this.mediaStream = null;
-    }
-    
-    if (this.mediaStreamInstance) {
-      this.mediaStreamInstance.getTracks().forEach(track => track.stop());
-      this.mediaStreamInstance = null;
-    }
-    
-    this.isRecording = false;
   }
 
   /**
@@ -222,6 +376,17 @@ export class AudioCodec extends EventEmitter {
       if (!await this.init() || !this.context || !this.ggwave || !this.instance) {
         console.error('[CODEC] 오디오 메시지 전송 실패: 초기화되지 않음');
         return false;
+      }
+      
+      // AudioContext가 suspended 상태라면 resume 시도
+      if (this.context.state === 'suspended') {
+        try {
+          await this.context.resume();
+          console.log('[CODEC] AudioContext 재개됨');
+        } catch (err) {
+          console.warn('[CODEC] AudioContext 재개 실패:', err);
+          return false;
+        }
       }
       
       // ID 접두사 추가
@@ -240,49 +405,61 @@ export class AudioCodec extends EventEmitter {
         10 // 볼륨
       );
 
+      if (!waveform || waveform.length === 0) {
+        console.error('[CODEC] 오디오 인코딩 실패');
+        return false;
+      }
+
       // 오디오 버퍼 생성 및 재생
-      const buf = convertTypedArray(waveform, Float32Array);
-      const buffer = this.context.createBuffer(1, buf.length, this.context.sampleRate);
-      buffer.getChannelData(0).set(buf);
-      const source = this.context.createBufferSource();
-      source.buffer = buffer;
-      source.connect(this.context.destination);
-      source.start(0);
-
-      // 이벤트 발생
-      this.emit('message', {
-        message,
-        source: 'self'
-      });
-
-      return true;
+      try {
+        const buf = convertTypedArray(waveform, Float32Array);
+        const buffer = this.context.createBuffer(1, buf.length, this.context.sampleRate);
+        buffer.getChannelData(0).set(buf);
+        
+        const source = this.context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(this.context.destination);
+        
+        // 완료 이벤트
+        source.onended = () => {
+          this.emit('message', {
+            message,
+            source: 'self'
+          });
+        };
+        
+        source.start(0);
+        return true;
+      } catch (playErr) {
+        console.error('[CODEC] 오디오 재생 실패:', playErr);
+        return false;
+      }
     } catch (error) {
-      console.error('[CODEC] 오디오 메시지 전송 실패:', error);
+      console.error('[CODEC] 메시지 전송 실패:', error);
       return false;
     }
   }
-  
-  /**
-   * 메시지 이벤트 리스너를 등록합니다.
-   */
-  public onMessage(listener: AudioEventListener): () => void {
-    this.on('message', listener);
-    return () => this.off('message', listener);
-  }
-  
+
   /**
    * 리소스를 정리합니다.
    */
   public dispose(): void {
     this.stopListening();
     
-    if (this.context && this.context.state !== 'closed') {
-      this.context.close();
+    try {
+      if (this.context && this.context.state !== 'closed') {
+        this.context.close().catch(err => {
+          console.error('[CODEC] AudioContext 종료 실패:', err);
+        });
+      }
+    } catch (err) {
+      console.error('[CODEC] 리소스 정리 중 오류:', err);
     }
     
     this.context = null;
     this.ggwave = null;
     this.instance = null;
     this.removeAllListeners();
+    console.log('[CODEC] 리소스 정리 완료');
   }
 }
