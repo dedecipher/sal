@@ -70,42 +70,13 @@ export class AudioMessageTransport implements MessageTransport {
     this.logDiv.scrollTop = this.logDiv.scrollHeight;
   }
   
-  // 타입 변환 도우미 함수
-  private convertTypedArray<T extends ArrayBufferView, U extends ArrayBufferView>(
-    src: T, 
-    type: { new(buffer: ArrayBuffer): U }
-  ): U | null {
-    try {
-      const buffer = new ArrayBuffer(src.byteLength);
-      new (src.constructor as any)(buffer).set(src);
-      return new type(buffer);
-    } catch (error) {
-      console.error(`[${this.name}] 타입 변환 오류:`, error);
-      
-      // 대체 변환 방법 시도
-      try {
-        const temp = Array.from(new Float32Array(src.buffer));
-        const result = new type(new ArrayBuffer(temp.length * 2));
-        
-        // Int16Array일 경우 스케일링 적용
-        if (type.name === 'Int8Array') {
-          for (let i = 0; i < temp.length; i++) {
-            // 타입 캐스팅을 안전하게 처리
-            const typedResult = result as unknown as Int8Array;
-            typedResult[i] = Math.floor(temp[i] * 127);
-          }
-        } else {
-          for (let i = 0; i < temp.length; i++) {
-            (result as any)[i] = temp[i];
-          }
-        }
-        
-        return result;
-      } catch (fallbackError) {
-        console.error(`[${this.name}] 대체 타입 변환 실패:`, fallbackError);
-        return null;
-      }
-    }
+  /**
+   * 오디오 샘플 배열을 다른 타입으로 변환하는 헬퍼 함수
+   */
+  private convertTypedArray(src: any, type: any) {
+    const buffer = new ArrayBuffer(src.byteLength);
+    new src.constructor(buffer).set(src);
+    return new type(buffer);
   }
   
   /**
@@ -461,78 +432,112 @@ export class AudioMessageTransport implements MessageTransport {
         
         // 5초마다 로그 출력 (디버깅용)
         if (now - lastLog > 5000) {
-          console.log(`[${this.name}] 오디오 처리 중... (${processCount}회 처리됨)`);
-          console.log(`[${this.name}] 신호 강도:`, signalStrength.toFixed(6));
+          // console.log(`[${this.name}] 오디오 처리 중... (${processCount}회 처리됨)`);
+          // console.log(`[${this.name}] 신호 강도:`, signalStrength.toFixed(6));
           lastLog = now;
         }
         
         try {
           // 모든 오디오 입력을 디코딩 시도하지 않고, 좀 더 엄격한 필터링 적용
           // 신호 강도가 특정 임계값을 넘을 때만 디코딩 시도
-          if (signalStrength < 0.005) { // 임계값 상향 조정
+          if (signalStrength < 0.001) {
             return; // 신호가 너무 약하면 처리하지 않음
           }
           
-          // 신호 패턴 분석 - 간단한 제로 크로싱 검사
-          let crossings = 0;
-          let lastSign = Math.sign(sourceBuf[0]);
-          
-          for (let i = 1; i < Math.min(1000, sourceBuf.length); i++) { // 샘플 일부만 검사
-            const sign = Math.sign(sourceBuf[i]);
-            if (sign !== lastSign && sign !== 0) {
-              crossings++;
-              lastSign = sign;
-            }
+          // 강한 신호가 감지되면 로그
+          if (signalStrength > 0.01) {
+            console.log(`[${this.name}] 강한 신호 감지: ${signalStrength.toFixed(6)}, 디코딩 시도`);
           }
           
-          const crossingRate = crossings / Math.min(1000, sourceBuf.length);
+          // ggwave 인스턴스 확인
+          if (!this.instance || typeof this.instance !== 'number' || !this.ggwave) {
+            console.error(`[${this.name}] ggwave 인스턴스가 유효하지 않습니다.`);
+            return;
+          }
           
-          // 유효한 신호로 판단될 때만 디코딩 시도
-          if (signalStrength > 0.01 && crossingRate > 0.03 && crossingRate < 0.5) {
-            // 강한 신호일 때만 로그 출력 (불필요한 로그 줄이기)
-            console.log(`[${this.name}] 💡 유효한 신호 감지: 강도=${signalStrength.toFixed(3)}, 크로싱=${crossingRate.toFixed(2)}`);
+          // 디코딩 시도 - audioUtils.ts의 구현 방식을 따라 수정
+          try {
+            // Float32Array를 Int8Array로 변환 (audioUtils.ts 방식으로)
+            const result = this.ggwave.decode(
+              this.instance,
+              this.convertTypedArray(new Float32Array(sourceBuf), Int8Array)
+            );
             
-            // Int8Array로 변환 - 값 범위 조정 중요
-            // ggwave는 일반적으로 -128 ~ 127 범위의 Int8Array 값을 기대함
-            const samples = new Int8Array(sourceBuf.length);
-            for (let i = 0; i < sourceBuf.length; i++) {
-              // Float32Array(-1.0~1.0)를 Int8Array(-128~127)로 변환
-              samples[i] = Math.max(-128, Math.min(127, Math.floor(sourceBuf[i] * 127)));
-            }
-            
-            // 디코딩 시도
-            if (!this.instance || typeof this.instance !== 'number' || !this.ggwave) {
-              console.error(`[${this.name}] ggwave 인스턴스가 유효하지 않습니다.`);
-              return;
-            }
-            
-            // 디코딩 시도
-            try {
-              const result = this.ggwave.decode(this.instance, samples);
+            // 결과 출력
+            if (result && result.byteLength > 0) {
+              console.log(`[${this.name}] 디코딩 결과: byteLength=${result.byteLength}`);
               
-              // 결과가 있을 때만 로그 출력
-              if (result && result.byteLength > 0) {
-                console.log(`[${this.name}] 디코딩 결과: byteLength=${result.byteLength}`);
-                
-                // 문자열로 변환
-                const text = new TextDecoder("utf-8").decode(result);
-                console.log(`[${this.name}] 🎵 디코딩 성공! 메시지: "${text}"`);
-                console.log(`[${this.name}] 📊 디코딩 정보: 결과크기=${result.byteLength}바이트, 메시지길이=${text.length}자`);
-                
-                // 디버깅용 - 바이너리 데이터 출력
-                const bytes = Array.from(new Uint8Array(result))
-                  .map(b => b.toString(16).padStart(2, '0'))
-                  .join(' ');
-                console.log(`[${this.name}] 📊 원시 바이트: ${bytes}`);
-                
-                // 성공적인 디코딩 시 이벤트 발생
+              // 문자열로 변환
+              const text = new TextDecoder("utf-8").decode(result);
+              console.log(`[${this.name}] 🎵 디코딩 성공! 메시지: "${text}"`);
+              console.log(`[${this.name}] 📊 디코딩 정보: 결과크기=${result.byteLength}바이트, 메시지길이=${text.length}자`);
+              
+              // 디버깅용 - 바이너리 데이터 출력
+              const bytes = Array.from(new Uint8Array(result))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join(' ');
+              console.log(`[${this.name}] 📊 원시 바이트: ${bytes}`);
+              
+              // JSON 메시지인지 확인하고 안전하게 처리
+              const isJsonMsg = text.trim().startsWith('{') && (text.trim().endsWith('}') || text.includes('"method":'));
+              
+              if (isJsonMsg) {
+                try {
+                  // JSON 문자열 정리 - 끝이 잘렸을 수 있음
+                  let jsonText = text.trim();
+                  
+                  // 중간에 잘린 경우 처리 (끝 부분이 없는 경우)
+                  if (!jsonText.endsWith('}')) {
+                    console.warn(`[${this.name}] 불완전한 JSON이 감지됨: ${jsonText}`);
+                    this.log(`불완전한 JSON 감지됨, 처리 시도 중...`, 'info');
+                    
+                    // 가능한 경우 끝 중괄호 추가
+                    if (jsonText.includes('{"method":') || jsonText.includes('{"headers":')) {
+                      // 중괄호 갯수 확인
+                      const openCount = (jsonText.match(/{/g) || []).length;
+                      const closeCount = (jsonText.match(/}/g) || []).length;
+                      const missing = openCount - closeCount;
+                      
+                      if (missing > 0) {
+                        // 빠진 만큼 닫는 중괄호 추가
+                        jsonText += '}'.repeat(missing);
+                        console.log(`[${this.name}] 누락된 중괄호 ${missing}개 추가: ${jsonText}`);
+                      }
+                    }
+                  }
+                  
+                  // JSON 파싱 시도
+                  const jsonObj = JSON.parse(jsonText);
+                  
+                  // 성공적으로 파싱된 경우 이벤트 발생
+                  this.log(`JSON 메시지 수신 성공!`, 'response');
+                  console.log(`[${this.name}] 📊 파싱된 JSON:`, jsonObj);
+                  this.emitter.emit('message_received', jsonText);
+                } catch (jsonErr) {
+                  // JSON 파싱 실패
+                  const errMsg = jsonErr instanceof Error ? jsonErr.message : String(jsonErr);
+                  console.error(`[${this.name}] JSON 파싱 오류:`, errMsg);
+                  this.log(`JSON 파싱 오류: ${errMsg}`, 'error');
+                  
+                  // 전송 성공 했지만 형식이 맞지 않으면 원본 텍스트 그대로 전달
+                  if (text.trim().length > 0) {
+                    this.log(`원본 텍스트 전달: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}`, 'info');
+                    this.emitter.emit('message_received', text);
+                  }
+                }
+              } else {
+                // 일반 텍스트 메시지
                 this.log(`디코딩된 메시지: ${text}`, 'response');
                 this.emitter.emit('message_received', text);
               }
-            } catch (decodeErr) {
-              // 디코딩 오류는 로그 수준 낮추기
-              console.warn(`[${this.name}] ggwave.decode 오류:`, decodeErr);
+            } else {
+              // 결과가 없을 때는 디버그 로그만
+              if (signalStrength > 0.05) {
+                console.log(`[${this.name}] 디코딩 시도 결과: 신호 감지되었으나 디코딩 실패`);
+              }
             }
+          } catch (decodeErr) {
+            console.error(`[${this.name}] ggwave.decode 오류:`, decodeErr);
           }
         } catch (err) {
           console.error(`[${this.name}] 디코딩 중 오류:`, err);

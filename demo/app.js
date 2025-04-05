@@ -455,10 +455,16 @@ sendMessageBtn.addEventListener('click', async () => {
       return;
     }
     
-    const message = messageInput.value.trim();
+    let message = messageInput.value.trim();
     if (!message) {
       addLogEntry('client-log', '전송할 메시지를 입력하세요.', 'error');
       return;
+    }
+    
+    // 메시지 길이 제한 - 오디오 전송에 적합하도록
+    if (message.length > 100) {
+      addLogEntry('client-log', `메시지가 너무 깁니다(${message.length}자). 100자로 제한합니다.`, 'warning');
+      message = message.substring(0, 100);
     }
     
     addLogEntry('client-log', `메시지 전송 중: "${message}"`, 'request');
@@ -466,17 +472,39 @@ sendMessageBtn.addEventListener('click', async () => {
     // 메시지 전송
     const sendMessageRequest = async (message) => {
       try {
-        // 메시지 타입 생성 (문자열)
-        const messageRequest = {
-          method: SalMethod.MSG,
-          data: message
+        // 간단한 JSON 구조로 변경 - 중첩 구조 최소화
+        const simpleMessage = {
+          type: "msg",
+          text: message
         };
         
-        // 메시지 전송
-        await client.send(JSON.stringify(messageRequest));
+        // 메시지를 JSON 문자열로 변환
+        const jsonMessage = JSON.stringify(simpleMessage);
+        console.log('전송할 JSON 메시지:', jsonMessage, '(길이:', jsonMessage.length, ')');
         
-        addLogEntry('client-log', `메시지가 성공적으로 전송되었습니다.`, 'request');
-        return true;
+        // 유효성 테스트
+        try {
+          JSON.parse(jsonMessage);
+          console.log('메시지 유효성 검사 통과');
+        } catch (jsonError) {
+          console.error('JSON 검증 실패', jsonError);
+          addLogEntry('client-log', `메시지 유효성 검사 실패: ${jsonError.message}`, 'error');
+          return false;
+        }
+        
+        // SDK의 AudioMessageTransport를 통해 메시지 직접 전송
+        try {
+          await clientTransport.sendMessage(jsonMessage);
+          addLogEntry('client-log', `메시지가 성공적으로 전송되었습니다.`, 'request');
+          return true;
+        } catch (transportError) {
+          addLogEntry('client-log', `직접 전송 실패: ${transportError.message}. 표준 메서드 사용...`, 'warning');
+          
+          // 실패 시 표준 방식으로 전송
+          await client.send(jsonMessage);
+          addLogEntry('client-log', `메시지가 성공적으로 전송되었습니다.`, 'request');
+          return true;
+        }
       } catch (error) {
         addLogEntry('client-log', `메시지 전송 실패: ${error.message}`, 'error');
         return false;
@@ -696,20 +724,16 @@ async function runDirectEchoTest(transport) {
     
     logToSelfTest(`인코딩 성공: ${waveform.length} 샘플 생성됨`, 'info');
     
-    // 2. Float32Array로 변환
-    const audioSamples = new Float32Array(waveform.length);
-    for (let i = 0; i < waveform.length; i++) {
-      audioSamples[i] = waveform[i];
-    }
+    // 2. waveform을 Float32Array로 변환 (audioUtils.ts 방식으로)
+    const convertTypedArray = (src, type) => {
+      const buffer = new ArrayBuffer(src.byteLength);
+      new src.constructor(buffer).set(src);
+      return new type(buffer);
+    };
     
-    // 3. 인코딩된 오디오 데이터를 Int8Array로 변환 (디코딩용)
-    const samples = new Int8Array(audioSamples.length);
-    for (let i = 0; i < audioSamples.length; i++) {
-      // Float32Array(-1.0~1.0)를 Int8Array(-128~127)로 변환
-      samples[i] = Math.max(-128, Math.min(127, Math.floor(audioSamples[i] * 127)));
-    }
+    const audioSamples = convertTypedArray(waveform, Float32Array);
     
-    // 4. 오디오 데이터 재생
+    // 3. 오디오 데이터 재생
     logToSelfTest('인코딩된 오디오 재생 중...', 'info');
     const context = new (window.AudioContext || window.webkitAudioContext)();
     const buffer = context.createBuffer(1, audioSamples.length, context.sampleRate);
@@ -720,10 +744,14 @@ async function runDirectEchoTest(transport) {
     source.connect(context.destination);
     source.start();
     
-    // 5. 바로 디코딩 시도
+    // 4. 바로 디코딩 시도 (audioUtils.ts 방식으로)
     logToSelfTest('인코딩된 데이터 직접 디코딩 시도...', 'request');
     try {
-      const result = transport.ggwave.decode(transport.instance, samples);
+      // 인코딩된 데이터를 바로 decode에 전달
+      const result = transport.ggwave.decode(
+        transport.instance, 
+        convertTypedArray(new Float32Array(audioSamples), Int8Array)
+      );
       
       if (result && result.byteLength > 0) {
         const decodedText = new TextDecoder("utf-8").decode(result);
@@ -736,6 +764,27 @@ async function runDirectEchoTest(transport) {
         }
       } else {
         logToSelfTest('디코딩 실패: 빈 결과', 'error');
+        
+        // 디버깅을 위한 추가 정보
+        logToSelfTest('디버깅 정보 출력...', 'info');
+        logToSelfTest(`ggwave 인스턴스: ${typeof transport.instance}`, 'info');
+        logToSelfTest(`샘플 크기: ${audioSamples.length}`, 'info');
+        
+        // 다른 방식으로 다시 시도
+        logToSelfTest('대안 방식으로 다시 시도...', 'info');
+        
+        const samples = new Int8Array(audioSamples.length);
+        for (let i = 0; i < audioSamples.length; i++) {
+          samples[i] = Math.max(-128, Math.min(127, Math.floor(audioSamples[i] * 127)));
+        }
+        
+        const resultAlt = transport.ggwave.decode(transport.instance, samples);
+        if (resultAlt && resultAlt.byteLength > 0) {
+          const decodedTextAlt = new TextDecoder("utf-8").decode(resultAlt);
+          logToSelfTest(`🎉 대안 방식 디코딩 성공! 결과: "${decodedTextAlt}"`, 'response');
+        } else {
+          logToSelfTest('대안 방식도 디코딩 실패', 'error');
+        }
       }
     } catch (decodeErr) {
       logToSelfTest(`디코딩 오류: ${decodeErr.message}`, 'error');
