@@ -29,19 +29,31 @@ export interface SalMessageHeaders {
   publicKey: string;     // Sender's public key
 }
 
+export enum SalMethod {
+  GM = 'gm',
+  MSG = 'msg',
+  TX = 'tx',
+}
+
 // JSON 기반 S3L 메시지 인터페이스
 export interface SalRequest {
+  method: SalMethod;
   sig: string;           // Signature of the body
-  headers: SalMessageHeaders;
-  body: any;             // Message body (can be string or object)
+  msg: {
+    headers: SalMessageHeaders;
+    body: any;             // Message body (can be string or object)
+  }
 }
 
 // JSON 기반 S3L 응답 메시지 인터페이스
 export interface SalResponse {
-  sig: string;           // Signature of the body
   status: 'ok' | 'error'; // Response status
-  headers: SalMessageHeaders;
-  body: any;             // Response body (can be string or object)
+  code: number;           // Response code; now only 200
+  sig: string;           // Signature of the body
+  msg: {
+    headers: SalMessageHeaders;
+    body: any;             // Message body (can be string or object)
+  }
 }
 
 export type MessageHandler = (message: string, sender: string) => Promise<void> | void;

@@ -1,224 +1,266 @@
 import {
-    ClientConfig,
-    Modality,
-    SalMessageHeaders,
-    SalRequest
-  } from '../types';
-  import { EventEmitter } from 'events';
+  ClientConfig,
+  Modality,
+  SalMessageHeaders,
+  SalRequest,
+  SalResponse,
+  SalMethod
+} from '../types';
+import { EventEmitter } from 'events';
+import * as codec from './codec';
+import * as crypto from 'crypto';
+
+/**
+ * SalClient는 음성 기반 통신을 통해 SalHost와 통신하는 클라이언트를 구현합니다.
+ */
+export class SalClient extends EventEmitter {
+  private cfg: ClientConfig;
+  private isConnected: boolean = false;
+  private currentHost: string | null = null;
+  private audioListener: { stop: () => void } | null = null;
+  private pendingRequests: Map<string, { resolve: Function, reject: Function }> = new Map();
+
+  // 콜백 함수
+  private onSuccessCallback: (() => void) | null = null;
+  private onFailureCallback: ((error: Error) => void) | null = null;
+
+  constructor(config: ClientConfig) {
+    super();
+    
+    // 필수 설정 확인
+    if (!config.cluster || !config.privateKey) {
+      throw new Error('필수 설정 매개변수가 누락되었습니다.');
+    }
+    
+    this.cfg = {
+      ...config,
+      modality: Modality.VOICE // VOICE 모드만 지원
+    };
+  }
   
   /**
-   * Handles client-side functionality for the S3L protocol
+   * 호스트에 연결합니다.
    */
-  export class SalClient extends EventEmitter {
-    private cfg: ClientConfig;
-    private isConnected: boolean = false;
-    private currentHost: string | null = null;
-    private client: any = null; // Will be a TCP client or audio handler based on modality
+  public connect(host: string, phoneNumber?: string): SalClient {
+    this.currentHost = host;
+    
+    // 오디오 수신 시작
+    this.startAudioListener();
+    
+    // 연결 프로세스 시작
+    this.performConnection(host, phoneNumber);
+    
+    return this;
+  }
   
-    // Success and failure callbacks for connection
-    private onSuccessCallback: (() => void) | null = null;
-    private onFailureCallback: ((error: Error) => void) | null = null;
+  /**
+   * 성공 콜백을 설정합니다.
+   */
+  public onSuccess(callback: () => void): SalClient {
+    this.onSuccessCallback = callback;
+    return this;
+  }
   
-    constructor(config: ClientConfig) {
-      super();
-      
-      // Validate required config fields
-      if (!config.cluster || !config.privateKey) {
-        throw new Error('Missing required configuration parameters');
-      }
-      
-      this.cfg = {
-        ...config,
-        modality: config.modality || Modality.TCP // Default to TCP if not specified
-      };
+  /**
+   * 실패 콜백을 설정합니다.
+   */
+  public onFailure(callback: (error: Error) => void): SalClient {
+    this.onFailureCallback = callback;
+    return this;
+  }
+  
+  /**
+   * 연결된 호스트에 메시지를 전송합니다.
+   */
+  public async send(message: string): Promise<any> {
+    if (!this.isConnected) {
+      throw new Error('호스트에 연결되지 않았습니다.');
     }
     
-    /**
-     * Connect to a host
-     */
-    public connect(host: string, phoneNumber?: string): SalClient {
-      this.currentHost = host;
-      
-      // Initialize client based on modality
-      if (this.cfg.modality === Modality.TCP) {
-        this.initTcpClient(host);
-      } else if (this.cfg.modality === Modality.VOICE) {
-        this.initVoiceClient();
-      }
-      
-      // Start connection process
-      this.performConnection(host, phoneNumber);
-      
-      return this;
+    if (!this.currentHost) {
+      throw new Error('호스트가 지정되지 않았습니다.');
     }
     
-    /**
-     * Set success callback
-     */
-    public onSuccess(callback: () => void): SalClient {
-      this.onSuccessCallback = callback;
-      return this;
+    return this.sendTextMessage(message);
+  }
+  
+  /**
+   * 연결을 종료합니다.
+   */
+  public async close(): Promise<void> {
+    if (!this.isConnected) {
+      return;
     }
     
-    /**
-     * Set failure callback
-     */
-    public onFailure(callback: (error: Error) => void): SalClient {
-      this.onFailureCallback = callback;
-      return this;
+    // 오디오 수신 중지
+    if (this.audioListener) {
+      this.audioListener.stop();
+      this.audioListener = null;
     }
     
-    /**
-     * Send a message to the connected host
-     */
-    public async send(message: string): Promise<any> {
-      if (!this.isConnected) {
-        throw new Error('Not connected to a host');
-      }
-      
-      if (!this.currentHost) {
-        throw new Error('No host specified');
-      }
-      
-      return this.sendTextMessage(message);
+    this.isConnected = false;
+    this.currentHost = null;
+    this.emit('disconnected');
+    console.log('SAL 클라이언트 연결 종료');
+  }
+  
+  /**
+   * 오디오 수신을 시작합니다.
+   */
+  private startAudioListener(): void {
+    // 이미 수신 중이라면 중지
+    if (this.audioListener) {
+      this.audioListener.stop();
     }
     
-    /**
-     * Close the connection
-     */
-    public async close(): Promise<void> {
-      if (!this.isConnected) {
-        return;
-      }
-      
-      if (this.client) {
-        // Close client based on modality
-        if (this.cfg.modality === Modality.TCP) {
-          // TCP client close
-          if (this.client.close) {
-            this.client.close();
-          }
-        } else if (this.cfg.modality === Modality.VOICE) {
-          // Voice/audio client close
-        }
-      }
-      
-      this.isConnected = false;
-      this.currentHost = null;
-      this.emit('disconnected');
-      console.log('SAL client disconnected');
-    }
-    
-    /**
-     * Initialize a TCP client
-     */
-    private initTcpClient(host: string): void {
-      // TCP client implementation would go here
-      console.log(`Initializing TCP client for ${host}`);
-      // Example: this.client = new TCPClient(host);
-    }
-    
-    /**
-     * Initialize a voice client
-     */
-    private initVoiceClient(): void {
-      // Voice client implementation would go here
-      console.log('Initializing voice client');
-      // Example: this.client = new VoiceClient();
-    }
-    
-    /**
-     * Perform connection handshake
-     */
-    private async performConnection(host: string, phoneNumber?: string): Promise<void> {
+    // 새로운 오디오 수신 시작
+    this.audioListener = codec.startAudioListener(async (audioMessage) => {
       try {
-        console.log(`Connecting to ${host}...`);
+        // JSON 메시지 파싱
+        const response = JSON.parse(audioMessage) as SalResponse;
         
-        // Create bootstrap message headers
-        const headers: SalMessageHeaders = {
-          host,
-          nonce: this.generateNonce(),
-          publicKey: "pubkey-placeholder" // Would be a real public key in a complete implementation
-        };
-        
-        if (phoneNumber) {
-          headers.phone = phoneNumber;
-        }
-        
-        // Create bootstrap message body
-        const body = "GM";
-        
-        // Send GM message to initiate connection
-        await this.sendJsonMessage(headers, body);
-        
-        // In a real implementation, we would wait for response
-        // For now, assume connection is successful
-        setTimeout(() => {
-          this.isConnected = true;
-          this.emit('connected', host);
-          
-          if (this.onSuccessCallback) {
-            this.onSuccessCallback();
-          }
-        }, 1000);
+        // 응답 처리
+        this.handleResponse(response);
       } catch (error) {
-        console.error('Connection failed:', error);
-        
-        if (this.onFailureCallback) {
-          this.onFailureCallback(error instanceof Error ? error : new Error(String(error)));
-        }
-        
-        this.emit('error', error);
+        console.error('오디오 메시지 처리 오류:', error);
       }
-    }
-    
-    /**
-     * Send a text message
-     */
-    private async sendTextMessage(message: string): Promise<any> {
-      console.log(`Sending text message to ${this.currentHost}: ${message}`);
+    });
+  }
+  
+  /**
+   * 호스트와 연결을 수행합니다.
+   */
+  private async performConnection(host: string, phoneNumber?: string): Promise<void> {
+    try {
+      console.log(`${host}에 연결 중...`);
       
+      // GM 메시지 헤더 생성
       const headers: SalMessageHeaders = {
-        host: this.currentHost as string,
+        host,
         nonce: this.generateNonce(),
-        publicKey: "pubkey-placeholder" // Would be a real public key in a complete implementation
+        publicKey: "pubkey-placeholder" // 실제 구현에서는 실제 공개 키 사용
       };
       
-      // Send the message
-      await this.sendJsonMessage(headers, message);
-      
-      // In a complete implementation, would wait for and return response
-      return { success: true };
-    }
-    
-    /**
-     * Send a JSON message to the host
-     */
-    private async sendJsonMessage(
-      headers: SalMessageHeaders,
-      body: any
-    ): Promise<void> {
-      const message: SalRequest = {
-        sig: "signature-placeholder", // Would be a real signature in a complete implementation
-        headers,
-        body
-      };
-      
-      // In a complete implementation, would actually send the message
-      console.log('Sending JSON message:', message);
-      
-      // Simulate sending
-      if (this.cfg.modality === Modality.TCP) {
-        // Would send via TCP
-      } else if (this.cfg.modality === Modality.VOICE) {
-        // Would send via audio
+      if (phoneNumber) {
+        headers.phone = phoneNumber;
       }
-    }
-    
-    /**
-     * Generate a random nonce for security
-     */
-    private generateNonce(): string {
-      return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
+      // GM 메시지 본문
+      const body = "HELLO";
+      
+      // GM 메시지 전송
+      const response = await this.sendRequest(SalMethod.GM, headers, body);
+      
+      // 응답 확인
+      if (response.status === 'ok') {
+        this.isConnected = true;
+        this.emit('connected', host);
+        
+        if (this.onSuccessCallback) {
+          this.onSuccessCallback();
+        }
+      } else {
+        throw new Error(`연결 거부됨: ${response.msg.body}`);
+      }
+    } catch (error) {
+      console.error('연결 실패:', error);
+      
+      if (this.onFailureCallback) {
+        this.onFailureCallback(error instanceof Error ? error : new Error(String(error)));
+      }
+      
+      this.emit('error', error);
     }
   }
+  
+  /**
+   * 텍스트 메시지를 전송합니다.
+   */
+  private async sendTextMessage(message: string): Promise<any> {
+    console.log(`${this.currentHost}에 텍스트 메시지 전송: ${message}`);
+    
+    const headers: SalMessageHeaders = {
+      host: this.currentHost as string,
+      nonce: this.generateNonce(),
+      publicKey: "pubkey-placeholder" // 실제 구현에서는 실제 공개 키 사용
+    };
+    
+    // 메시지 전송
+    return this.sendRequest(SalMethod.MSG, headers, message);
+  }
+  
+  /**
+   * 요청을 전송합니다.
+   */
+  private async sendRequest(
+    method: SalMethod,
+    headers: SalMessageHeaders,
+    body: any
+  ): Promise<SalResponse> {
+    // 요청 생성
+    const msg = { headers, body };
+    const request: SalRequest = {
+      method,
+      sig: this.sign(JSON.stringify(msg)),
+      msg
+    };
+    
+    // 요청을 JSON 문자열로 변환
+    const requestJson = JSON.stringify(request);
+    
+    // 오디오로 전송
+    await codec.playMessageAsAudio(requestJson);
+    
+    // 응답 대기
+    return new Promise((resolve, reject) => {
+      // 타임아웃 설정
+      const timeoutId = setTimeout(() => {
+        this.pendingRequests.delete(headers.nonce);
+        reject(new Error('응답 타임아웃'));
+      }, 10000);
+      
+      // 요청 등록
+      this.pendingRequests.set(headers.nonce, {
+        resolve: (response: SalResponse) => {
+          clearTimeout(timeoutId);
+          resolve(response);
+        },
+        reject
+      });
+    });
+  }
+  
+  /**
+   * 응답을 처리합니다.
+   */
+  private handleResponse(response: SalResponse): void {
+    // 요청 헤더에서 nonce 추출
+    const nonce = response.msg.headers.nonce;
+    
+    // 보류 중인 요청 확인
+    const pendingRequest = this.pendingRequests.get(nonce);
+    if (pendingRequest) {
+      // 응답 확인
+      pendingRequest.resolve(response);
+      this.pendingRequests.delete(nonce);
+    } else {
+      console.warn('알 수 없는 응답 무시:', response);
+    }
+  }
+  
+  /**
+   * 랜덤 nonce를 생성합니다.
+   */
+  private generateNonce(): string {
+    return crypto.randomBytes(16).toString('hex');
+  }
+  
+  /**
+   * 메시지에 서명합니다.
+   */
+  private sign(message: string): string {
+    // 실제 구현에서는 개인 키로 메시지에 서명
+    // 지금은 모의 서명 반환
+    return `sig-${crypto.createHash('sha256').update(message).digest('hex').substring(0, 8)}`;
+  }
+}
