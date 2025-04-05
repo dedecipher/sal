@@ -63,10 +63,7 @@
   
   <div id="log"></div>
 
-  <!-- ggwave.js 로드 -->
-  <script src="./public/ggwave/ggwave.js"></script>
-  
-  <!-- SAL SDK 로드 -->
+  <!-- SAL SDK 로드 (내장 ggwave.js 포함) -->
   <script src="./sal-sdk.js"></script>
   
   <script>
@@ -97,7 +94,7 @@
         log('오디오 코덱 초기화 중...');
         
         // AudioCodec 인스턴스 생성
-        audioCodec = new window.salSdk.AudioCodec();
+        audioCodec = new window.salSDK.AudioCodec();
         
         // 초기화
         const result = await audioCodec.init();
@@ -188,7 +185,7 @@
       log('사용 방법: "초기화" 버튼을 클릭하고, "수신 시작" 버튼을 클릭한 후 메시지를 입력하여 전송하세요.');
       
       // SDK 확인
-      if (window.salSdk) {
+      if (window.salSDK) {
         log('SAL SDK 로드됨');
       } else {
         log('SAL SDK 로드 실패');

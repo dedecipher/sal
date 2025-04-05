@@ -14,7 +14,7 @@ export interface AudioEvent {
 // 오디오 이벤트 리스너 타입
 export type AudioEventListener = (event: AudioEvent) => void;
 
-// ggwave.js 스크립트를 동적으로 로드하는 함수
+// sdk/src/sal/codec.ts의 loadGGWaveScript 함수 부분 수정
 function loadGGWaveScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (typeof window !== 'undefined' && (window as any).ggwave_factory) {
@@ -29,19 +29,9 @@ function loadGGWaveScript(): Promise<void> {
       return;
     }
 
-    console.log('[CODEC] ggwave.js 스크립트 로드 중...');
-    const script = document.createElement('script');
-    script.src = '/ggwave/ggwave.js';
-    script.async = true;
-    script.onload = () => {
-      console.log('[CODEC] ggwave.js 로드 완료');
-      resolve();
-    };
-    script.onerror = (error) => {
-      console.error('[CODEC] ggwave.js 로드 실패:', error);
-      reject(new Error('ggwave.js 로드 실패'));
-    };
-    document.head.appendChild(script);
+    // 내장 버전은 이미 로드되었으므로 추가 로드 필요 없음
+    console.log('[CODEC] 내장된 ggwave.js를 사용합니다.');
+    resolve();
   });
 }
 
