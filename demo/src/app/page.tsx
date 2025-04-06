@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSalSdk } from '../hooks/useSalSdk';
 import Navbar from '../components/Navbar';
 import AudioVisualizer from '../components/AudioVisualizer';
+import MessagePanel from '../components/MessagePanel';
+import ConnectionLogs from '../components/ConnectionLogs';
 import { useWallet } from '../hooks/useWallet';
 
 export default function Home() {
@@ -57,6 +59,9 @@ export default function Home() {
     initialize: initializeClient,
     connectToHost,
     isInitialized: isClientInitialized,
+    connectionLogs,
+    clearConnectionLogs,
+    isConnecting,
   } = useSalSdk();
 
   // Wallet 연결 처리
@@ -113,6 +118,8 @@ export default function Home() {
       addClientLog('info', '클라이언트 초기화됨');
       
       addClientLog('request', `호스트 "${hostAddress}"에 연결 시도 중...`);
+      clearConnectionLogs(); // 새 연결 시도 전에 로그 초기화
+      
       await connectToHost(hostAddress, '+12345678901', () => {
         setClientConnected(true);
         addClientLog('response', '호스트에 연결되었습니다!');
@@ -183,7 +190,7 @@ export default function Home() {
       }
     }, 10);
   };
-
+  
   // 호스트 메시지 모니터링
   useEffect(() => {
     if (hostMessages.length > 0) {
@@ -198,7 +205,7 @@ export default function Home() {
         }]);
       }
       
-      // 메시지 패널 자동 스크롤
+      // 자동 스크롤
       setTimeout(() => {
         if (messagesLogRef.current) {
           messagesLogRef.current.scrollTop = messagesLogRef.current.scrollHeight;
@@ -206,7 +213,7 @@ export default function Home() {
       }, 10);
     }
   }, [hostMessages]);
-
+  
   // 클라이언트 메시지 모니터링
   useEffect(() => {
     if (clientMessages.length > 0) {
@@ -221,7 +228,7 @@ export default function Home() {
         }]);
       }
       
-      // 메시지 패널 자동 스크롤
+      // 자동 스크롤
       setTimeout(() => {
         if (messagesLogRef.current) {
           messagesLogRef.current.scrollTop = messagesLogRef.current.scrollHeight;
@@ -229,24 +236,26 @@ export default function Home() {
       }, 10);
     }
   }, [clientMessages]);
-
-  // SDK 오류 상태 모니터링
+  
+  // 호스트 에러 모니터링
   useEffect(() => {
     if (hostSdkError) {
-      addHostLog('error', `호스트 오류: ${hostSdkError}`);
+      addHostLog('error', hostSdkError);
     }
   }, [hostSdkError]);
-
+  
+  // 클라이언트 에러 모니터링
   useEffect(() => {
     if (clientSdkError) {
-      addClientLog('error', `클라이언트 오류: ${clientSdkError}`);
+      addClientLog('error', clientSdkError);
     }
   }, [clientSdkError]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+    <main className="flex min-h-screen flex-col bg-gray-900 text-gray-100">
+      {/* 네비게이션 바 */}
       <Navbar 
-        mode={'HOST'}
+        mode="CLIENT"
         onModeChange={() => {}}
         onConnectWallet={handleWalletConnect}
         isWalletConnected={walletState.connected}
@@ -256,12 +265,16 @@ export default function Home() {
       <div className="container mx-auto px-4 py-6 flex-1 flex flex-col gap-6">
         {/* 메시지 모니터링 패널 */}
         <div className="bg-gray-800 p-4 rounded-lg border border-purple-800 shadow-lg">
-          <h2 className="text-xl font-semibold mb-2 text-purple-300">Messages</h2>
+          <h2 className="text-xl font-semibold mb-2 text-purple-300">Communication Logs</h2>
           <div 
             ref={messagesLogRef}
-            className="bg-gray-900 border border-gray-700 rounded-lg p-4 h-[150px] overflow-y-auto font-mono text-sm"
+            className="bg-gray-900 border border-gray-700 rounded-lg p-4 h-[300px] overflow-y-auto font-mono text-sm"
           >
-            {messages.length === 0 ? (
+            <ConnectionLogs 
+              logs={connectionLogs.filter(log => log.text.includes('청크 수신'))}
+              onClear={clearConnectionLogs}
+            />
+            {/* {messages.length === 0 ? (
               <div className="text-gray-500 text-center italic">아직 주고받은 메시지가 없습니다</div>
             ) : (
               messages.map((msg, index) => (
@@ -280,7 +293,7 @@ export default function Home() {
                   <div className="break-words">{msg.text}</div>
                 </div>
               ))
-            )}
+            )} */}
           </div>
         </div>
         
@@ -304,6 +317,14 @@ export default function Home() {
             />
           </div>
         )} */}
+        
+        {/* 연결 로그 패널 - 새로 추가 */}
+        {/* <div className="h-[300px]">
+          <ConnectionLogs 
+            logs={connectionLogs}
+            onClear={clearConnectionLogs}
+          />
+        </div> */}
         
         {/* 메인 컨텐츠 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -384,7 +405,7 @@ export default function Home() {
             <div className="mb-4">
               <div className="font-medium mb-2">
                 상태: <span className={`${clientConnected ? 'text-green-400' : 'text-red-400'}`}>
-                  {clientConnected ? '연결됨' : '연결 안됨'}
+                  {clientConnected ? '연결됨' : isConnecting ? '연결 중...' : '연결 안됨'}
                 </span>
               </div>
               
@@ -403,14 +424,14 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <button 
                   onClick={connectClient}
-                  disabled={clientConnected || !audioActivated}
+                  disabled={clientConnected || isConnecting || !audioActivated}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    clientConnected || !audioActivated
+                    clientConnected || isConnecting || !audioActivated
                       ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700'
                   }`}
                 >
-                  호스트에 연결
+                  {isConnecting ? '연결 중...' : '호스트에 연결'}
                 </button>
                 <button 
                   onClick={disconnectClient}
@@ -468,6 +489,6 @@ export default function Home() {
         호스트 상태: {isHostInitialized ? '초기화됨' : '초기화 필요'} | 
         클라이언트 상태: {isClientInitialized ? '초기화됨' : '초기화 필요'}
       </div>
-    </div>
+    </main>
   );
 }

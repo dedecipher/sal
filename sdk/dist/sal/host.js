@@ -268,8 +268,9 @@ class SalHost extends events_1.EventEmitter {
             this.emit('error', new Error('메시지 전송 인터페이스가 설정되지 않았습니다.'));
             return;
         }
-        // delay 1.5 sec for stable interaction
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // delay 2 sec for stable interaction
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log('sendResponse delay 5 sec');
         const headers = {
             ...requestHeaders,
             host: this.cfg.host,

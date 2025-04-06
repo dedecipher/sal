@@ -12,6 +12,14 @@ interface AudioContextWindow extends Window {
   webkitAudioContext?: typeof AudioContext;
 }
 
+// 로그 메시지 타입 정의
+export interface ConnectionLog {
+  id: string;
+  text: string;
+  type: 'info' | 'request' | 'response' | 'error';
+  timestamp: number;
+}
+
 export const useSalSdk = () => {
   // Get initial mode from URL parameters
   const getInitialMode = (): AppMode => {
@@ -32,6 +40,7 @@ export const useSalSdk = () => {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [connectionLogs, setConnectionLogs] = useState<ConnectionLog[]>([]);
   
   // Audio context and stream
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
@@ -43,6 +52,19 @@ export const useSalSdk = () => {
   const hostRef = useRef<SalHost | null>(null);
   const keypairRef = useRef<Keypair>(Keypair.generate());
   const transportRef = useRef<AudioMessageTransport | null>(null);
+
+  // 로그 메시지 추가 함수
+  const addConnectionLog = useCallback((text: string, type: 'info' | 'request' | 'response' | 'error') => {
+    setConnectionLogs(prev => [
+      ...prev,
+      {
+        id: uuidv4(),
+        text,
+        type,
+        timestamp: Date.now()
+      }
+    ]);
+  }, []);
 
   // Initialize SDK based on mode
   const initialize = useCallback(async (initMode?: AppMode) => {
@@ -145,6 +167,49 @@ export const useSalSdk = () => {
         // SalClient 생성
         clientRef.current = new SalClient(clientConfig, transport);
         
+        // 이벤트 리스너 추가 - 이벤트를 로그로 기록
+        if (clientRef.current) {
+          // 원래 콘솔 로그 함수 저장
+          const originalConsoleLog = console.log;
+          const originalConsoleError = console.error;
+
+          // AudioMessageTransport와 관련된 로그만 캡처하기 위한 함수
+          console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            
+            // 첫 번째 인수가 문자열이고 [ClientTransport] 또는 [HostTransport]를 포함하는 경우에만 처리
+            if (typeof args[0] === 'string' && 
+                (args[0].includes('[ClientTransport]') || 
+                 args[0].includes('[HostTransport]') ||
+                 args[0].includes('연결 응답'))) {
+              const logText = args.join(' ');
+              addConnectionLog(logText, 'info');
+            }
+          };
+
+          console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+
+            // 오류 로그 중 필요한 것만 캡처
+            if (typeof args[0] === 'string' && 
+                (args[0].includes('[ClientTransport]') || 
+                 args[0].includes('[HostTransport]'))) {
+              const logText = args.join(' ');
+              addConnectionLog(logText, 'error');
+            }
+          };
+
+          // EventEmitter 이벤트 리스너 추가
+          clientRef.current.on('connected', (host) => {
+            addConnectionLog(`호스트 ${host}에 연결됨`, 'info');
+          });
+
+          clientRef.current.on('error', (err) => {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            addConnectionLog(`오류 발생: ${errorMessage}`, 'error');
+          });
+        }
+        
         // 클라이언트 이벤트 핸들러 설정
         clientRef.current.onSuccess(() => {
           console.log('클라이언트 연결 성공');
@@ -162,7 +227,7 @@ export const useSalSdk = () => {
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsConnecting(false);
     }
-  }, [mode, audioContext, audioSource]);
+  }, [mode, audioContext, audioSource, addConnectionLog]);
 
   // 클라이언트에서 호스트에 연결하는 함수
   const connectToHost = useCallback(async (hostName: string, phoneNumber: string = '+12345678901', cb: () => void) => {
@@ -174,22 +239,41 @@ export const useSalSdk = () => {
     try {
       setIsConnecting(true);
       setError(null);
+      setConnectionLogs([]); // 연결 시작 시 로그 초기화
+      
+      addConnectionLog(`호스트 ${hostName}에 연결 시도...`, 'info');
+      
+      // 메시지 전송 인터셉트를 위한 메소드 모니터링
+      if (transportRef.current) {
+        const transport = transportRef.current;
+        
+        // 실제 메시지 전송을 모니터링하기 위해 메소드를 가로채기
+        const originalSendMessage = transport.sendMessage;
+        transport.sendMessage = async function(message: string) {
+          addConnectionLog(`메시지 전송: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`, 'request');
+          return await originalSendMessage.call(this, message);
+        };
+      }
       
       // 호스트에 연결
       await clientRef.current.connect(hostName, phoneNumber)
       .onSuccess(() => {
+        addConnectionLog('연결 성공', 'info');
         cb();
       })
       .onFailure((err) => {
+        addConnectionLog(`연결 실패: ${err.message}`, 'error');
         setError(`연결 실패: ${err.message}`);
         setIsConnecting(false);
       });
     } catch (err) {
       console.error('호스트 연결 오류:', err);
-      setError(err instanceof Error ? err.message : '알 수 없는 오류');
+      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
+      addConnectionLog(`연결 오류: ${errorMessage}`, 'error');
+      setError(errorMessage);
       setIsConnecting(false);
     }
-  }, []);
+  }, [addConnectionLog]);
 
   // Only setup cleanup function, no automatic initialization
   useEffect(() => {
@@ -269,6 +353,11 @@ export const useSalSdk = () => {
     }
   }, [mode]);
 
+  // 로그 초기화 함수
+  const clearConnectionLogs = useCallback(() => {
+    setConnectionLogs([]);
+  }, []);
+
   // Return hook values and functions
   return {
     mode,
@@ -281,5 +370,7 @@ export const useSalSdk = () => {
     initialize,
     connectToHost,
     isConnecting,
+    connectionLogs,
+    clearConnectionLogs,
   };
 };

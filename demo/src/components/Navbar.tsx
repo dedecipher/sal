@@ -22,7 +22,7 @@ export default function Navbar({
     <nav className="w-full bg-gradient-to-r from-indigo-900 to-purple-900 p-4 flex justify-between items-center">
       <div className="flex items-center space-x-2">
         <div className="rounded-lg p-1 flex padding-30">
-          SAL DEMO
+          SSAL DEMO
         </div>
       </div>
       
